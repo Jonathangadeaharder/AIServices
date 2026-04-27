@@ -22,22 +22,10 @@ ignore = []
 [tool.pyright]
 pythonVersion = "3.10"
 pythonPlatform = "All"
-typeCheckingMode = "basic"
-venvPath = "."
-venv = ".venv"
-reportPrivateImportUsage = "none"
-reportAttributeAccessIssue = "none"
-reportCallIssue = "none"
-
-[tool.pytest.ini_options]
-pythonpath = [
-    "packages/aiservices_core/src",
-    "packages/image2image/src",
-]
+typeCheckingMode = "strict"
 
 [dependency-groups]
 dev = [
-    "copier>=9.14.3",
     "pyright>=1.1.409",
     "pytest>=9.0.3",
     "ruff>=0.15.12",
