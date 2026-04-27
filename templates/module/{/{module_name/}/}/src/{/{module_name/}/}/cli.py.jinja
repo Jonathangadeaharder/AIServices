@@ -1,0 +1,14 @@
+import typer
+from aiservices_core.cli import verbose_option, device_option
+
+app = typer.Typer(help="{{module_description}}")
+
+@app.command()
+def main(
+    verbose: bool = verbose_option,
+    device: str = device_option,
+):
+    typer.echo(f"Running {{module_name}} on {device}")
+
+if __name__ == "__main__":
+    app()

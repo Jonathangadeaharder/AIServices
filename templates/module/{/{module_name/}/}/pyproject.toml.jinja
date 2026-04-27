@@ -1,0 +1,15 @@
+[project]
+name = "{{module_name}}"
+version = "0.1.0"
+description = "{{module_description}}"
+requires-python = ">=3.10"
+dependencies = [
+    "aiservices-core",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+{{module_name}} = "{{module_name}}.cli:app"
