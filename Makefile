@@ -1,7 +1,7 @@
 .PHONY: setup lint test format clean
 
 setup:
-	uv sync
+	uv sync --all-packages
 
 format:
 	uv run ruff check --fix .

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from PIL import Image
@@ -12,7 +11,7 @@ def load_image(path_or_url: str | Path) -> Image.Image:
 
         import requests
 
-        response = requests.get(path_str)
+        response = requests.get(path_str, timeout=10)
         response.raise_for_status()
         return Image.open(BytesIO(response.content)).convert("RGB")
 
@@ -21,5 +20,6 @@ def load_image(path_or_url: str | Path) -> Image.Image:
 
 def save_image(img: Image.Image, path: str | Path):
     """Save an image to a path."""
-    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-    img.save(path)
+    path_obj = Path(path).resolve()
+    path_obj.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path_obj)
