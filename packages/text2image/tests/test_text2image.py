@@ -1,26 +1,29 @@
+import copy
 import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from image2image.models import Image2ImageRequest
-from image2image.providers.replicate_cloud import ReplicateProvider
+from text2image.models import Text2ImageRequest
+from text2image.providers.replicate_cloud import ReplicateProvider
 
 
 @pytest.fixture
-def dummy_request(tmp_path):
-    dummy_file = tmp_path / "dummy.jpg"
-    dummy_file.write_bytes(b"fake image data")
-    return Image2ImageRequest(
-        image_path=str(dummy_file), prompt="A beautiful test image", strength=0.5
+def dummy_request():
+    return Text2ImageRequest(
+        prompt="A beautiful test image",
+        guidance_scale=7.5,
+        num_inference_steps=50,
+        width=1024,
+        height=1024,
     )
 
 
-@patch("image2image.providers.replicate_cloud.replicate.run")
-@patch("image2image.providers.replicate_cloud.requests.get")
-@patch("image2image.providers.replicate_cloud.Image.open")
+@patch("text2image.providers.replicate_cloud.replicate.run")
+@patch("text2image.providers.replicate_cloud.requests.get")
+@patch("text2image.providers.replicate_cloud.Image.open")
 def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_request, tmp_path):
     # Setup mocks
-    mock_run.return_value = ["http://example.com/out.jpg"]
+    mock_run.return_value = ["https://example.com/out.png"]
 
     mock_response = MagicMock()
     mock_response.content = b"fake_image_data"
@@ -31,11 +34,11 @@ def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_requ
 
     provider = ReplicateProvider()
 
-    out_file = tmp_path / "out.jpg"
+    out_file = tmp_path / "out.png"
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)
-    assert response.metadata["url"] == "http://example.com/out.jpg"
+    assert response.metadata["url"] == "https://example.com/out.png"
     mock_run.assert_called_once()
     mock_img.save.assert_called_once_with(str(out_file))
 
@@ -44,17 +47,14 @@ def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_requ
     os.environ.get("RUN_INTEGRATION_TESTS") != "1", reason="Requires RUN_INTEGRATION_TESTS=1"
 )
 def test_local_provider_integration(dummy_request, tmp_path):
-    # This test will execute via ComfyUI WebSocket, so it's gated.
-    from image2image.providers.comfyui import ComfyUIProvider
+    # This test will actually execute via ComfyUI WebSocket, so it's gated.
+    from text2image.providers.comfyui import ComfyUIProvider
 
     provider = ComfyUIProvider()
-    out_file = tmp_path / "out.jpg"
-
-    # We would need a real image_path for this to work
-    import copy
+    out_file = tmp_path / "out.png"
 
     new_request = copy.copy(dummy_request)
-    new_request.image_path = "https://picsum.photos/512"
+    new_request.num_inference_steps = 1  # fast inference for test
 
     response = provider.generate(new_request, str(out_file))
     assert os.path.exists(response.output_path)

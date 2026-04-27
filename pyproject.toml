@@ -33,6 +33,7 @@ reportCallIssue = "none"
 pythonpath = [
     "packages/aiservices_core/src",
     "packages/image2image/src",
+    "packages/text2image/src",
 ]
 
 [dependency-groups]
