@@ -17,7 +17,7 @@ def generate(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt for image generation"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output image"),
     provider_name: str = typer.Option(
-        "local_sdxl", "--provider", help="Provider to use (local_sdxl, replicate)"
+        "comfyui", "--provider", help="Provider to use (comfyui, replicate)"
     ),
     negative_prompt: str | None = typer.Option(None, "--negative-prompt", help="Negative prompt"),
     guidance_scale: float = typer.Option(7.5, "--guidance-scale", help="Guidance scale"),

@@ -1,9 +1,11 @@
 import os
+import urllib.parse
 from io import BytesIO
+from typing import Any
 
 import replicate
 import requests
-from aiservices_core.errors import retry_api_call
+from aiservices_core.errors import ProviderError, retry_api_call
 from aiservices_core.providers import BaseProvider
 from PIL import Image
 
@@ -48,17 +50,40 @@ class ReplicateProvider(BaseProvider):
             input_data["seed"] = request.seed
 
         # Run the model
-        output = replicate.run(self.model_id, input=input_data)
+        try:
+            output = replicate.run(self.model_id, input=input_data)
+        except Exception as e:
+            raise ProviderError(f"Replicate generation failed for {self.model_id}") from e
 
-        # output is usually a list of URLs
-        if isinstance(output, list) and len(output) > 0:
-            result_url = output[0]
-        else:
-            result_url = str(output)
+        result_url = self._extract_url(output)
 
-        self._download_and_save(result_url, output_path)
+        try:
+            self._download_and_save(result_url, output_path)
+        except Exception as e:
+            raise ProviderError(f"Failed to download or save image from {result_url}") from e
 
         return Text2ImageResponse(
             output_path=output_path,
             metadata={"provider": "replicate", "model_id": self.model_id, "url": result_url},
         )
+
+    def _extract_url(self, output: Any) -> str:
+        result_url = None
+        if isinstance(output, list) and len(output) > 0:
+            result_url = str(output[0])
+        elif isinstance(output, dict):
+            for key in ["url", "image", "output"]:
+                if key in output:
+                    result_url = str(output[key])
+                    break
+        elif isinstance(output, str):
+            result_url = output
+
+        if not result_url:
+            raise ProviderError(f"Failed to parse output URL from Replicate response: {output}")
+
+        parsed = urllib.parse.urlparse(result_url)
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise ProviderError(f"Invalid output URL returned from Replicate: {result_url}")
+
+        return result_url

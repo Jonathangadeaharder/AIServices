@@ -44,13 +44,13 @@ def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_requ
 
 
 @pytest.mark.skipif(
-    not os.environ.get("RUN_INTEGRATION_TESTS"), reason="Requires RUN_INTEGRATION_TESTS=1"
+    os.environ.get("RUN_INTEGRATION_TESTS") != "1", reason="Requires RUN_INTEGRATION_TESTS=1"
 )
 def test_local_provider_integration(dummy_request, tmp_path):
-    # This test will actually load the diffusers pipeline, so it's gated.
-    from text2image.providers.local_sdxl import LocalSDXLProvider
+    # This test will actually execute via ComfyUI WebSocket, so it's gated.
+    from text2image.providers.comfyui import ComfyUIProvider
 
-    provider = LocalSDXLProvider()
+    provider = ComfyUIProvider()
     out_file = tmp_path / "out.png"
 
     new_request = copy.copy(dummy_request)

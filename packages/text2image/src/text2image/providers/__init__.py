@@ -1,7 +1,7 @@
 from aiservices_core.providers import registry
 
-from .local_sdxl import LocalSDXLProvider
+from .comfyui import ComfyUIProvider
 from .replicate_cloud import ReplicateProvider
 
-registry.register("local_sdxl", LocalSDXLProvider)
+registry.register("comfyui", ComfyUIProvider)
 registry.register("replicate", ReplicateProvider)
