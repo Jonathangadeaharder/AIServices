@@ -27,37 +27,42 @@ class ReplicateProvider(BaseProvider):
             logging.warning("REPLICATE_API_TOKEN not set. Replicate provider will fail if used.")
 
     @retry_api_call
+    def _download_and_save(self, url: str, output_path: str):
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        img = Image.open(BytesIO(response.content)).convert("RGB")
+        img.save(output_path)
+
     def generate(self, request: Image2ImageRequest, output_path: str) -> Image2ImageResponse:
-        # Replicate input dictionary
-        input_data = {
-            "image": open(request.image_path, "rb")
-            if not request.image_path.startswith("http")
-            else request.image_path,
-            "prompt": request.prompt,
-            "prompt_strength": request.strength,
-            "guidance_scale": request.guidance_scale,
-            "num_inference_steps": request.num_inference_steps,
-        }
+        is_url = request.image_path.startswith("http")
+        file_obj = None
+        if not is_url:
+            file_obj = open(request.image_path, "rb")
 
-        if request.negative_prompt:
-            input_data["negative_prompt"] = request.negative_prompt
-        if request.seed is not None:
-            input_data["seed"] = request.seed
+        try:
+            input_data = {
+                "image": request.image_path if is_url else file_obj,
+                "prompt": request.prompt,
+                "prompt_strength": request.strength,
+                "guidance_scale": request.guidance_scale,
+                "num_inference_steps": request.num_inference_steps,
+            }
+            if request.negative_prompt:
+                input_data["negative_prompt"] = request.negative_prompt
+            if request.seed is not None:
+                input_data["seed"] = request.seed
 
-        # Run the model
-        output = replicate.run(self.model_id, input=input_data)
+            output = replicate.run(self.model_id, input=input_data)
+        finally:
+            if file_obj:
+                file_obj.close()
 
-        # output is usually a list of URLs
         if isinstance(output, list) and len(output) > 0:
             result_url = output[0]
         else:
             result_url = str(output)
 
-        # Download and save the image
-        response = requests.get(result_url, timeout=10)
-        response.raise_for_status()
-        img = Image.open(BytesIO(response.content)).convert("RGB")
-        img.save(output_path)
+        self._download_and_save(result_url, output_path)
 
         return Image2ImageResponse(
             output_path=output_path,

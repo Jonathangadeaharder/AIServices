@@ -45,7 +45,7 @@ def main(
         with create_progress_bar() as progress:
             task_id = progress.add_task("[cyan]Initializing provider...", total=None)
 
-            provider = registry.get(provider_name)
+            provider = registry.get(provider_name, device=device)
 
             progress.update(task_id, description="[green]Generating image...")
             start_time = time.time()

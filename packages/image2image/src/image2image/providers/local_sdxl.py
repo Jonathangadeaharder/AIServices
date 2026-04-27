@@ -10,9 +10,14 @@ from ..models import Image2ImageRequest, Image2ImageResponse
 class LocalSDXLProvider(BaseProvider):
     """Local SDXL image-to-image provider using Diffusers."""
 
-    def __init__(self, model_id: str = "stabilityai/stable-diffusion-xl-refiner-1.0", **kwargs):
+    def __init__(
+        self,
+        model_id: str = "stabilityai/stable-diffusion-xl-refiner-1.0",
+        device: str | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
-        self.device = get_optimal_device()
+        self.device = device if device else get_optimal_device()
 
         # Load the pipeline
         self.pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
@@ -44,6 +49,9 @@ class LocalSDXLProvider(BaseProvider):
             generator=generator,
             **kwargs,
         )
+
+        if not result.images or len(result.images) == 0:
+            raise RuntimeError("Pipeline failed to generate an image.")
 
         output_image = result.images[0]
         output_image.save(output_path)

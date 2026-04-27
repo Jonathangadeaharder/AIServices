@@ -1,6 +1,0 @@
-module_name:
-  type: str
-  help: "The name of the module (e.g. text2image)"
-module_description:
-  type: str
-  help: "A brief description of the module"
