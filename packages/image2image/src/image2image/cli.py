@@ -17,8 +17,10 @@ def main(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt"),
     output_path: str = typer.Option(..., "--output", "-o", help="Path to save output"),
     provider_name: str = typer.Option(
-        "comfyui", "--provider", help="Provider (comfyui, replicate)"
-    ),  # noqa: E501
+        "image2image.comfyui",
+        "--provider",
+        help="Provider name",
+    ),
     strength: float = typer.Option(0.5, "--strength", "-s", help="Transformation strength"),
     guidance_scale: float = typer.Option(7.5, "--guidance", help="Guidance scale"),
     steps: int = typer.Option(50, "--steps", help="Number of inference steps"),

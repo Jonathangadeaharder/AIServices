@@ -25,7 +25,7 @@ class ComfyUIProvider(BaseProvider):
             self.workflow_template = json.load(f)
 
     def generate(self, request: Text2ImageRequest, output_path: str) -> Text2ImageResponse:
-        prompt = self.workflow_template.copy()
+        prompt = json.loads(json.dumps(self.workflow_template))  # deep copy
 
         # Update prompt
         prompt["6"]["inputs"]["text"] = request.prompt

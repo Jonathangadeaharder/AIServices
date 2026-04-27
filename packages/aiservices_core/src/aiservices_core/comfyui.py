@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import urllib.parse
 import urllib.request
 import uuid
@@ -8,6 +9,9 @@ from typing import Any
 import websocket
 
 logger = logging.getLogger(__name__)
+
+HTTP_TIMEOUT = 60  # seconds for HTTP requests
+WS_TIMEOUT = 300  # seconds for WebSocket recv (5 min for long workflows)
 
 
 class ComfyUIClient:
@@ -20,13 +24,15 @@ class ComfyUIClient:
     def queue_prompt(self, prompt: dict[str, Any], prompt_id: str) -> None:
         p = {"prompt": prompt, "client_id": self.client_id, "prompt_id": prompt_id}
         data = json.dumps(p).encode("utf-8")
-        req = urllib.request.Request(f"http://{self.server_address}/prompt", data=data)
-        urllib.request.urlopen(req).read()
+        req = urllib.request.Request(
+            f"http://{self.server_address}/prompt",
+            data=data,
+            headers={"Content-Type": "application/json"},
+        )
+        urllib.request.urlopen(req, timeout=HTTP_TIMEOUT).read()
 
     def upload_image(self, filepath: str, filename: str) -> None:
         """Upload an image file to the ComfyUI server's input directory."""
-        import mimetypes
-
         content_type = mimetypes.guess_type(filepath)[0] or "image/png"
         boundary = uuid.uuid4().hex
 
@@ -47,17 +53,19 @@ class ComfyUIClient:
             headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
             method="POST",
         )
-        urllib.request.urlopen(req).read()
+        urllib.request.urlopen(req, timeout=HTTP_TIMEOUT).read()
 
     def get_image(self, filename: str, subfolder: str, folder_type: str) -> bytes:
         data = {"filename": filename, "subfolder": subfolder, "type": folder_type}
         url_values = urllib.parse.urlencode(data)
-        with urllib.request.urlopen(f"http://{self.server_address}/view?{url_values}") as response:
+        with urllib.request.urlopen(
+            f"http://{self.server_address}/view?{url_values}", timeout=HTTP_TIMEOUT
+        ) as response:
             return response.read()
 
     def get_history(self, prompt_id: str) -> dict[str, Any]:
         with urllib.request.urlopen(
-            f"http://{self.server_address}/history/{prompt_id}"
+            f"http://{self.server_address}/history/{prompt_id}", timeout=HTTP_TIMEOUT
         ) as response:
             return json.loads(response.read())
 
@@ -67,11 +75,15 @@ class ComfyUIClient:
 
         ws = websocket.WebSocket()
         ws.connect(f"ws://{self.server_address}/ws?clientId={self.client_id}")
+        ws.settimeout(WS_TIMEOUT)
 
-        output_images = {}
+        output_images: dict[str, list[bytes]] = {}
         try:
             while True:
-                out = ws.recv()
+                try:
+                    out = ws.recv()
+                except websocket.WebSocketTimeoutException:
+                    raise TimeoutError(f"ComfyUI workflow timed out after {WS_TIMEOUT}s") from None
                 if isinstance(out, str):
                     message = json.loads(out)
                     if message["type"] == "executing":

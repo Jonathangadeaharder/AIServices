@@ -3,5 +3,5 @@ from aiservices_core.providers import registry
 from .comfyui import ComfyUIProvider
 from .replicate_cloud import ReplicateProvider
 
-registry.register("comfyui", ComfyUIProvider)
-registry.register("replicate", ReplicateProvider)
+registry.register("image2image.comfyui", ComfyUIProvider)
+registry.register("image2image.replicate", ReplicateProvider)
