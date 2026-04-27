@@ -13,3 +13,6 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 {{module_name}} = "{{module_name}}.cli:app"
+
+[tool.uv.sources]
+aiservices-core = { workspace = true }

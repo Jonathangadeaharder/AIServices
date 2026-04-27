@@ -33,3 +33,8 @@ ENV/
 env.bak/
 venv.bak/
 .DS_Store
+.python-version
+.vscode/
+.idea/
+*.swp
+.ipynb_checkpoints/
