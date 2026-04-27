@@ -17,7 +17,7 @@ def main(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt"),
     output_path: str = typer.Option(..., "--output", "-o", help="Path to save output"),
     provider_name: str = typer.Option(
-        "local_sdxl", "--provider", help="Provider (local_sdxl, replicate)"
+        "comfyui", "--provider", help="Provider (comfyui, replicate)"
     ),  # noqa: E501
     strength: float = typer.Option(0.5, "--strength", "-s", help="Transformation strength"),
     guidance_scale: float = typer.Option(7.5, "--guidance", help="Guidance scale"),

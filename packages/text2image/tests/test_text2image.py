@@ -23,7 +23,7 @@ def dummy_request():
 @patch("text2image.providers.replicate_cloud.Image.open")
 def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_request, tmp_path):
     # Setup mocks
-    mock_run.return_value = ["http://example.com/out.png"]
+    mock_run.return_value = ["https://example.com/out.png"]
 
     mock_response = MagicMock()
     mock_response.content = b"fake_image_data"
@@ -38,7 +38,7 @@ def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_requ
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)
-    assert response.metadata["url"] == "http://example.com/out.png"
+    assert response.metadata["url"] == "https://example.com/out.png"
     mock_run.assert_called_once()
     mock_img.save.assert_called_once_with(str(out_file))
 

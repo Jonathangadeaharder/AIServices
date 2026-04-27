@@ -23,6 +23,32 @@ class ComfyUIClient:
         req = urllib.request.Request(f"http://{self.server_address}/prompt", data=data)
         urllib.request.urlopen(req).read()
 
+    def upload_image(self, filepath: str, filename: str) -> None:
+        """Upload an image file to the ComfyUI server's input directory."""
+        import mimetypes
+
+        content_type = mimetypes.guess_type(filepath)[0] or "image/png"
+        boundary = uuid.uuid4().hex
+
+        with open(filepath, "rb") as f:
+            file_data = f.read()
+
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="image"; filename="{filename}"\r\n'
+            f"Content-Type: {content_type}\r\n\r\n"
+        ).encode()
+        body += file_data
+        body += f"\r\n--{boundary}--\r\n".encode()
+
+        req = urllib.request.Request(
+            f"http://{self.server_address}/upload/image",
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+            method="POST",
+        )
+        urllib.request.urlopen(req).read()
+
     def get_image(self, filename: str, subfolder: str, folder_type: str) -> bytes:
         data = {"filename": filename, "subfolder": subfolder, "type": folder_type}
         url_values = urllib.parse.urlencode(data)
