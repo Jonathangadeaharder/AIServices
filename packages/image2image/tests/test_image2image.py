@@ -9,11 +9,9 @@ from image2image.providers.replicate_cloud import ReplicateProvider
 @pytest.fixture
 def dummy_request(tmp_path):
     dummy_file = tmp_path / "dummy.jpg"
-    dummy_file.write_text("fake image data")
+    dummy_file.write_bytes(b"fake image data")
     return Image2ImageRequest(
-        image_path=str(dummy_file),
-        prompt="A beautiful test image",
-        strength=0.5
+        image_path=str(dummy_file), prompt="A beautiful test image", strength=0.5
     )
 
 
@@ -53,7 +51,10 @@ def test_local_provider_integration(dummy_request, tmp_path):
     out_file = tmp_path / "out.jpg"
 
     # We would need a real image_path for this to work
-    dummy_request.image_path = "https://picsum.photos/512"
+    import copy
 
-    response = provider.generate(dummy_request, str(out_file))
+    new_request = copy.copy(dummy_request)
+    new_request.image_path = "https://picsum.photos/512"
+
+    response = provider.generate(new_request, str(out_file))
     assert os.path.exists(response.output_path)

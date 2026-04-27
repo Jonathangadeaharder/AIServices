@@ -9,6 +9,7 @@ dependencies = [
     "transformers>=4.38.0",
     "accelerate>=0.28.0",
     "replicate>=0.25.0",
+    "torch>=2.0.0",
 ]
 
 [build-system]

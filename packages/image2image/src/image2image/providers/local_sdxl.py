@@ -26,8 +26,9 @@ class LocalSDXLProvider(BaseProvider):
     def generate(self, request: Image2ImageRequest, output_path: str) -> Image2ImageResponse:
         init_image = load_image(request.image_path)
 
-        generator = torch.Generator(device=self.device)
+        generator = None
         if request.seed is not None:
+            generator = torch.Generator(device=self.device)
             generator.manual_seed(request.seed)
 
         kwargs = {}
