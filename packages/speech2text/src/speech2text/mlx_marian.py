@@ -239,9 +239,7 @@ def load_mlx_model(model_dir: str | Path) -> tuple[MarianMTModel, MarianConfig]:
         cfg = MarianConfig.from_dict(json.load(f))
 
     model = MarianMTModel(cfg)
-    npz = np.load(model_dir / "weights.npz")
-    weights = {k: mx.array(v) for k, v in npz.items()}
-    model.update(weights)
+    model.load_weights(str(model_dir / "weights.npz"))
 
     return model, cfg
 

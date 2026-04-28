@@ -3,13 +3,30 @@ name = "aiservices-workspace"
 version = "0.1.0"
 description = "AI Services Monorepo Workspace"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "aiservices-core",
+    "image2image",
+    "text2image",
+    "speech2text",
+    "text2speech",
+    "text2video",
+    "studio",
+]
 
 [tool.uv]
 managed = true
 
 [tool.uv.workspace]
 members = ["packages/*"]
+
+[tool.uv.sources]
+aiservices-core = { workspace = true }
+image2image = { workspace = true }
+text2image = { workspace = true }
+speech2text = { workspace = true }
+text2speech = { workspace = true }
+text2video = { workspace = true }
+studio = { workspace = true }
 
 [tool.ruff]
 line-length = 100

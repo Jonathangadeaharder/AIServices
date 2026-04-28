@@ -25,6 +25,8 @@ def render(  # noqa: B008
     t2v_provider: str = typer.Option(  # noqa: B008
         "text2video.comfyui", "--t2v-provider"
     ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate rendering without calling providers"),
+    keep_temp: bool = typer.Option(False, "--keep-temp", help="Keep temporary files after rendering"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
@@ -38,20 +40,22 @@ def render(  # noqa: B008
             tts_provider=tts_provider,
             t2v_provider=t2v_provider,
             device=device,
+            dry_run=dry_run,
         )
 
         with create_progress_bar() as progress:
             task_id = progress.add_task(
-                f"[cyan]Rendering {episode.title}...", total=len(episode.scenes)
+                f"[cyan]Rendering {episode.title}...", total=100
             )
-
-            for scene in episode.scenes:
-                progress.update(task_id, description=f"[green]Rendering Scene {scene.scene_id}...")
-                showrunner.render_scene(scene, episode.cast)
-                progress.advance(task_id)
-
-            progress.update(task_id, description="[bold green]Finalizing episode...")
+            
+            # Since render_episode is a blocking call currently, we just update to 'rendering'
+            progress.update(task_id, description=f"[green]Rendering {episode.title}...")
             final_path = showrunner.render_episode(episode)
+            
+            if not keep_temp:
+                showrunner.cleanup()
+                
+            progress.update(task_id, completed=100)
 
         typer.echo("\n[bold green]✓ Episode rendered successfully![/bold green]")
         typer.echo(f"Output path: {final_path}")
