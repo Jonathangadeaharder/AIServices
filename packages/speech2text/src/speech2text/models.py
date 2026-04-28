@@ -8,7 +8,8 @@ class Speech2TextRequest(BaseModel):
 
     audio_path: str = Field(..., description="Path to the input audio file")
     model_name: str = Field(
-        "mlx-community/whisper-large-v3-mlx", description="Whisper model name"
+        "mlx-community/whisper-large-v3-mlx",
+        description="Whisper model name",
     )
     language: str | None = Field(None, description="Language of the audio")
 
@@ -17,6 +18,4 @@ class Speech2TextResponse(BaseModel):
     """Response model for speech-to-text transcription."""
 
     text: str = Field(..., description="Transcribed text")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Transcription metadata"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Transcription metadata")

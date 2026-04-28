@@ -38,3 +38,4 @@ venv.bak/
 .idea/
 *.swp
 .ipynb_checkpoints/
+external/comfyui/ComfyUI
