@@ -30,7 +30,6 @@ class MLXProvider(BaseProvider):
         if self._model is not None:
             return
 
-        import mlx.core as mx
         from huggingface_hub import hf_hub_download
         from safetensors import safe_open
 
