@@ -304,6 +304,11 @@ class BigVGANVocoder(nn.Module):
         process_channels = False
         if mel.ndim == 4:
             B, C, T, M = mel.shape
+            if M != self.conv_pre.weight.shape[1]:
+                raise ValueError(
+                    f"Mel channels mismatch: got {M}, expected {self.conv_pre.weight.shape[1]}. "
+                    f"Conv1d expects {self.conv_pre.weight.shape[1]} mel channels."
+                )
             mel = mel.reshape(B * C, T, M)
             process_channels = True
 

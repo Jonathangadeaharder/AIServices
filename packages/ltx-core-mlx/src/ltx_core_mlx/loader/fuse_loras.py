@@ -145,7 +145,8 @@ def _fuse_deltas(
     """
     if deltas is None:
         # No LoRA for this key — copy original weight
-        result = {key: weight.astype(target_dtype)}
+        # For quantized weights, do NOT cast dtype (they are packed integers)
+        result = {key: weight if is_quantized else weight.astype(target_dtype)}
         if is_quantized and scales_key:
             result[scales_key] = model_sd.sd[scales_key]
             if biases_key and biases_key in model_sd.sd:
