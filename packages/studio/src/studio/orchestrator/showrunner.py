@@ -75,7 +75,7 @@ class Showrunner:
         """Generate audio and video for a shot and merge them."""
         logger.info(f"Rendering shot {shot.shot_id}")
         
-        shot_dir = self.output_dir / "temp" / shot.shot_id
+        shot_dir = self.output_dir / "temp" / Path(shot.shot_id).name
         if not self.dry_run:
             shot_dir.mkdir(parents=True, exist_ok=True)
         
@@ -130,7 +130,7 @@ class Showrunner:
     def concatenate_videos(self, paths: list[Path], output: Path):
         """Concatenate multiple video files."""
         inputs = [ffmpeg.input(str(p)) for p in paths]
-        stream = ffmpeg.concat(*inputs).output(str(output))
+        stream = ffmpeg.concat(*inputs, v=1, a=1).output(str(output))
         self._run_ffmpeg(stream, "video concatenation")
 
     def merge_audio_video(self, video: Path, audio: Path, output: Path):
@@ -138,9 +138,9 @@ class Showrunner:
         v = ffmpeg.input(str(video))
         if audio.exists():
             a = ffmpeg.input(str(audio))
-            stream = ffmpeg.output(v, a, str(output), vcodec="copy", acodec="aac")
         else:
-            stream = ffmpeg.output(v, str(output), vcodec="copy")
+            a = ffmpeg.input("anullsrc=channel_layout=stereo:sample_rate=44100", f="lavfi")
+        stream = ffmpeg.output(v, a, str(output), vcodec="copy", acodec="aac", shortest=1)
         self._run_ffmpeg(stream, "AV merge")
 
     def _run_ffmpeg(self, stream, description: str):

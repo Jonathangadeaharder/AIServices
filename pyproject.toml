@@ -47,6 +47,9 @@ exclude = [
 select = ["E", "F", "I", "UP", "N", "C", "B"]
 ignore = []
 
+[tool.ruff.lint.per-file-ignores]
+"packages/image2image/src/image2image/flux_mlx/*" = ["N806", "N803", "I001", "C901", "B019"]
+
 [tool.pyright]
 pythonVersion = "3.11"
 pythonPlatform = "All"

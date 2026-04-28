@@ -1,3 +1,4 @@
+import copy
 import json
 import random
 from pathlib import Path
@@ -32,7 +33,7 @@ class ComfyUIProvider(BaseProvider):
             self.workflow_template = json.load(f)
 
     def generate(self, request: Text2VideoRequest, output_path: str) -> Text2VideoResponse:
-        prompt = json.loads(json.dumps(self.workflow_template))  # deep copy
+        prompt = copy.deepcopy(self.workflow_template)
 
         # Update positive prompt
         prompt["89"]["inputs"]["text"] = request.prompt
