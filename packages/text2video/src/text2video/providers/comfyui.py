@@ -63,39 +63,55 @@ class ComfyUIProvider(BaseProvider):
         # Execute
         images = self.client.get_images(prompt)
 
-        # The SaveImage node "115" will have the output frames
-        # Also check for video output from CreateVideo node "114"
-        output_node = "115"
-        if output_node not in images or not images[output_node]:
-            # Try any available output node
-            if images:
-                output_node = next(iter(images))
-            else:
-                raise RuntimeError("ComfyUI workflow did not return any output.")
+        # Select output node with ordered preference: "115" (SaveImage) → "114" (CreateVideo).
+        # Only accept nodes that returned a non-empty list of artifacts.
+        output_node: str | None = None
+        for candidate in ("115", "114"):
+            if images.get(candidate):
+                output_node = candidate
+                break
+
+        # If neither preferred node has data, fall back to first non-empty node.
+        if output_node is None:
+            for key, value in images.items():
+                if value:
+                    output_node = key
+                    break
+
+        if output_node is None:
+            raise RuntimeError("ComfyUI workflow did not return any output.")
 
         # Save the first frame or all frames
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        actual_output_path = output_path
 
         if len(images[output_node]) == 1:
             # Single output (possibly a video or a single frame)
             with open(output_path, "wb") as f:
                 f.write(images[output_node][0])
         else:
-            # Multiple frames — save each one
+            # Multiple frames — always save as .png regardless of the requested output extension,
+            # since individual frames are images, not videos.
             stem = Path(output_path).stem
-            suffix = Path(output_path).suffix or ".png"
             parent = Path(output_path).parent
+            frame_paths: list[Path] = []
             for i, frame_data in enumerate(images[output_node]):
-                frame_path = parent / f"{stem}_{i:04d}{suffix}"
+                frame_path = parent / f"{stem}_{i:04d}.png"
                 with open(frame_path, "wb") as f:
                     f.write(frame_data)
+                frame_paths.append(frame_path)
+
+            # Report the first frame as the primary output path
+            actual_output_path = str(frame_paths[0])
 
         return Text2VideoResponse(
-            output_path=output_path,
+            output_path=actual_output_path,
             metadata={
                 "provider": "comfyui",
                 "seed": seed,
                 "num_frames": request.num_frames,
+                "num_output_files": len(images[output_node]),
                 "fps": request.fps,
             },
         )
