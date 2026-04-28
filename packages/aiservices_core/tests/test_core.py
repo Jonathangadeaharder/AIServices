@@ -67,6 +67,9 @@ def test_provider_registry_register_and_get():
         def __init__(self, **kwargs):
             self.kwargs = kwargs
 
+        def generate(self, *args, **kwargs):
+            return None
+
     reg = ProviderRegistry()
     reg.register("dummy", DummyProvider)
     instance = reg.get("dummy", foo="bar")
