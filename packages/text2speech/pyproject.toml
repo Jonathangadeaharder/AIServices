@@ -17,6 +17,7 @@ dependencies = [
     "resampy",
     "pydub",
     "fish-speech-core",
+    "ormsgpack>=1.12.2",
 ]
 
 [build-system]

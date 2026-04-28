@@ -8,6 +8,9 @@ class Text2SpeechRequest(BaseModel):
 
     text: str = Field(..., description="Text to convert to speech")
     voice_id: str | None = Field(None, description="Voice ID or reference audio path")
+    emotion: str | None = Field(None, description="Emotion tag (e.g. 'happy')")
+    tone: str | None = Field(None, description="Tone tag (e.g. 'whispering')")
+    effect: str | None = Field(None, description="Effect tag (e.g. 'laughing')")
 
 
 class Text2SpeechResponse(BaseModel):
