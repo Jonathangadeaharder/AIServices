@@ -61,32 +61,23 @@ class LtxVideoProvider(BaseProvider):
 
     def generate(
         self,
-        prompt: str,
-        output_path: str,
-        *,
-        mode: str = "t2v",
-        image: str | None = None,
-        audio: str | None = None,
-        height: int = 480,
-        width: int = 704,
-        num_frames: int = 97,
-        seed: int = -1,
+        request: Any,
+        output_path: str | None = None,
         **kwargs: Any,
     ) -> VideoGenerationResult:
         """Generate a video.
 
         Args:
-            prompt: Text prompt for video generation.
+            request: Text prompt for video generation (or dict with parameters).
             output_path: Path to save the output video.
-            mode: Generation mode - "t2v" (text-to-video), "i2v" (image-to-video),
-                  or "a2v" (audio-to-video).
-            image: Path to reference image (required for "i2v" mode).
-            audio: Path to input audio (required for "a2v" mode).
-            height: Video height in pixels.
-            width: Video width in pixels.
-            num_frames: Number of frames to generate.
-            seed: Random seed (-1 for random).
-            **kwargs: Additional generation parameters.
+            **kwargs: Additional generation parameters including:
+                mode: Generation mode - "t2v", "i2v", or "a2v".
+                image: Path to reference image (for "i2v" mode).
+                audio: Path to input audio (for "a2v" mode).
+                height: Video height in pixels (default 480).
+                width: Video width in pixels (default 704).
+                num_frames: Number of frames (default 97).
+                seed: Random seed (-1 for random).
 
         Returns:
             VideoGenerationResult with output path and metadata.
@@ -94,6 +85,25 @@ class LtxVideoProvider(BaseProvider):
         Raises:
             ValueError: If required parameters are missing for the chosen mode.
         """
+        # Handle request as string (prompt) or dict
+        if isinstance(request, str):
+            prompt = request
+        elif isinstance(request, dict):
+            prompt = request.get("prompt", "")
+        else:
+            prompt = str(request)
+
+        if output_path is None:
+            raise ValueError("output_path is required")
+
+        mode = kwargs.get("mode", "t2v")
+        image = kwargs.get("image")
+        audio = kwargs.get("audio")
+        height = kwargs.get("height", 480)
+        width = kwargs.get("width", 704)
+        num_frames = kwargs.get("num_frames", 97)
+        seed = kwargs.get("seed", -1)
+
         if mode == "t2v":
             return text_to_video(
                 prompt=prompt,
