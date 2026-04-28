@@ -1,7 +1,6 @@
 import random
 from pathlib import Path
 
-import mlx.core as mx
 from aiservices_core.providers import BaseProvider
 from PIL import Image
 
