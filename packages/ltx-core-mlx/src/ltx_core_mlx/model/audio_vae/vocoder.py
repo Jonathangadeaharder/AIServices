@@ -328,9 +328,12 @@ class BigVGANVocoder(nn.Module):
         if self._apply_final_activation:
             x = mx.tanh(x)
 
+        # Average the 2 output channels to get mono waveform
+        x = x.mean(axis=-1)  # (B, T_audio)
+
         if process_channels:
-            # x is (B*C, T_audio, 2) — but for stereo mel input, output is already 2-ch
-            x = x.reshape(B, C, x.shape[1], x.shape[2])
+            # Reshape back to (B, C, T_audio) for stereo
+            x = x.reshape(B, C, x.shape[1])
 
         return x
 
