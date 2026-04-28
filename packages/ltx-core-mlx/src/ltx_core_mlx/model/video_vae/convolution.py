@@ -13,7 +13,7 @@ class Conv3dBlock(nn.Module):
     """3D convolution with causal or non-causal temporal padding.
 
     When causal=True: replicates first frame for temporal padding (front only).
-    When causal=False: standard symmetric zero-padding on all dimensions
+    When causal=False: symmetric replicate padding on all dimensions
     (matching reference ``make_conv_nd`` with ``causal=False``).
 
     MLX Conv3d weight layout: (O, D, H, W, I)

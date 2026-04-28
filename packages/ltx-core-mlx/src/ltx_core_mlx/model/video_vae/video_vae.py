@@ -203,9 +203,12 @@ class VideoDecoder(nn.Module):
             if i % 2 == 1:
                 sf, tf = self._upsample_config[upsample_idx]
                 x = pixel_shuffle_3d(x, spatial_factor=sf, temporal_factor=tf)
-                # Reference: ALWAYS remove first frame after temporal upsample
-                # (unconditional on causal mode, gated on stride[0]==2 only)
-                if tf > 1:
+                # Causal mode only: remove first frame after temporal upsample.
+                # When causal=True, Conv3dBlock prepends (kernel_size-1) padding
+                # frames, so the first output frame is a padding artifact.
+                # When causal=False (LTX-2.3 default), no padding frame is added,
+                # so removing the first frame would discard valid content.
+                if tf > 1 and self._causal:
                     x = x[:, 1:, :, :, :]
                 upsample_idx += 1
 
@@ -394,7 +397,7 @@ class VideoDecoder(nn.Module):
                 # (1, 3, H, W) -> (H, W, 3)
                 frame_hwc = frame[0].transpose(1, 2, 0)
                 mx.eval(frame_hwc)  # must be sync — async_eval can write before data is ready
-                proc.stdin.write(bytes(memoryview(frame_hwc)))
+                proc.stdin.write(bytes(frame_hwc))
                 del frame, frame_hwc
                 if i % 8 == 0:
                     aggressive_cleanup()
