@@ -51,7 +51,9 @@ class Showrunner:
             if not self.dry_run:
                 self.concatenate_videos(scene_videos, final_path)
             else:
-                logger.info(f"[DRY RUN] Would concatenate {len(scene_videos)} scenes into {final_path}")
+                logger.info(
+                    f"[DRY RUN] Would concatenate {len(scene_videos)} scenes into {final_path}"
+                )
             
             return final_path
         finally:
@@ -78,9 +80,10 @@ class Showrunner:
 
     def render_shot(self, shot: Shot, scene: Scene, cast: dict[str, Any]) -> Path:
         """Generate audio and video for a shot and merge them."""
+        safe_shot_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in shot.shot_id)
         logger.info(f"Rendering shot {shot.shot_id}")
         
-        shot_dir = self.output_dir / "temp" / Path(shot.shot_id).name
+        shot_dir = self.output_dir / "temp" / safe_shot_id
         if not self.dry_run:
             shot_dir.mkdir(parents=True, exist_ok=True)
         
@@ -120,7 +123,6 @@ class Showrunner:
             logger.info(f"[DRY RUN] Would generate video for shot {shot.shot_id}")
         
         # 3. Merge Audio and Video
-        safe_shot_id = Path(shot.shot_id).name
         output_path = self.output_dir / f"shot_{safe_shot_id}.mp4"
         if not self.dry_run:
             self.merge_audio_video(video_path, combined_audio, output_path)
