@@ -12,7 +12,6 @@ members = [
     "aiservices-workspace",
     "image2image",
     "text2image",
-    "text2video",
 ]
 
 [[package]]
@@ -1793,29 +1792,6 @@ requires-dist = [
     { name = "requests", specifier = ">=2.31.0" },
     { name = "torch", specifier = ">=2.0.0" },
     { name = "transformers", specifier = ">=4.38.0" },
-    { name = "typer", specifier = ">=0.12.0" },
-]
-
-[[package]]
-name = "text2video"
-version = "0.1.0"
-source = { editable = "packages/text2video" }
-dependencies = [
-    { name = "aiservices-core" },
-    { name = "pillow" },
-    { name = "pydantic" },
-    { name = "replicate" },
-    { name = "requests" },
-    { name = "typer" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiservices-core", editable = "packages/aiservices_core" },
-    { name = "pillow", specifier = ">=10.0.0" },
-    { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "replicate", specifier = ">=0.25.0" },
-    { name = "requests", specifier = ">=2.31.0" },
     { name = "typer", specifier = ">=0.12.0" },
 ]
 

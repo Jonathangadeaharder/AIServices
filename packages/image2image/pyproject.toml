@@ -5,8 +5,6 @@ description = "Image to image generation pipeline"
 requires-python = ">=3.10"
 dependencies = [
     "aiservices-core",
-    "replicate>=0.25.0",
-    "requests>=2.31.0",
     "pillow>=10.0.0",
     "pydantic>=2.0.0",
     "typer>=0.12.0",
