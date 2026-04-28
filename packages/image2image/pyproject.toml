@@ -15,7 +15,8 @@ dependencies = [
 [project.optional-dependencies]
 mlx = [
     "mlx>=0.0.5",
-    "mlx-flux>=0.1.0",
+    "diffusers>=0.30.0",
+    "transformers>=4.40.0",
 ]
 
 [build-system]
