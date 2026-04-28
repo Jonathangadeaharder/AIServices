@@ -15,7 +15,7 @@ class FluxSampler:
         x1, x2 = 256, 4096
         t1, t2 = self._base_shift, self._max_shift
         exp_mu = math.exp((x - x1) * (t2 - t1) / (x2 - x1) + t1)
-        t = exp_mu / (exp_mu + (1 / t - 1))
+        t = mx.where(t == 0, mx.zeros_like(t), exp_mu / (exp_mu + (1 / t - 1)))
         return t
 
     def timesteps(

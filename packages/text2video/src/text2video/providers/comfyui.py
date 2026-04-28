@@ -74,17 +74,18 @@ class ComfyUIProvider(BaseProvider):
 
         # If neither preferred node has data, fall back to first non-empty node.
         if output_node is None:
-            for key, value in images.items():
-                if value:
-                    output_node = key
-                    break
+            raise RuntimeError(
+                "Expected ComfyUI terminal output nodes 114/115 to return data."
+            )
 
-        if output_node is None:
-            raise RuntimeError("ComfyUI workflow did not return any output.")
+        video_exts = {".mp4", ".mov", ".mkv", ".webm"}
+        if Path(output_path).suffix.lower() in video_exts:
+            raise RuntimeError(
+                "ComfyUIClient.get_images() only returns image artifacts; "
+                "fetch the workflow's video output instead."
+            )
 
-        # Save the first frame or all frames
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
         actual_output_path = output_path
 
         if len(images[output_node]) == 1:

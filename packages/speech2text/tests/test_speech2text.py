@@ -82,7 +82,7 @@ def test_mlx_provider_mocked(mock_mlx_whisper, dummy_request, tmp_path):
 
     # Verify mlx_whisper was called correctly
     mock_mlx_whisper.transcribe.assert_called_once_with(
-        "/tmp/test_audio.wav",
+        dummy_request.audio_path,
         path_or_hf_repo="mlx-community/whisper-large-v3-mlx",
         language=None,
     )
@@ -131,13 +131,22 @@ def test_mlx_provider_empty_transcription(mock_mlx_whisper, dummy_request):
     os.environ.get("RUN_INTEGRATION_TESTS") != "1",
     reason="Requires RUN_INTEGRATION_TESTS=1",
 )
-def test_mlx_whisper_integration(dummy_request, tmp_path):
+def test_mlx_whisper_integration(tmp_path):
     """Integration test requiring mlx-whisper and a real audio file."""
+    audio_path = os.environ.get("SPEECH2TEXT_TEST_AUDIO")
+    if not audio_path:
+        pytest.skip("Set SPEECH2TEXT_TEST_AUDIO to a real audio file path")
+
     from speech2text.providers.mlx import MLXWhisperProvider
+
+    request = Speech2TextRequest(
+        audio_path=audio_path,
+        model_name="mlx-community/whisper-large-v3-mlx",
+    )
 
     provider = MLXWhisperProvider()
     out_file = tmp_path / "transcript.txt"
 
-    response = provider.generate(dummy_request, str(out_file))
+    response = provider.generate(request, str(out_file))
     assert isinstance(response.text, str)
     assert out_file.exists()
