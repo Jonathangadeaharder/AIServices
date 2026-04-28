@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class BaseProvider(ABC):
@@ -6,6 +7,11 @@ class BaseProvider(ABC):
 
     @abstractmethod
     def __init__(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def generate(self, request: Any, output_path: str | None = None) -> Any:
+        """Generate output from a request."""
         pass
 
 
