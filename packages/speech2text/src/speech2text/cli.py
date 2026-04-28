@@ -34,19 +34,24 @@ def transcribe(
 
     logger.info(f"Using provider: {provider_name}")
 
-    with create_progress_bar() as progress:
-        task_id = progress.add_task("[cyan]Initializing provider...", total=None)
-        provider = registry.get(provider_name, device=device)
+    try:
+        with create_progress_bar() as progress:
+            task_id = progress.add_task("[cyan]Initializing provider...", total=None)
+            provider = registry.get(provider_name, device=device)
 
-        progress.update(task_id, description="[green]Transcribing audio...")
-        start_time = time.time()
-        response = provider.generate(request, output)
-        elapsed = time.time() - start_time
-        progress.update(task_id, description=f"[bold green]Done in {elapsed:.2f}s!")
+            progress.update(task_id, description="[green]Transcribing audio...")
+            start_time = time.time()
+            response = provider.generate(request, output)
+            elapsed = time.time() - start_time
+            progress.update(task_id, description=f"[bold green]Done in {elapsed:.2f}s!")
 
-    typer.echo(f"\nTranscription:\n{response.text}\n")
-    if output:
-        logger.info(f"Transcription saved to: {output}")
+        typer.echo(f"\nTranscription:\n{response.text}\n")
+        if output:
+            logger.info(f"Transcription saved to: {output}")
+    except Exception as e:
+        logger.error(f"Transcription failed: {str(e)}")
+        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":
