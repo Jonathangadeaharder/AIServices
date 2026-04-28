@@ -11,20 +11,22 @@ class MLXWhisperProvider(BaseProvider):
         super().__init__(**kwargs)
 
     def generate(
-        self,
-        request: Speech2TextRequest,
-        output_path: str | None = None,
+        self, request: Speech2TextRequest, output_path: str | None = None
     ) -> Speech2TextResponse:
-        result = mlx_whisper.transcribe(
-            request.audio_path,
-            path_or_hf_repo=request.model_name,
-            language=request.language,
-        )
+        """Transcribe audio using mlx-whisper."""
+        try:
+            result = mlx_whisper.transcribe(
+                request.audio_path,
+                path_or_hf_repo=request.model_name,
+                language=request.language,
+            )
+        except Exception as e:
+            raise RuntimeError(f"Transcription failed: {e}") from e
 
         text = result.get("text", "").strip()
 
         if output_path:
-            with open(output_path, "w") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 f.write(text)
 
         return Speech2TextResponse(

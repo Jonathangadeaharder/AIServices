@@ -2,8 +2,12 @@
 name = "aiservices-workspace"
 version = "0.1.0"
 description = "AI Services Monorepo Workspace"
-requires-python = ">=3.10"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+    "aiservices-core",
+    "image2image",
+    "text2image",
+]
 
 [tool.uv]
 managed = true
@@ -19,6 +23,11 @@ exclude = [
     "packages/text2speech",
     "packages/text2video",
 ]
+
+[tool.uv.sources]
+aiservices-core = { workspace = true }
+image2image = { workspace = true }
+text2image = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -38,8 +47,11 @@ exclude = [
 select = ["E", "F", "I", "UP", "N", "C", "B"]
 ignore = []
 
+[tool.ruff.lint.per-file-ignores]
+"packages/image2image/src/image2image/flux_mlx/*" = ["N806", "N803", "I001", "C901", "B019"]
+
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 pythonPlatform = "All"
 typeCheckingMode = "basic"
 venvPath = "."
@@ -54,6 +66,10 @@ pythonpath = [
     "packages/aiservices_core/src",
     "packages/image2image/src",
     "packages/text2image/src",
+    "packages/speech2text/src",
+    "packages/text2speech/src",
+    "packages/text2video/src",
+    "packages/studio/src",
 ]
 
 [dependency-groups]

@@ -14,33 +14,27 @@ logger = get_logger(__name__)
 @app.command()
 def transcribe(
     audio: str = typer.Option(..., "--audio", "-a", help="Path to input audio file"),
-    output: str = typer.Option(
-        None, "--output", "-o", help="Path to save transcription text"
-    ),
+    output: str = typer.Option(None, "--output", "-o", help="Path to save transcription text"),
     model: str = typer.Option(
         "mlx-community/whisper-large-v3-mlx",
         "--model",
         help="Whisper model name",
     ),
-    language: str = typer.Option(
-        None, "--language", "-l", help="Language code (e.g. 'en')"
-    ),
-    provider_name: str = typer.Option(
-        "speech2text.mlx", "--provider", help="Provider name"
-    ),
+    language: str = typer.Option(None, "--language", "-l", help="Language code (e.g. 'en')"),
+    provider_name: str = typer.Option("speech2text.mlx", "--provider", help="Provider name"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
     """Transcribe audio to text."""
+    request = Speech2TextRequest(
+        audio_path=audio,
+        model_name=model,
+        language=language,
+    )
+
+    logger.info(f"Using provider: {provider_name}")
+
     try:
-        request = Speech2TextRequest(
-            audio_path=audio,
-            model_name=model,
-            language=language,
-        )
-
-        logger.info(f"Using provider: {provider_name}")
-
         with create_progress_bar() as progress:
             task_id = progress.add_task("[cyan]Initializing provider...", total=None)
             provider = registry.get(provider_name, device=device)
@@ -54,9 +48,9 @@ def transcribe(
         typer.echo(f"\nTranscription:\n{response.text}\n")
         if output:
             logger.info(f"Transcription saved to: {output}")
-
     except Exception as e:
-        logger.exception(f"Transcription failed: {str(e)}")
+        logger.error(f"Transcription failed: {str(e)}")
+        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
         raise typer.Exit(code=1) from e
 
 
