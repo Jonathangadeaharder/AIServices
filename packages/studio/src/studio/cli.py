@@ -1,5 +1,6 @@
-import typer
 from pathlib import Path
+
+import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
 
@@ -11,11 +12,19 @@ logger = get_logger(__name__)
 
 
 @app.command()
-def render(
-    script: Path = typer.Option(..., "--script", "-s", help="Path to episode JSON script"),
-    output_dir: Path = typer.Option("output/rendered", "--output", "-o", help="Output directory"),
-    tts_provider: str = typer.Option("text2speech.fish", "--tts-provider"),
-    t2v_provider: str = typer.Option("text2video.comfyui", "--t2v-provider"),
+def render(  # noqa: B008
+    script: Path = typer.Option(  # noqa: B008
+        ..., "--script", "-s", help="Path to episode JSON script"
+    ),
+    output_dir: Path = typer.Option(  # noqa: B008
+        "output/rendered", "--output", "-o", help="Output directory"
+    ),
+    tts_provider: str = typer.Option(  # noqa: B008
+        "text2speech.fish", "--tts-provider"
+    ),
+    t2v_provider: str = typer.Option(  # noqa: B008
+        "text2video.comfyui", "--t2v-provider"
+    ),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
@@ -32,8 +41,10 @@ def render(
         )
 
         with create_progress_bar() as progress:
-            task_id = progress.add_task(f"[cyan]Rendering {episode.title}...", total=len(episode.scenes))
-            
+            task_id = progress.add_task(
+                f"[cyan]Rendering {episode.title}...", total=len(episode.scenes)
+            )
+
             for scene in episode.scenes:
                 progress.update(task_id, description=f"[green]Rendering Scene {scene.scene_id}...")
                 showrunner.render_scene(scene, episode.cast)
@@ -41,13 +52,13 @@ def render(
 
             progress.update(task_id, description="[bold green]Finalizing episode...")
             final_path = showrunner.render_episode(episode)
-            
-        typer.echo(f"\n[bold green]✓ Episode rendered successfully![/bold green]")
+
+        typer.echo("\n[bold green]✓ Episode rendered successfully![/bold green]")
         typer.echo(f"Output path: {final_path}")
 
     except Exception as e:
         logger.exception(f"Render failed: {str(e)}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

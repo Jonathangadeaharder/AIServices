@@ -1,8 +1,7 @@
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import pytest
-from studio.models import Episode, Scene, Shot, Dialogue
+from studio.models import Dialogue, Episode, Scene, Shot
 from studio.orchestrator.showrunner import Showrunner
 
 
@@ -31,10 +30,10 @@ def dummy_episode():
     )
 
 
+@patch("studio.orchestrator.showrunner.ffmpeg.run")
 @patch("studio.orchestrator.showrunner.t2v_registry")
 @patch("studio.orchestrator.showrunner.tts_registry")
-@patch("ffmpeg.run")
-def test_showrunner_orchestration(mock_ffmpeg, mock_tts_reg, mock_t2v_reg, dummy_episode, tmp_path):
+def test_showrunner_orchestration(mock_tts_reg, mock_t2v_reg, mock_ffmpeg, dummy_episode, tmp_path):
     # Setup mocks
     mock_tts = MagicMock()
     mock_tts_reg.get.return_value = mock_tts

@@ -3,13 +3,12 @@ from pathlib import Path
 from typing import Any
 
 import ffmpeg
-
 from text2speech.models import Text2SpeechRequest
 from text2speech.providers import registry as tts_registry
 from text2video.models import Text2VideoRequest
 from text2video.providers import registry as t2v_registry
 
-from ..models import Episode, Shot, Scene
+from ..models import Episode, Scene, Shot
 
 logger = logging.getLogger(__name__)
 
@@ -103,20 +102,23 @@ class Showrunner:
 
     def concatenate_audio(self, paths: list[Path], output: Path):
         """Concatenate multiple audio files with a small gap."""
-        # Simplified port of sitcom_pilot logic
         inputs = [ffmpeg.input(str(p)) for p in paths]
-        ffmpeg.concat(*inputs, v=0, a=1).output(str(output)).run(overwrite_output=True, quiet=True)
+        stream = ffmpeg.concat(*inputs, v=0, a=1).output(str(output))
+        ffmpeg.run(stream, overwrite_output=True, quiet=True)
 
     def concatenate_videos(self, paths: list[Path], output: Path):
         """Concatenate multiple video files."""
         inputs = [ffmpeg.input(str(p)) for p in paths]
-        ffmpeg.concat(*inputs).output(str(output)).run(overwrite_output=True, quiet=True)
+        stream = ffmpeg.concat(*inputs).output(str(output))
+        ffmpeg.run(stream, overwrite_output=True, quiet=True)
 
     def merge_audio_video(self, video: Path, audio: Path, output: Path):
         """Merge a video stream and an audio stream."""
         v = ffmpeg.input(str(video))
         if audio.exists():
             a = ffmpeg.input(str(audio))
-            ffmpeg.output(v, a, str(output), vcodec="copy", acodec="aac").run(overwrite_output=True, quiet=True)
+            stream = ffmpeg.output(v, a, str(output), vcodec="copy", acodec="aac")
+            ffmpeg.run(stream, overwrite_output=True, quiet=True)
         else:
-            ffmpeg.output(v, str(output), vcodec="copy").run(overwrite_output=True, quiet=True)
+            stream = ffmpeg.output(v, str(output), vcodec="copy")
+            ffmpeg.run(stream, overwrite_output=True, quiet=True)
