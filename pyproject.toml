@@ -7,10 +7,6 @@ dependencies = [
     "aiservices-core",
     "image2image",
     "text2image",
-    "speech2text",
-    "text2speech",
-    "text2video",
-    "studio",
 ]
 
 [tool.uv]
@@ -32,10 +28,6 @@ exclude = [
 aiservices-core = { workspace = true }
 image2image = { workspace = true }
 text2image = { workspace = true }
-speech2text = { workspace = true }
-text2speech = { workspace = true }
-text2video = { workspace = true }
-studio = { workspace = true }
 
 [tool.ruff]
 line-length = 100
