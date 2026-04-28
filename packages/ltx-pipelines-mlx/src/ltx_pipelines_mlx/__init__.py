@@ -1,6 +1,15 @@
 """ltx-pipelines — Generation pipelines for LTX-2.3 on MLX."""
 
 from ltx_pipelines_mlx.a2vid_two_stage import AudioToVideoPipeline
+from ltx_pipelines_mlx.api import (
+    VideoGenerationResult,
+    audio_to_video,
+    extend,
+    image_to_video,
+    keyframe_interpolation,
+    retake,
+    text_to_video,
+)
 from ltx_pipelines_mlx.extend import ExtendPipeline
 from ltx_pipelines_mlx.ic_lora import ICLoraPipeline
 from ltx_pipelines_mlx.keyframe_interpolation import KeyframeInterpolationPipeline
@@ -19,4 +28,11 @@ __all__ = [
     "TextToVideoPipeline",
     "TwoStageHQPipeline",
     "TwoStagePipeline",
+    "VideoGenerationResult",
+    "audio_to_video",
+    "extend",
+    "image_to_video",
+    "keyframe_interpolation",
+    "retake",
+    "text_to_video",
 ]
