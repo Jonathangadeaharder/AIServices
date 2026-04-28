@@ -47,7 +47,7 @@ class ComfyUIProvider(BaseProvider):
         prompt["74"]["inputs"]["length"] = request.num_frames
 
         # Update steps (split across two passes)
-        total_steps = request.num_inference_steps
+        total_steps = max(request.num_inference_steps, 2)
         mid_step = total_steps // 2
         prompt["81"]["inputs"]["steps"] = total_steps
         prompt["81"]["inputs"]["end_at_step"] = mid_step
@@ -64,10 +64,10 @@ class ComfyUIProvider(BaseProvider):
         # Execute
         images = self.client.get_images(prompt)
 
-        # Select output node with ordered preference: "115" (SaveImage) → "114" (CreateVideo).
+        # Select output node with ordered preference: "114" (CreateVideo) → "115" (SaveImage).
         # Only accept nodes that returned a non-empty list of artifacts.
         output_node: str | None = None
-        for candidate in ("115", "114"):
+        for candidate in ("114", "115"):
             if images.get(candidate):
                 output_node = candidate
                 break

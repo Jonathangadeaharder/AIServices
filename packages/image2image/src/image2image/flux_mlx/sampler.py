@@ -1,7 +1,6 @@
 # Copyright © 2024 Apple Inc.
 
 import math
-from functools import lru_cache
 
 import mlx.core as mx
 
@@ -19,7 +18,6 @@ class FluxSampler:
         t = exp_mu / (exp_mu + (1 / t - 1))
         return t
 
-    @lru_cache
     def timesteps(
         self, num_steps, image_sequence_length, start: float = 1, stop: float = 0
     ):

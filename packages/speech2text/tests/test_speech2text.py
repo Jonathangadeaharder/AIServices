@@ -7,9 +7,9 @@ from speech2text.models import Speech2TextRequest, Speech2TextResponse
 
 
 @pytest.fixture
-def dummy_request():
+def dummy_request(tmp_path):
     return Speech2TextRequest(
-        audio_path="/tmp/test_audio.wav",
+        audio_path=str(tmp_path / "test_audio.wav"),
         model_name="mlx-community/whisper-large-v3-mlx",
     )
 

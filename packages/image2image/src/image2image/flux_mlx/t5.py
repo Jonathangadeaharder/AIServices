@@ -128,7 +128,7 @@ class MultiHeadAttention(nn.Module):
         values: mx.array,
         mask: mx.array | None,
         cache: tuple[mx.array, mx.array] | None = None,
-    ) -> [mx.array, tuple[mx.array, mx.array]]:
+    ) -> mx.array | tuple[mx.array, mx.array]:
         queries = self.query_proj(queries)
         keys = self.key_proj(keys)
         values = self.value_proj(values)

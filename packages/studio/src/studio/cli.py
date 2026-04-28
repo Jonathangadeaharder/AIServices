@@ -52,9 +52,6 @@ def render(  # noqa: B008
             progress.update(task_id, description=f"[green]Rendering {episode.title}...")
             final_path = showrunner.render_episode(episode)
             
-            if not keep_temp:
-                showrunner.cleanup()
-                
             progress.update(task_id, completed=100)
 
         typer.echo("\n[bold green]✓ Episode rendered successfully![/bold green]")

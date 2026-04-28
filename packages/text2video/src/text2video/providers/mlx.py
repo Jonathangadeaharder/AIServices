@@ -33,9 +33,7 @@ class MLXProvider(BaseProvider):
         self.pipeline = TextToVideoPipeline(model_dir=model_dir)
 
     def generate(self, request: Text2VideoRequest, output_path: str) -> Text2VideoResponse:
-        # Generate video+audio using the MLX pipeline
-        # Note: generate_and_save handles everything including decoding
-        self.pipeline.generate_and_save(
+        result_path = self.pipeline.generate_and_save(
             prompt=request.prompt,
             output_path=output_path,
             height=request.height,
@@ -46,7 +44,7 @@ class MLXProvider(BaseProvider):
         )
 
         return Text2VideoResponse(
-            output_path=output_path,
+            output_path=str(result_path) if result_path else output_path,
             metadata={
                 "provider": "mlx",
                 "model_dir": str(self.pipeline.model_dir),

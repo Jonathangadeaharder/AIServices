@@ -125,6 +125,8 @@ class FluxPipeline:
         latent_size: tuple[int, int] = (64, 64),
         seed=None,
     ):
+        if num_steps <= 0:
+            raise ValueError("num_steps must be a positive integer")
         if seed is not None:
             mx.random.seed(seed)
 
@@ -171,7 +173,7 @@ class FluxPipeline:
 
         images = []
         for i in tqdm(range(len(x_t)), disable=not progress, desc="generate images"):
-            images.append(self.decode(x_t[i : i + 1]))
+            images.append(self.decode(x_t[i : i + 1], latent_size=latent_size))
             mx.eval(images[-1])
         images = mx.concatenate(images, axis=0)
         mx.eval(images)

@@ -40,19 +40,23 @@ class Showrunner:
         """Render a full episode."""
         logger.info(f"Rendering episode: {episode.title}")
         
-        scene_videos = []
-        for scene in episode.scenes:
-            scene_video = self.render_scene(scene, episode.cast)
-            scene_videos.append(scene_video)
+        try:
+            scene_videos = []
+            for scene in episode.scenes:
+                scene_video = self.render_scene(scene, episode.cast)
+                scene_videos.append(scene_video)
+                
+            safe_title = "".join(c if c.isalnum() or c in "-_" else "_" for c in episode.title)
+            final_path = self.output_dir / f"{safe_title}.mp4"
+            if not self.dry_run:
+                self.concatenate_videos(scene_videos, final_path)
+            else:
+                logger.info(f"[DRY RUN] Would concatenate {len(scene_videos)} scenes into {final_path}")
             
-        # Final assembly
-        final_path = self.output_dir / f"{episode.title.replace(' ', '_')}.mp4"
-        if not self.dry_run:
-            self.concatenate_videos(scene_videos, final_path)
-        else:
-            logger.info(f"[DRY RUN] Would concatenate {len(scene_videos)} scenes into {final_path}")
-        
-        return final_path
+            return final_path
+        finally:
+            if not self.dry_run:
+                self.cleanup()
 
     def render_scene(self, scene: Scene, cast: dict[str, Any]) -> Path:
         """Render all shots in a scene and combine them."""
@@ -63,7 +67,8 @@ class Showrunner:
             shot_video = self.render_shot(shot, scene, cast)
             shot_videos.append(shot_video)
             
-        scene_path = self.output_dir / f"scene_{scene.scene_id}.mp4"
+        safe_scene_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in scene.scene_id)
+        scene_path = self.output_dir / f"scene_{safe_scene_id}.mp4"
         if not self.dry_run:
             self.concatenate_videos(shot_videos, scene_path)
         else:
@@ -115,7 +120,8 @@ class Showrunner:
             logger.info(f"[DRY RUN] Would generate video for shot {shot.shot_id}")
         
         # 3. Merge Audio and Video
-        output_path = self.output_dir / f"shot_{shot.shot_id}.mp4"
+        safe_shot_id = Path(shot.shot_id).name
+        output_path = self.output_dir / f"shot_{safe_shot_id}.mp4"
         if not self.dry_run:
             self.merge_audio_video(video_path, combined_audio, output_path)
         
