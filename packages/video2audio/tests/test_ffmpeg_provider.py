@@ -1,5 +1,4 @@
 import subprocess
-from unittest.mock import MagicMock, patch
 
 import pytest
 from aiservices_core.errors import ProviderError
@@ -7,23 +6,23 @@ from video2audio.models import Video2AudioRequest
 from video2audio.providers.ffmpeg import FFmpegProvider
 
 
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_provider_init(mock_which):
+def test_ffmpeg_provider_init(mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
     provider = FFmpegProvider()
     assert provider.device == "auto"
 
 
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value=None)
-def test_ffmpeg_not_found(mock_which):
+def test_ffmpeg_not_found(mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value=None)
     provider = FFmpegProvider()
     with pytest.raises(ProviderError, match="ffmpeg not found"):
         provider._find_ffmpeg()
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_generate_wav(mock_which, mock_run, tmp_path):
-    mock_run.return_value = MagicMock(stderr="")
+def test_ffmpeg_generate_wav(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
+    mock_run.return_value = mocker.MagicMock(stderr="")
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4")
@@ -38,10 +37,10 @@ def test_ffmpeg_generate_wav(mock_which, mock_run, tmp_path):
     assert "-ac" in cmd
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_generate_mp3(mock_which, mock_run, tmp_path):
-    mock_run.return_value = MagicMock(stderr="")
+def test_ffmpeg_generate_mp3(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
+    mock_run.return_value = mocker.MagicMock(stderr="")
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4", output_format="mp3", mono=False)
@@ -53,10 +52,10 @@ def test_ffmpeg_generate_mp3(mock_which, mock_run, tmp_path):
     assert "-ac" not in cmd
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_generate_default_output(mock_which, mock_run, tmp_path):
-    mock_run.return_value = MagicMock(stderr="")
+def test_ffmpeg_generate_default_output(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
+    mock_run.return_value = mocker.MagicMock(stderr="")
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4", output_format="aac")
@@ -66,9 +65,9 @@ def test_ffmpeg_generate_default_output(mock_which, mock_run, tmp_path):
     assert response.metadata["codec"] == "aac"
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_generate_error(mock_which, mock_run, tmp_path):
+def test_ffmpeg_generate_error(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
     mock_run.side_effect = subprocess.CalledProcessError(1, "ffmpeg", stderr="error")
 
     provider = FFmpegProvider()
@@ -77,9 +76,9 @@ def test_ffmpeg_generate_error(mock_which, mock_run, tmp_path):
         provider.generate(request, str(tmp_path / "out.wav"))
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_timeout(mock_which, mock_run, tmp_path):
+def test_ffmpeg_timeout(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
     mock_run.side_effect = subprocess.TimeoutExpired(cmd="ffmpeg", timeout=600)
 
     provider = FFmpegProvider()
@@ -88,9 +87,9 @@ def test_ffmpeg_timeout(mock_which, mock_run, tmp_path):
         provider.generate(request, str(tmp_path / "out.wav"))
 
 
-@patch("video2audio.providers.ffmpeg.subprocess.run")
-@patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_ffmpeg_file_not_found(mock_which, mock_run, tmp_path):
+def test_ffmpeg_file_not_found(tmp_path, mocker):
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
     mock_run.side_effect = FileNotFoundError("no ffmpeg")
 
     provider = FFmpegProvider()

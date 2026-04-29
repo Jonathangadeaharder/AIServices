@@ -1,24 +1,22 @@
-from unittest.mock import MagicMock, patch
-
 from image2image.models import Image2ImageRequest
 from image2image.providers.mlx import MLXProvider
 
 
-def test_mlx_provider_load_model():
-    mock_f = MagicMock()
+def test_mlx_provider_load_model(mocker):
+    mock_f = mocker.MagicMock()
     mock_f.keys.return_value = ["tensor1", "tensor2"]
-    mock_f.get_tensor.side_effect = lambda k: MagicMock()
+    mock_f.get_tensor.side_effect = lambda k: mocker.MagicMock()
 
-    mock_safe_open = MagicMock(return_value=mock_f)
-    mock_f.__enter__ = MagicMock(return_value=mock_f)
-    mock_f.__exit__ = MagicMock(return_value=False)
+    mock_safe_open = mocker.MagicMock(return_value=mock_f)
+    mock_f.__enter__ = mocker.MagicMock(return_value=mock_f)
+    mock_f.__exit__ = mocker.MagicMock(return_value=False)
 
-    with patch("huggingface_hub.hf_hub_download", return_value="/fake/path"), \
-         patch("safetensors.safe_open", mock_safe_open):
-        provider = MLXProvider()
-        provider._load_model()
-        assert provider._model is not None
-        assert len(provider._model) == 2
+    mocker.patch("huggingface_hub.hf_hub_download", return_value="/fake/path")
+    mocker.patch("safetensors.safe_open", mock_safe_open)
+    provider = MLXProvider()
+    provider._load_model()
+    assert provider._model is not None
+    assert len(provider._model) == 2
 
 
 def test_mlx_provider_load_model_cached():
@@ -43,9 +41,9 @@ def test_mlx_provider_generate_file_not_found(tmp_path):
         provider.generate(request, str(out))
 
 
-@patch("image2image.providers.mlx.Image.open")
-def test_mlx_provider_generate_with_seed(mock_open, tmp_path):
-    mock_img = MagicMock()
+def test_mlx_provider_generate_with_seed(mocker, tmp_path):
+    mock_open = mocker.patch("image2image.providers.mlx.Image.open")
+    mock_img = mocker.MagicMock()
     mock_open.return_value.convert.return_value = mock_img
 
     provider = MLXProvider()

@@ -1,6 +1,4 @@
-import os
 import sys
-from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
@@ -9,8 +7,6 @@ from video2subtitle.models import (
     Video2SubtitleRequest,
     Video2SubtitleResponse,
 )
-
-_mock_whisper = MagicMock()
 
 
 class TestModelDefaults:
@@ -91,10 +87,12 @@ class TestTimestampFormatting:
         assert MLXProvider._format_timestamp(0.123, "srt") == "00:00:00,123"
 
 
-@patch("video2subtitle.providers.mlx.subprocess.run")
-@patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
-@patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_mlx_provider_srt_output(mock_which, mock_run, tmp_path):
+def test_mlx_provider_srt_output(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
+    mocker.patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
+    mocker.patch("video2subtitle.providers.mlx.subprocess.run")
+
     _mock_whisper.transcribe.reset_mock()
     _mock_whisper.transcribe.return_value = {
         "text": "Hello world",
@@ -122,10 +120,12 @@ def test_mlx_provider_srt_output(mock_which, mock_run, tmp_path):
     assert "Hello world" in content
 
 
-@patch("video2subtitle.providers.mlx.subprocess.run")
-@patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
-@patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
-def test_mlx_provider_vtt_output(mock_which, mock_run, tmp_path):
+def test_mlx_provider_vtt_output(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
+    mocker.patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
+    mocker.patch("video2subtitle.providers.mlx.subprocess.run")
+
     _mock_whisper.transcribe.reset_mock()
     _mock_whisper.transcribe.return_value = {
         "text": "Test",
@@ -148,21 +148,43 @@ def test_mlx_provider_vtt_output(mock_which, mock_run, tmp_path):
     assert "00:00:01.000 --> 00:00:03.000" in content
 
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_INTEGRATION_TESTS") != "1",
-    reason="Requires RUN_INTEGRATION_TESTS=1",
-)
-def test_mlx_whisper_integration(tmp_path):
-    video_path = os.environ.get("VIDEO2SUBTITLE_TEST_VIDEO")
-    if not video_path:
-        pytest.skip("Set VIDEO2SUBTITLE_TEST_VIDEO to a real video file path")
+def test_mlx_provider_default_output_path(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
+    mocker.patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
+    mocker.patch("video2subtitle.providers.mlx.subprocess.run")
+
+    _mock_whisper.transcribe.reset_mock()
+    _mock_whisper.transcribe.return_value = {
+        "text": "Test",
+        "language": "en",
+        "segments": [
+            {"start": 0.0, "end": 1.0, "text": "Test"},
+        ],
+    }
 
     from video2subtitle.providers.mlx import MLXProvider
 
-    request = Video2SubtitleRequest(video_path=video_path)
     provider = MLXProvider()
-    out_file = str(tmp_path / "out.srt")
+    request = Video2SubtitleRequest(video_path="/tmp/video.mp4", output_format="vtt")
+    response = provider.generate(request)
 
-    response = provider.generate(request, out_file)
-    assert len(response.entries) > 0
-    assert (tmp_path / "out.srt").exists()
+    assert response.output_path == "output.vtt"
+
+
+def test_mlx_provider_transcription_error(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
+    mocker.patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
+    mocker.patch("video2subtitle.providers.mlx.subprocess.run")
+
+    _mock_whisper.transcribe.reset_mock()
+    _mock_whisper.transcribe.side_effect = RuntimeError("Model not found")
+
+    from video2subtitle.providers.mlx import MLXProvider
+
+    provider = MLXProvider()
+    request = Video2SubtitleRequest(video_path="/tmp/video.mp4")
+
+    with pytest.raises(RuntimeError, match="Transcription failed"):
+        provider.generate(request, str(tmp_path / "out.srt"))

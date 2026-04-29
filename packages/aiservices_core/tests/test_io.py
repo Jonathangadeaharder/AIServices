@@ -1,5 +1,4 @@
 import io
-from unittest.mock import MagicMock, patch
 
 from aiservices_core.io import load_image, save_image
 from PIL import Image
@@ -20,16 +19,16 @@ def test_load_image_from_path(tmp_path):
     assert loaded.size == (64, 64)
 
 
-@patch("requests.get")
-def test_load_image_from_url(mock_get):
+def test_load_image_from_url(mocker):
+    mock_get = mocker.patch("requests.get")
     img = Image.new("RGB", (64, 64), color=(0, 255, 0))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
 
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.content = buf.read()
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_get.return_value = mock_response
 
     loaded = load_image("https://example.com/test.png")
@@ -37,16 +36,16 @@ def test_load_image_from_url(mock_get):
     mock_get.assert_called_once_with("https://example.com/test.png", timeout=10)
 
 
-@patch("requests.get")
-def test_load_image_from_http_url(mock_get):
+def test_load_image_from_http_url(mocker):
+    mock_get = mocker.patch("requests.get")
     img = Image.new("RGB", (32, 32))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
 
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.content = buf.read()
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_get.return_value = mock_response
 
     loaded = load_image("http://example.com/img.png")

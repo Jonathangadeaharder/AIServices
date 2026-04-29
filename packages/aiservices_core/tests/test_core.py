@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from unittest.mock import patch
 
 # ── E0.3: config ──────────────────────────────────────────────────────────────
 
@@ -101,36 +100,31 @@ def test_get_optimal_device_explicit(monkeypatch):
     assert get_optimal_device() == "cpu"
 
 
-def test_get_optimal_device_auto_darwin_arm(monkeypatch):
+def test_get_optimal_device_auto_darwin_arm(monkeypatch, mocker):
     monkeypatch.setenv("AIS_DEVICE", "auto")
     from aiservices_core import config as cfg_module
     from aiservices_core.config import AIServicesConfig
 
     cfg_module.config = AIServicesConfig()
-    with (
-        patch("platform.system", return_value="Darwin"),
-        patch("platform.machine", return_value="arm64"),
-    ):
-        from importlib import reload
+    mocker.patch("platform.system", return_value="Darwin")
+    mocker.patch("platform.machine", return_value="arm64")
+    from importlib import reload
 
-        from aiservices_core import runtime as rt_module
+    from aiservices_core import runtime as rt_module
 
-        reload(rt_module)
-        assert rt_module.get_optimal_device() == "mps"
+    reload(rt_module)
+    assert rt_module.get_optimal_device() == "mps"
 
 
-def test_setup_cache_creates_dir(tmp_path):
+def test_setup_cache_creates_dir(tmp_path, mocker):
     """setup_cache creates the cache directory defined in config."""
-    from unittest.mock import patch
-
     cache_path = tmp_path / "cache"
 
-    # Patch the config.cache_dir that runtime.py references at call-time
-    with patch("aiservices_core.runtime.config") as mock_cfg:
-        mock_cfg.cache_dir = cache_path
-        from aiservices_core.runtime import setup_cache
+    mock_cfg = mocker.patch("aiservices_core.runtime.config")
+    mock_cfg.cache_dir = cache_path
+    from aiservices_core.runtime import setup_cache
 
-        setup_cache()
+    setup_cache()
 
     assert cache_path.exists()
 

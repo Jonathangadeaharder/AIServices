@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 from image2video.models import Image2VideoRequest
 from image2video.providers.mlx import MLXProvider
 
@@ -24,14 +22,14 @@ def test_mlx_provider_env_var(monkeypatch):
     assert provider._model_dir == "/env/path"
 
 
-@patch("PIL.Image.open")
-def test_mlx_provider_generate(mock_open, tmp_path):
-    mock_pipeline = MagicMock()
-    mock_pipeline.generate_from_image.return_value = (MagicMock(), None)
+def test_mlx_provider_generate(mocker, tmp_path):
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
 
-    mock_img = MagicMock()
-    mock_open.return_value.__enter__ = MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = MagicMock(return_value=False)
+    mock_img = mocker.MagicMock()
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
@@ -52,14 +50,14 @@ def test_mlx_provider_generate(mock_open, tmp_path):
     mock_pipeline.save_video.assert_called_once()
 
 
-@patch("PIL.Image.open")
-def test_mlx_provider_generate_default_output(mock_open):
-    mock_pipeline = MagicMock()
-    mock_pipeline.generate_from_image.return_value = (MagicMock(), None)
+def test_mlx_provider_generate_default_output(mocker):
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
 
-    mock_img = MagicMock()
-    mock_open.return_value.__enter__ = MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = MagicMock(return_value=False)
+    mock_img = mocker.MagicMock()
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
@@ -71,14 +69,14 @@ def test_mlx_provider_generate_default_output(mock_open):
     assert response.output_path == "output.mp4"
 
 
-@patch("PIL.Image.open")
-def test_mlx_provider_generate_no_seed(mock_open, tmp_path):
-    mock_pipeline = MagicMock()
-    mock_pipeline.generate_from_image.return_value = (MagicMock(), None)
+def test_mlx_provider_generate_no_seed(mocker, tmp_path):
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
 
-    mock_img = MagicMock()
-    mock_open.return_value.__enter__ = MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = MagicMock(return_value=False)
+    mock_img = mocker.MagicMock()
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
@@ -93,9 +91,9 @@ def test_mlx_provider_generate_no_seed(mock_open, tmp_path):
     assert isinstance(call_kwargs["seed"], int)
 
 
-@patch("ltx_pipelines_mlx.ti2vid_one_stage.ImageToVideoPipeline")
-def test_mlx_provider_load_pipeline(mock_pipeline_cls):
-    mock_pipeline_cls.return_value = MagicMock()
+def test_mlx_provider_load_pipeline(mocker):
+    mock_pipeline_cls = mocker.patch("ltx_pipelines_mlx.ti2vid_one_stage.ImageToVideoPipeline")
+    mock_pipeline_cls.return_value = mocker.MagicMock()
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
@@ -106,11 +104,11 @@ def test_mlx_provider_load_pipeline(mock_pipeline_cls):
     assert provider._pipeline is not None
 
 
-@patch("ltx_pipelines_mlx.ti2vid_one_stage.ImageToVideoPipeline")
-def test_mlx_provider_load_pipeline_cached(mock_pipeline_cls):
+def test_mlx_provider_load_pipeline_cached(mocker):
+    mock_pipeline_cls = mocker.patch("ltx_pipelines_mlx.ti2vid_one_stage.ImageToVideoPipeline")
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
-    provider._pipeline = MagicMock()
+    provider._pipeline = mocker.MagicMock()
 
     provider._load_pipeline()
     mock_pipeline_cls.assert_not_called()

@@ -1,15 +1,13 @@
-from unittest.mock import MagicMock, patch
-
 from typer.testing import CliRunner
 from video2subtitle.cli import app
 
 runner = CliRunner()
 
 
-@patch("video2subtitle.cli.registry")
-def test_transcribe_success(mock_registry, tmp_path):
-    mock_provider = MagicMock()
-    mock_response = MagicMock()
+def test_transcribe_success(tmp_path, mocker):
+    mock_registry = mocker.patch("video2subtitle.cli.registry")
+    mock_provider = mocker.MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.output_path = str(tmp_path / "out.srt")
     mock_response.entries = []
     mock_response.language = "en"
@@ -25,8 +23,8 @@ def test_transcribe_success(mock_registry, tmp_path):
     assert str(out) in result.output
 
 
-@patch("video2subtitle.cli.registry")
-def test_transcribe_error(mock_registry):
+def test_transcribe_error(mocker):
+    mock_registry = mocker.patch("video2subtitle.cli.registry")
     mock_registry.get.side_effect = RuntimeError("provider failed")
 
     result = runner.invoke(
@@ -36,10 +34,10 @@ def test_transcribe_error(mock_registry):
     assert result.exit_code == 1
 
 
-@patch("video2subtitle.cli.registry")
-def test_transcribe_vtt_format(mock_registry, tmp_path):
-    mock_provider = MagicMock()
-    mock_response = MagicMock()
+def test_transcribe_vtt_format(tmp_path, mocker):
+    mock_registry = mocker.patch("video2subtitle.cli.registry")
+    mock_provider = mocker.MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.output_path = str(tmp_path / "out.vtt")
     mock_response.entries = []
     mock_response.language = None

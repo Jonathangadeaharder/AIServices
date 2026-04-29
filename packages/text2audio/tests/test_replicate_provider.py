@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
 from aiservices_core.errors import ProviderError
 from text2audio.models import Text2AudioRequest
@@ -54,15 +52,15 @@ def test_extract_url_none_raises():
         provider._extract_url({})
 
 
-@patch("text2audio.providers.replicate_cloud.urllib.request.urlopen")
-@patch("replicate.run")
-def test_generate_success(mock_run, mock_urlopen, tmp_path):
+def test_generate_success(tmp_path, mocker):
+    mock_run = mocker.patch("replicate.run")
+    mock_urlopen = mocker.patch("text2audio.providers.replicate_cloud.urllib.request.urlopen")
     mock_run.return_value = ["https://example.com/audio.wav"]
 
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.read.side_effect = [b"audio-data", b""]
-    mock_response.__enter__ = MagicMock(return_value=mock_response)
-    mock_response.__exit__ = MagicMock(return_value=False)
+    mock_response.__enter__ = mocker.MagicMock(return_value=mock_response)
+    mock_response.__exit__ = mocker.MagicMock(return_value=False)
     mock_urlopen.return_value = mock_response
 
     provider = ReplicateProvider()
@@ -74,8 +72,8 @@ def test_generate_success(mock_run, mock_urlopen, tmp_path):
     assert response.metadata["provider"] == "replicate"
 
 
-@patch("replicate.run")
-def test_generate_replicate_error(mock_run, tmp_path):
+def test_generate_replicate_error(tmp_path, mocker):
+    mock_run = mocker.patch("replicate.run")
     mock_run.side_effect = RuntimeError("API error")
 
     provider = ReplicateProvider()
@@ -84,9 +82,9 @@ def test_generate_replicate_error(mock_run, tmp_path):
         provider.generate(request, str(tmp_path / "out.wav"))
 
 
-@patch("text2audio.providers.replicate_cloud.urllib.request.urlopen")
-@patch("replicate.run")
-def test_generate_download_error(mock_run, mock_urlopen, tmp_path):
+def test_generate_download_error(tmp_path, mocker):
+    mock_run = mocker.patch("replicate.run")
+    mock_urlopen = mocker.patch("text2audio.providers.replicate_cloud.urllib.request.urlopen")
     mock_run.return_value = ["https://example.com/audio.wav"]
     mock_urlopen.side_effect = RuntimeError("download failed")
 
@@ -96,7 +94,7 @@ def test_generate_download_error(mock_run, mock_urlopen, tmp_path):
         provider.generate(request, str(tmp_path / "out.wav"))
 
 
-def test_init_warns_without_token():
-    with patch.dict("os.environ", {}, clear=True):
-        provider = ReplicateProvider()
-        assert provider.device == "auto"
+def test_init_warns_without_token(mocker):
+    mocker.patch.dict("os.environ", {}, clear=True)
+    provider = ReplicateProvider()
+    assert provider.device == "auto"

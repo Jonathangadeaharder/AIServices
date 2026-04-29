@@ -1,8 +1,9 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 from aiservices_core.comfyui import ComfyUIClient
+
+FIXED_PROMPT_ID = "fixed-prompt-id"
 
 
 def test_comfyui_client_init():
@@ -11,9 +12,9 @@ def test_comfyui_client_init():
     assert client.client_id is not None
 
 
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-def test_queue_prompt(mock_urlopen):
-    mock_response = MagicMock()
+def test_queue_prompt(mocker):
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_response = mocker.MagicMock()
     mock_response.read.return_value = b"{}"
     mock_urlopen.return_value = mock_response
 
@@ -22,12 +23,12 @@ def test_queue_prompt(mock_urlopen):
     mock_urlopen.assert_called_once()
 
 
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-def test_get_history(mock_urlopen):
-    mock_response = MagicMock()
+def test_get_history(mocker):
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_response = mocker.MagicMock()
     mock_response.read.return_value = json.dumps({"prompt-123": {"outputs": {}}}).encode()
-    mock_response.__enter__ = MagicMock(return_value=mock_response)
-    mock_response.__exit__ = MagicMock(return_value=False)
+    mock_response.__enter__ = mocker.MagicMock(return_value=mock_response)
+    mock_response.__exit__ = mocker.MagicMock(return_value=False)
     mock_urlopen.return_value = mock_response
 
     client = ComfyUIClient()
@@ -35,12 +36,12 @@ def test_get_history(mock_urlopen):
     assert "prompt-123" in history
 
 
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-def test_get_image(mock_urlopen):
-    mock_response = MagicMock()
+def test_get_image(mocker):
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_response = mocker.MagicMock()
     mock_response.read.return_value = b"fake-image-data"
-    mock_response.__enter__ = MagicMock(return_value=mock_response)
-    mock_response.__exit__ = MagicMock(return_value=False)
+    mock_response.__enter__ = mocker.MagicMock(return_value=mock_response)
+    mock_response.__exit__ = mocker.MagicMock(return_value=False)
     mock_urlopen.return_value = mock_response
 
     client = ComfyUIClient()
@@ -48,9 +49,9 @@ def test_get_image(mock_urlopen):
     assert data == b"fake-image-data"
 
 
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-def test_upload_image(mock_urlopen, tmp_path):
-    mock_response = MagicMock()
+def test_upload_image(mocker, tmp_path):
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_response = mocker.MagicMock()
     mock_response.read.return_value = b"{}"
     mock_urlopen.return_value = mock_response
 
@@ -62,18 +63,15 @@ def test_upload_image(mock_urlopen, tmp_path):
     mock_urlopen.assert_called_once()
 
 
-FIXED_PROMPT_ID = "fixed-prompt-id"
-mock_uuid = patch(
-    "aiservices_core.comfyui.uuid.uuid4",
-    return_value=MagicMock(__str__=lambda self: FIXED_PROMPT_ID),
-)
+def test_get_images_full_workflow(mocker):
+    mocker.patch(
+        "aiservices_core.comfyui.uuid.uuid4",
+        return_value=mocker.MagicMock(__str__=lambda self: FIXED_PROMPT_ID),
+    )
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_ws_cls = mocker.patch("aiservices_core.comfyui.websocket.WebSocket")
 
-
-@mock_uuid
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-@patch("aiservices_core.comfyui.websocket.WebSocket")
-def test_get_images_full_workflow(mock_ws_cls, mock_urlopen, _mock_uuid):
-    ws_instance = MagicMock()
+    ws_instance = mocker.MagicMock()
     mock_ws_cls.return_value = ws_instance
 
     executing_msg = json.dumps({
@@ -97,7 +95,7 @@ def test_get_images_full_workflow(mock_ws_cls, mock_urlopen, _mock_uuid):
     def urlopen_side_effect(req, **kwargs):
         nonlocal call_count
         call_count += 1
-        mock_resp = MagicMock()
+        mock_resp = mocker.MagicMock()
         if call_count <= 1:
             mock_resp.read.return_value = b"{}"
             return mock_resp
@@ -105,8 +103,8 @@ def test_get_images_full_workflow(mock_ws_cls, mock_urlopen, _mock_uuid):
             mock_resp.read.return_value = json.dumps(history_data).encode()
         else:
             mock_resp.read.return_value = b"png-bytes"
-        mock_resp.__enter__ = MagicMock(return_value=mock_resp)
-        mock_resp.__exit__ = MagicMock(return_value=False)
+        mock_resp.__enter__ = mocker.MagicMock(return_value=mock_resp)
+        mock_resp.__exit__ = mocker.MagicMock(return_value=False)
         return mock_resp
 
     mock_urlopen.side_effect = urlopen_side_effect
@@ -120,13 +118,17 @@ def test_get_images_full_workflow(mock_ws_cls, mock_urlopen, _mock_uuid):
     ws_instance.close.assert_called_once()
 
 
-@mock_uuid
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-@patch("aiservices_core.comfyui.websocket.WebSocket")
-def test_get_images_timeout(mock_ws_cls, mock_urlopen, _mock_uuid):
+def test_get_images_timeout(mocker):
     import websocket as ws_mod
 
-    ws_instance = MagicMock()
+    mocker.patch(
+        "aiservices_core.comfyui.uuid.uuid4",
+        return_value=mocker.MagicMock(__str__=lambda self: FIXED_PROMPT_ID),
+    )
+    mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_ws_cls = mocker.patch("aiservices_core.comfyui.websocket.WebSocket")
+
+    ws_instance = mocker.MagicMock()
     ws_instance.recv.side_effect = ws_mod.WebSocketTimeoutException("timeout")
     mock_ws_cls.return_value = ws_instance
 
@@ -138,11 +140,15 @@ def test_get_images_timeout(mock_ws_cls, mock_urlopen, _mock_uuid):
     ws_instance.close.assert_called_once()
 
 
-@mock_uuid
-@patch("aiservices_core.comfyui.urllib.request.urlopen")
-@patch("aiservices_core.comfyui.websocket.WebSocket")
-def test_get_images_ignores_binary(mock_ws_cls, mock_urlopen, _mock_uuid):
-    ws_instance = MagicMock()
+def test_get_images_ignores_binary(mocker):
+    mocker.patch(
+        "aiservices_core.comfyui.uuid.uuid4",
+        return_value=mocker.MagicMock(__str__=lambda self: FIXED_PROMPT_ID),
+    )
+    mock_urlopen = mocker.patch("aiservices_core.comfyui.urllib.request.urlopen")
+    mock_ws_cls = mocker.patch("aiservices_core.comfyui.websocket.WebSocket")
+
+    ws_instance = mocker.MagicMock()
     mock_ws_cls.return_value = ws_instance
 
     executing_msg = json.dumps({
@@ -153,10 +159,10 @@ def test_get_images_ignores_binary(mock_ws_cls, mock_urlopen, _mock_uuid):
 
     history_data = {FIXED_PROMPT_ID: {"outputs": {}}}
 
-    mock_resp = MagicMock()
+    mock_resp = mocker.MagicMock()
     mock_resp.read.return_value = json.dumps(history_data).encode()
-    mock_resp.__enter__ = MagicMock(return_value=mock_resp)
-    mock_resp.__exit__ = MagicMock(return_value=False)
+    mock_resp.__enter__ = mocker.MagicMock(return_value=mock_resp)
+    mock_resp.__exit__ = mocker.MagicMock(return_value=False)
     mock_urlopen.return_value = mock_resp
 
     client = ComfyUIClient()

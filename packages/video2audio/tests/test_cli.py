@@ -1,15 +1,13 @@
-from unittest.mock import MagicMock, patch
-
 from typer.testing import CliRunner
 from video2audio.cli import app
 
 runner = CliRunner()
 
 
-@patch("video2audio.cli.registry")
-def test_extract_success(mock_registry, tmp_path):
-    mock_provider = MagicMock()
-    mock_response = MagicMock()
+def test_extract_success(tmp_path, mocker):
+    mock_registry = mocker.patch("video2audio.cli.registry")
+    mock_provider = mocker.MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.output_path = str(tmp_path / "out.wav")
     mock_response.duration_seconds = 10.5
     mock_response.metadata = {}
@@ -24,8 +22,8 @@ def test_extract_success(mock_registry, tmp_path):
     assert result.exit_code == 0
 
 
-@patch("video2audio.cli.registry")
-def test_extract_error(mock_registry):
+def test_extract_error(mocker):
+    mock_registry = mocker.patch("video2audio.cli.registry")
     mock_registry.get.side_effect = RuntimeError("failed")
 
     result = runner.invoke(
@@ -35,10 +33,10 @@ def test_extract_error(mock_registry):
     assert result.exit_code == 1
 
 
-@patch("video2audio.cli.registry")
-def test_extract_stereo(mock_registry, tmp_path):
-    mock_provider = MagicMock()
-    mock_response = MagicMock()
+def test_extract_stereo(tmp_path, mocker):
+    mock_registry = mocker.patch("video2audio.cli.registry")
+    mock_provider = mocker.MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.output_path = str(tmp_path / "out.wav")
     mock_response.duration_seconds = None
     mock_response.metadata = {}

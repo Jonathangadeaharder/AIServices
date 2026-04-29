@@ -1,15 +1,13 @@
-from unittest.mock import MagicMock, patch
-
 from image2image.cli import app
 from typer.testing import CliRunner
 
 runner = CliRunner()
 
 
-@patch("image2image.cli.registry")
-def test_generate_success(mock_registry, tmp_path):
-    mock_provider = MagicMock()
-    mock_response = MagicMock()
+def test_generate_success(mocker, tmp_path):
+    mock_registry = mocker.patch("image2image.cli.registry")
+    mock_provider = mocker.MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.output_path = str(tmp_path / "out.png")
     mock_response.metadata = {"provider": "mlx"}
     mock_provider.generate.return_value = mock_response
@@ -26,8 +24,8 @@ def test_generate_success(mock_registry, tmp_path):
     assert result.exit_code == 0
 
 
-@patch("image2image.cli.registry")
-def test_generate_error(mock_registry, tmp_path):
+def test_generate_error(mocker, tmp_path):
+    mock_registry = mocker.patch("image2image.cli.registry")
     mock_registry.get.side_effect = RuntimeError("failed")
 
     result = runner.invoke(

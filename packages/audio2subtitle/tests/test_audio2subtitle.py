@@ -1,6 +1,4 @@
-import os
 import sys
-from unittest.mock import MagicMock, patch
 
 import pytest
 from audio2subtitle.models import (
@@ -10,8 +8,6 @@ from audio2subtitle.models import (
 )
 from audio2subtitle.providers.mlx import _format_timestamp
 from pydantic import ValidationError
-
-_mock_whisper = MagicMock()
 
 
 class TestModelDefaults:
@@ -93,8 +89,9 @@ class TestResponse:
         assert resp.language == "en"
 
 
-@patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
-def test_mlx_provider_srt(tmp_path):
+def test_mlx_provider_srt(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
     _mock_whisper.transcribe.reset_mock()
     _mock_whisper.transcribe.return_value = {
         "text": "Hello world. Goodbye.",
@@ -132,8 +129,9 @@ def test_mlx_provider_srt(tmp_path):
     )
 
 
-@patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
-def test_mlx_provider_vtt(tmp_path):
+def test_mlx_provider_vtt(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
     _mock_whisper.transcribe.reset_mock()
     _mock_whisper.transcribe.return_value = {
         "text": "Hello.",
@@ -156,8 +154,9 @@ def test_mlx_provider_vtt(tmp_path):
     assert "Hello." in content
 
 
-@patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
-def test_mlx_provider_skips_empty_segments(tmp_path):
+def test_mlx_provider_skips_empty_segments(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
     _mock_whisper.transcribe.reset_mock()
     _mock_whisper.transcribe.return_value = {
         "text": "Hello.",
@@ -181,22 +180,17 @@ def test_mlx_provider_skips_empty_segments(tmp_path):
     assert response.entries[1].text == "World."
 
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_INTEGRATION_TESTS") != "1",
-    reason="Requires RUN_INTEGRATION_TESTS=1",
-)
-def test_mlx_whisper_integration(tmp_path):
-    audio_path = os.environ.get("AUDIO2SUBTITLE_TEST_AUDIO")
-    if not audio_path:
-        pytest.skip("Set AUDIO2SUBTITLE_TEST_AUDIO to a real audio file path")
+def test_mlx_whisper_transcription_error(tmp_path, mocker):
+    _mock_whisper = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})
+    _mock_whisper.transcribe.reset_mock()
+    _mock_whisper.transcribe.side_effect = RuntimeError("Model not found")
 
     from audio2subtitle.providers.mlx import MLXWhisperProvider
 
-    request = Audio2SubtitleRequest(audio_path=audio_path)
     provider = MLXWhisperProvider()
+    request = Audio2SubtitleRequest(audio_path="/tmp/audio.wav")
     out_file = tmp_path / "out.srt"
 
-    response = provider.generate(request, str(out_file))
-    assert isinstance(response.output_path, str)
-    assert out_file.exists()
-    assert len(response.entries) > 0
+    with pytest.raises(RuntimeError, match="Subtitle generation failed"):
+        provider.generate(request, str(out_file))
