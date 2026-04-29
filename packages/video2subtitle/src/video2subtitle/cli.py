@@ -57,7 +57,7 @@ def transcribe(
             typer.echo(f"Language: {response.language}")
     except Exception as e:
         logger.error(f"Transcription failed: {str(e)}")
-        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
+        typer.secho(f"\nError: {str(e)}", fg=typer.colors.RED, bold=True, err=True)
         raise typer.Exit(code=1) from e
 
 

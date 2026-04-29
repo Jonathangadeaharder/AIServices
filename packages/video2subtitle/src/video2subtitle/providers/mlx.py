@@ -17,8 +17,8 @@ class MLXProvider(BaseProvider):
     def generate(
         self, request: Video2SubtitleRequest, output_path: str | None = None
     ) -> Video2SubtitleResponse:
-        if not output_path:
-            raise ValueError("output_path is required for video2subtitle")
+        if output_path is None:
+            output_path = "output.srt"
 
         audio_path = self._extract_audio(request.video_path)
 
@@ -72,7 +72,7 @@ class MLXProvider(BaseProvider):
         ]
 
         try:
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(cmd, check=True, capture_output=True, timeout=600)
         except subprocess.CalledProcessError as e:
             Path(tmp.name).unlink(missing_ok=True)
             raise RuntimeError(f"ffmpeg audio extraction failed: {e.stderr.decode()}") from e
@@ -82,7 +82,7 @@ class MLXProvider(BaseProvider):
     def _segments_to_entries(self, segments: list[dict]) -> list[SubtitleEntry]:
         entries: list[SubtitleEntry] = []
         for seg in segments:
-            text = seg.get("text", "").strip()
+            text = str(seg.get("text") or "").strip()
             if not text:
                 continue
             entries.append(
