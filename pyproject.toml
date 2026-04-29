@@ -83,10 +83,11 @@ exclude_lines = [
 ]
 
 [tool.mutmut]
-paths_to_mutate = ["packages/aiservices_core/src/aiservices_core"]
-pytest_add_cli_args_test_selection = ["packages/aiservices_core/tests/"]
-pytest_add_cli_args = ["-o", "testpaths=.", "-o", "addopts=--import-mode=importlib", "-o", "pythonpath=packages/aiservices_core/src"]
-also_copy = ["packages/aiservices_core/tests/", "conftest.py"]
+paths_to_mutate = ["src/aiservices_core"]
+pytest_add_cli_args_test_selection = ["tests/"]
+pytest_add_cli_args = ["-o", "testpaths=.", "-o", "addopts=", "-o", "pythonpath=src"]
+also_copy = ["tests/"]
+debug = true
 
 [dependency-groups]
 dev = [
