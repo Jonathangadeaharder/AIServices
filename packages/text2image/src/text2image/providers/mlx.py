@@ -29,8 +29,13 @@ class MLXProvider(BaseProvider):
 
         self._pipeline = FluxPipeline(self.model_name)
 
-    def generate(self, request: Text2ImageRequest, output_path: str) -> Text2ImageResponse:
+    def generate(
+        self, request: Text2ImageRequest, output_path: str | None = None
+    ) -> Text2ImageResponse:
         self._load_pipeline()
+
+        if output_path is None:
+            output_path = "output.png"
 
         seed = request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
 

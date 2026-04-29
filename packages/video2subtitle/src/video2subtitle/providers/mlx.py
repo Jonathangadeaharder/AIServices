@@ -81,13 +81,16 @@ class MLXProvider(BaseProvider):
 
     def _segments_to_entries(self, segments: list[dict]) -> list[SubtitleEntry]:
         entries: list[SubtitleEntry] = []
-        for i, seg in enumerate(segments, start=1):
+        for seg in segments:
+            text = seg.get("text", "").strip()
+            if not text:
+                continue
             entries.append(
                 SubtitleEntry(
-                    index=i,
+                    index=len(entries) + 1,
                     start_time=seg.get("start", 0.0),
                     end_time=seg.get("end", 0.0),
-                    text=seg.get("text", "").strip(),
+                    text=text,
                 )
             )
         return entries
@@ -119,6 +122,7 @@ class MLXProvider(BaseProvider):
                 lines.append(entry.text)
                 lines.append("")
 
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         Path(output_path).write_text("\n".join(lines), encoding="utf-8")
 
     @staticmethod

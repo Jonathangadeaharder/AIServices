@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from aiservices_core.providers import BaseProvider
 
 from ..models import Audio2SubtitleRequest, Audio2SubtitleResponse, SubtitleEntry
@@ -36,13 +38,13 @@ class MLXWhisperProvider(BaseProvider):
 
         segments = result.get("segments", [])
         entries: list[SubtitleEntry] = []
-        for i, seg in enumerate(segments, start=1):
+        for seg in segments:
             text = seg.get("text", "").strip()
             if not text:
                 continue
             entries.append(
                 SubtitleEntry(
-                    index=i,
+                    index=len(entries) + 1,
                     start_time=seg.get("start", 0.0),
                     end_time=seg.get("end", 0.0),
                     text=text,
@@ -53,6 +55,7 @@ class MLXWhisperProvider(BaseProvider):
         if fmt not in {"srt", "vtt"}:
             raise ValueError(f"Unsupported output format: {fmt}")
         output = output_path or f"output.{fmt}"
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
 
         if fmt == "vtt":
             content = "WEBVTT\n\n"
