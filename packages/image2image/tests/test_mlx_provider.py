@@ -37,14 +37,13 @@ def test_mlx_provider_generate_file_not_found(tmp_path):
     out = tmp_path / "out.png"
     import pytest
 
-    with pytest.raises(FileNotFoundError, match="Input image not found"):
+    with pytest.raises(FileNotFoundError):
         provider.generate(request, str(out))
 
 
 def test_mlx_provider_generate_with_seed(mocker, tmp_path):
-    mock_open = mocker.patch("image2image.providers.mlx.Image.open")
     mock_img = mocker.MagicMock()
-    mock_open.return_value.convert.return_value = mock_img
+    mocker.patch("image2image.providers.mlx.load_image", return_value=mock_img)
 
     provider = MLXProvider()
     provider._model = {"dummy": True}

@@ -6,6 +6,18 @@ from pathlib import Path
 import pytest
 
 
+@pytest.fixture
+def isolated_root_logger():
+    root = logging.getLogger()
+    old_handlers = list(root.handlers)
+    old_level = root.level
+    root.handlers.clear()
+    yield root
+    root.handlers.clear()
+    root.handlers.extend(old_handlers)
+    root.setLevel(old_level)
+
+
 def test_version():
     from aiservices_core import __version__
 
@@ -216,50 +228,50 @@ def test_create_progress_bar_console():
     assert bar.console is console
 
 
-def test_setup_logging_debug_true(mocker):
-    logging.root.handlers.clear()
+def test_setup_logging_debug_true(isolated_root_logger):
     from aiservices_core.logging import setup_logging
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=True)
-    assert logging.root.level == logging.DEBUG
+    assert isolated_root_logger.level == logging.DEBUG
 
 
-def test_setup_logging_debug_false(mocker):
-    logging.root.handlers.clear()
+def test_setup_logging_debug_false(isolated_root_logger):
     from aiservices_core.logging import setup_logging
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=False)
-    assert logging.root.level == logging.INFO
+    assert isolated_root_logger.level == logging.INFO
 
 
-def test_setup_logging_format(mocker):
-    logging.root.handlers.clear()
+def test_setup_logging_format(isolated_root_logger):
     from aiservices_core.logging import setup_logging
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
+    handler = isolated_root_logger.handlers[-1]
     assert handler.formatter
     assert handler.formatter._fmt == "%(message)s"
     assert handler.formatter.datefmt == "[%X]"
 
 
-def test_setup_logging_rich_handler(mocker):
-    logging.root.handlers.clear()
+def test_setup_logging_rich_handler(isolated_root_logger):
     from aiservices_core.logging import setup_logging
     from rich.logging import RichHandler
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
+    handler = isolated_root_logger.handlers[-1]
     assert isinstance(handler, RichHandler)
     assert handler.rich_tracebacks is True
 
 
-def test_setup_logging_handler_console(mocker):
-    logging.root.handlers.clear()
+def test_setup_logging_handler_console(isolated_root_logger):
     from aiservices_core.logging import console, setup_logging
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
+    handler = isolated_root_logger.handlers[-1]
     assert handler.console is console
 
 
@@ -331,128 +343,3 @@ def test_get_optimal_device_auto_darwin_x86_returns_cpu(monkeypatch, mocker):
     from aiservices_core.runtime import get_optimal_device
 
     assert get_optimal_device() == "cpu"
-
-
-def test_setup_logging_sets_root_level_debug():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import setup_logging
-
-    setup_logging(debug=True)
-    assert logging.root.level == logging.DEBUG
-
-
-def test_setup_logging_sets_root_level_info():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import setup_logging
-
-    setup_logging(debug=False)
-    assert logging.root.level == logging.INFO
-
-
-def test_setup_logging_format_string():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import setup_logging
-
-    setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
-    assert handler.formatter
-    assert handler.formatter._fmt == "%(message)s"
-
-
-def test_setup_logging_datefmt():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import setup_logging
-
-    setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
-    assert handler.formatter
-    assert handler.formatter.datefmt == "[%X]"
-
-
-def test_setup_logging_rich_tracebacks_enabled():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import setup_logging
-    from rich.logging import RichHandler
-
-    setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
-    assert isinstance(handler, RichHandler)
-    assert handler.rich_tracebacks is True
-
-
-def test_setup_logging_handler_uses_shared_console():
-    logging.root.handlers.clear()
-    from aiservices_core.logging import console, setup_logging
-
-    setup_logging(debug=False)
-    handler = logging.root.handlers[-1]
-    assert handler.console is console
-
-
-def test_create_progress_bar_has_five_columns():
-    from aiservices_core.logging import create_progress_bar
-
-    bar = create_progress_bar()
-    assert len(bar.columns) == 5
-
-
-def test_create_progress_bar_uses_shared_console():
-    from aiservices_core.logging import console, create_progress_bar
-
-    bar = create_progress_bar()
-    assert bar.console is console
-
-
-def test_load_image_local_returns_rgb(tmp_path):
-    from aiservices_core.io import load_image
-    from PIL import Image
-
-    img = Image.new("RGBA", (16, 16), (255, 0, 0, 128))
-    path = tmp_path / "rgba.png"
-    img.save(path)
-    loaded = load_image(str(path))
-    assert loaded.mode == "RGB"
-
-
-def test_load_image_url_calls_raise_for_status(mocker):
-    from aiservices_core.io import load_image
-    from PIL import Image
-
-    img = Image.new("RGB", (16, 16))
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-
-    mock_resp = mocker.MagicMock()
-    mock_resp.content = buf.getvalue()
-    mock_resp.raise_for_status = mocker.MagicMock()
-    mocker.patch("requests.get", return_value=mock_resp)
-
-    load_image("https://example.com/img.png")
-    mock_resp.raise_for_status.assert_called_once()
-
-
-def test_provider_registry_error_shows_available_names():
-    from aiservices_core.providers import BaseProvider, ProviderRegistry
-
-    class P1(BaseProvider):
-        def __init__(self, **kwargs):
-            pass
-
-        def generate(self, *args, **kwargs):
-            return None
-
-    class P2(BaseProvider):
-        def __init__(self, **kwargs):
-            pass
-
-        def generate(self, *args, **kwargs):
-            return None
-
-    reg = ProviderRegistry()
-    reg.register("alpha", P1)
-    reg.register("beta", P2)
-    with pytest.raises(ValueError, match="alpha"):
-        reg.get("missing")
-    with pytest.raises(ValueError, match="beta"):
-        reg.get("missing")

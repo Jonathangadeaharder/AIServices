@@ -25,9 +25,8 @@ def test_mlx_provider_custom_model():
 
 def test_mlx_provider_generate(mocker, dummy_request, tmp_path):
     mocker.patch("image2image.providers.mlx.MLXProvider._load_model", return_value=None)
-    mock_img_open = mocker.patch("image2image.providers.mlx.Image.open")
     mock_img = mocker.MagicMock()
-    mock_img_open.return_value.convert.return_value = mock_img
+    mocker.patch("image2image.providers.mlx.load_image", return_value=mock_img)
 
     provider = MLXProvider()
     provider._model = {"dummy": "weights"}

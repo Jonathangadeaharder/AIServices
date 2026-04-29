@@ -1,8 +1,8 @@
 import random
 from pathlib import Path
 
+from aiservices_core.io import load_image
 from aiservices_core.providers import BaseProvider
-from PIL import Image
 
 from ..models import Image2ImageRequest, Image2ImageResponse
 
@@ -51,11 +51,7 @@ class MLXProvider(BaseProvider):
 
         seed = request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
 
-        input_path = Path(request.image_path).resolve()
-        if not input_path.exists():
-            raise FileNotFoundError(f"Input image not found: {request.image_path}")
-
-        input_image = Image.open(input_path).convert("RGB")
+        input_image = load_image(request.image_path)
 
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         input_image.save(output_path)
