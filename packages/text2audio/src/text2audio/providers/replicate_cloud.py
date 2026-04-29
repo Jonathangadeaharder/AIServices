@@ -35,9 +35,19 @@ class ReplicateProvider(BaseProvider):
 
     @retry_api_call
     def _download_audio(self, url: str, output_path: str):
-        urllib.request.urlretrieve(url, output_path)
+        with urllib.request.urlopen(url, timeout=120) as response:
+            with open(output_path, "wb") as f:
+                while True:
+                    chunk = response.read(8192)
+                    if not chunk:
+                        break
+                    f.write(chunk)
 
-    def generate(self, request: Text2AudioRequest, output_path: str) -> Text2AudioResponse:
+    def generate(
+        self, request: Text2AudioRequest, output_path: str | None = None
+    ) -> Text2AudioResponse:
+        if output_path is None:
+            output_path = f"output.{request.output_format}"
         input_data: dict[str, Any] = {
             "prompt": request.prompt,
             "duration": request.duration_seconds,
@@ -85,7 +95,11 @@ class ReplicateProvider(BaseProvider):
         elif isinstance(output, dict):
             for key in ["url", "audio", "output"]:
                 if key in output:
-                    result_url = str(output[key])
+                    value = output[key]
+                    if isinstance(value, (list, tuple)) and value:
+                        result_url = str(value[0])
+                    else:
+                        result_url = str(value)
                     break
         elif isinstance(output, str):
             result_url = output

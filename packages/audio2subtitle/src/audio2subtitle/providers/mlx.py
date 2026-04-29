@@ -49,7 +49,9 @@ class MLXWhisperProvider(BaseProvider):
                 )
             )
 
-        fmt = request.output_format.lower()
+        fmt = request.output_format
+        if fmt not in {"srt", "vtt"}:
+            raise ValueError(f"Unsupported output format: {fmt}")
         output = output_path or f"output.{fmt}"
 
         if fmt == "vtt":

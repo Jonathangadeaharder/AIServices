@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,9 @@ class Text2AudioRequest(BaseModel):
     prompt: str = Field(..., description="Text prompt describing the audio to generate")
     negative_prompt: str = Field("", description="Negative prompt for what to avoid")
     duration_seconds: float = Field(10.0, ge=0.5, le=300, description="Duration in seconds")
-    output_format: str = Field("wav", description="Output audio format (wav, mp3)")
+    output_format: Literal["wav", "mp3"] = Field(
+        "wav", description="Output audio format (wav, mp3)"
+    )
     category: AudioCategory = Field(
         AudioCategory.MUSIC, description="Category of audio to generate"
     )

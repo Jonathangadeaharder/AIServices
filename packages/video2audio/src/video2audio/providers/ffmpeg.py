@@ -26,7 +26,11 @@ class FFmpegProvider(BaseProvider):
             raise ProviderError("ffmpeg not found. Install FFmpeg and ensure it is on your PATH.")
         return ffmpeg_path
 
-    def generate(self, request: Video2AudioRequest, output_path: str) -> Video2AudioResponse:
+    def generate(
+        self, request: Video2AudioRequest, output_path: str | None = None
+    ) -> Video2AudioResponse:
+        if output_path is None:
+            output_path = f"output.{request.output_format}"
         ffmpeg_path = self._find_ffmpeg()
 
         codec = FORMAT_CODEC_MAP.get(request.output_format)
@@ -58,11 +62,14 @@ class FFmpegProvider(BaseProvider):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=600,
             )
         except subprocess.CalledProcessError as e:
             raise ProviderError(f"FFmpeg failed: {e.stderr}") from e
         except FileNotFoundError as e:
             raise ProviderError(f"FFmpeg not found: {e}") from e
+        except subprocess.TimeoutExpired as e:
+            raise ProviderError(f"FFmpeg timed out after 600s: {e}") from e
 
         return Video2AudioResponse(
             output_path=output_path,

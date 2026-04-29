@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class Audio2SubtitleRequest(BaseModel):
     audio_path: str = Field(..., description="Path to the input audio file")
     language: str | None = Field(None, description="Language of the audio (auto-detect if None)")
-    output_format: str = Field("srt", description="Output format: srt or vtt")
+    output_format: Literal["srt", "vtt"] = Field("srt", description="Output format: srt or vtt")
     model_name: str = Field(
         "mlx-community/whisper-large-v3-turbo",
         description="Whisper model name",
