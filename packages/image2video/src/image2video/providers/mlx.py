@@ -2,6 +2,7 @@ import os
 import random
 from pathlib import Path
 
+from aiservices_core.io import load_image
 from aiservices_core.providers import BaseProvider
 
 from ..models import Image2VideoRequest, Image2VideoResponse
@@ -44,7 +45,6 @@ class MLXProvider(BaseProvider):
         self._load_pipeline()
         if self._pipeline is None:
             raise RuntimeError("Pipeline failed to load")
-        from PIL import Image
 
         if output_path is None:
             output_path = "output.mp4"
@@ -52,16 +52,16 @@ class MLXProvider(BaseProvider):
         effective_seed = (
             request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
         )
-        with Image.open(request.image_path) as image:
-            video_latent, _ = self._pipeline.generate_from_image(
-                prompt=request.prompt,
-                image=image,
-                height=request.height,
-                width=request.width,
-                num_frames=request.num_frames,
-                seed=effective_seed,
-                num_steps=request.num_inference_steps,
-            )
+        image = load_image(request.image_path)
+        video_latent, _ = self._pipeline.generate_from_image(
+            prompt=request.prompt,
+            image=image,
+            height=request.height,
+            width=request.width,
+            num_frames=request.num_frames,
+            seed=effective_seed,
+            num_steps=request.num_inference_steps,
+        )
 
         self._pipeline.save_video(
             video_latent,
