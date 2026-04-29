@@ -1,3 +1,4 @@
+import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -40,7 +41,7 @@ class FishSpeechProvider(BaseProvider):
             raise ImportError("ormsgpack is required for Fish Speech API") from e
 
         if output_path is None:
-            output_path = "output.wav"
+            output_path = tempfile.mktemp(suffix=".wav")
 
         payload = {
             "text": self._build_fish_text(request),

@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 
 from aiservices_core.providers import BaseProvider
@@ -43,7 +44,7 @@ class FishMLXProvider(BaseProvider):
         from mlx_audio.tts.generate import generate_audio
 
         if output_path is None:
-            output_path = "output.wav"
+            output_path = tempfile.mktemp(suffix=".wav")
 
         model = self._get_model()
         text = self._build_text(request)
