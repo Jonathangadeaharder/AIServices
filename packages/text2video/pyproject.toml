@@ -5,7 +5,6 @@ description = "Text to video generation pipeline"
 requires-python = ">=3.10"
 dependencies = [
     "aiservices-core",
-    "requests>=2.31.0",
     "pillow>=10.0.0",
     "pydantic>=2.0.0",
     "typer>=0.12.0",
@@ -24,5 +23,5 @@ packages = ["src/text2video"]
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
-ltx-pipelines-mlx = { workspace = true }
-ltx-core-mlx = { workspace = true }
+ltx-core-mlx = { git = "https://github.com/dgrauet/ltx-2-mlx", subdirectory = "packages/ltx-core-mlx" }
+ltx-pipelines-mlx = { git = "https://github.com/dgrauet/ltx-2-mlx", subdirectory = "packages/ltx-pipelines-mlx" }
