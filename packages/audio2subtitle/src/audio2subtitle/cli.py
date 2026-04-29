@@ -56,7 +56,7 @@ def transcribe(
         typer.echo(f"Entries: {len(response.entries)}")
     except Exception as e:
         logger.error(f"Subtitle generation failed: {str(e)}")
-        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
+        typer.secho(f"\nError: {str(e)}", fg=typer.colors.RED, bold=True, err=True)
         raise typer.Exit(code=1) from e
 
 
