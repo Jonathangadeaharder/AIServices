@@ -7,18 +7,11 @@ dependencies = [
     "aiservices-core",
     "pydantic>=2.0.0",
     "typer>=0.12.0",
-    "torch>=2.0.0",
-    "torchaudio",
-    "transformers",
-    "lightning",
-    "hydra-core",
-    "einops",
-    "librosa",
-    "resampy",
-    "pydub",
-    "fish-speech-core",
     "ormsgpack>=1.12.2",
 ]
+
+[project.optional-dependencies]
+mlx = ["mlx-audio>=0.4.0", "soundfile"]
 
 [build-system]
 requires = ["hatchling"]
@@ -32,6 +25,3 @@ packages = ["src/text2speech"]
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
-ltx-pipelines-mlx = { workspace = true }
-ltx-core-mlx = { workspace = true }
-fish-speech-core = { workspace = true }

@@ -15,7 +15,6 @@ managed = true
 [tool.uv.workspace]
 members = ["packages/*"]
 exclude = [
-    "packages/fish_speech",
     "packages/ltx-core-mlx",
     "packages/ltx-pipelines-mlx",
     "packages/speech2text",
@@ -39,7 +38,6 @@ line-length = 100
 target-version = "py310"
 exclude = [
     "external/",
-    "packages/fish_speech/",
     "packages/ltx-core-mlx/",
     "packages/ltx-pipelines-mlx/",
     "packages/speech2text/",
