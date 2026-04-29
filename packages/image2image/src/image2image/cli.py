@@ -17,7 +17,7 @@ def main(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt"),
     output_path: str = typer.Option(..., "--output", "-o", help="Path to save output"),
     provider_name: str = typer.Option(
-        "image2image.clothing",
+        "image2image.mlx",
         "--provider",
         help="Provider name",
     ),

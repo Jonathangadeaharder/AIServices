@@ -59,9 +59,7 @@ class T5Config:
             tie_word_embeddings=config["tie_word_embeddings"],
             d_ff=config.get("d_ff", 4 * config["d_model"]),
             num_decoder_layers=config.get("num_decoder_layers", config["num_layers"]),
-            relative_attention_max_distance=config.get(
-                "relative_attention_max_distance", 128
-            ),
+            relative_attention_max_distance=config.get("relative_attention_max_distance", 128),
             layer_norm_epsilon=config.get("layer_norm_epsilon", 1e-6),
         )
 
@@ -205,9 +203,7 @@ class TransformerEncoderLayer(nn.Module):
 class TransformerEncoder(nn.Module):
     def __init__(self, config: T5Config):
         super().__init__()
-        self.layers = [
-            TransformerEncoderLayer(config) for i in range(config.num_layers)
-        ]
+        self.layers = [TransformerEncoderLayer(config) for i in range(config.num_layers)]
         self.ln = nn.RMSNorm(config.d_model, eps=config.layer_norm_epsilon)
         self.relative_attention_bias = RelativePositionBias(config, bidirectional=True)
 
