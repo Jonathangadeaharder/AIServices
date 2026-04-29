@@ -78,18 +78,14 @@ class Conv3dBlock(nn.Module):
         sp_h, sp_w = self.spatial_padding
         if sp_h > 0 or sp_w > 0:
             if self.spatial_padding_mode == "reflect":
-                # Manual reflect padding for BDHWC layout.
-                # For pad size p, reflect takes pixels [1..p] and [-(1+p)..-1].
                 if sp_h > 0:
-                    x = mx.concatenate(
-                        [x[:, :, 1 : 1 + sp_h, :, :], x, x[:, :, -(1 + sp_h) : -1, :, :]],
-                        axis=2,
-                    )
+                    top = mx.flip(x[:, :, :sp_h, :, :], axis=2)
+                    bot = mx.flip(x[:, :, -sp_h:, :, :], axis=2)
+                    x = mx.concatenate([top, x, bot], axis=2)
                 if sp_w > 0:
-                    x = mx.concatenate(
-                        [x[:, :, :, 1 : 1 + sp_w, :], x, x[:, :, :, -(1 + sp_w) : -1, :]],
-                        axis=3,
-                    )
+                    left = mx.flip(x[:, :, :, :sp_w, :], axis=3)
+                    right = mx.flip(x[:, :, :, -sp_w:, :], axis=3)
+                    x = mx.concatenate([left, x, right], axis=3)
             else:
                 x = mx.pad(x, [(0, 0), (0, 0), (sp_h, sp_h), (sp_w, sp_w), (0, 0)])
 

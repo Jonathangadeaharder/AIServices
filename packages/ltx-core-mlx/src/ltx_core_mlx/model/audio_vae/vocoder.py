@@ -329,8 +329,10 @@ class BigVGANVocoder(nn.Module):
             x = mx.tanh(x)
 
         if process_channels:
-            # x is (B*C, T_audio, 2) — but for stereo mel input, output is already 2-ch
-            x = x.reshape(B, C, x.shape[1], x.shape[2])
+            # x is (B*C, T_audio, 2). Merge original-C and vocoder stereo
+            # into a single channel axis: (B, C*2, T_audio).
+            B_out, T_out, ch_out = x.shape
+            x = x.reshape(B, C * ch_out, T_out)
 
         return x
 
