@@ -1,4 +1,5 @@
 import time
+from typing import Literal, cast
 
 import typer
 from aiservices_core.cli import device_option, verbose_option
@@ -34,7 +35,7 @@ def extract(
     try:
         request = Video2AudioRequest(
             video_path=video,
-            output_format=output_format,
+            output_format=cast(Literal["wav", "mp3", "aac"], output_format),
             sample_rate=sample_rate,
             mono=mono,
         )

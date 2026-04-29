@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
 from image2image.models import Image2ImageRequest
 from image2image.providers.mlx import MLXProvider
@@ -25,11 +23,10 @@ def test_mlx_provider_custom_model():
     assert provider.model_id == "custom-model"
 
 
-@patch("image2image.providers.mlx.Image.open")
-@patch("image2image.providers.mlx.MLXProvider._load_model")
-def test_mlx_provider_generate(mock_load, mock_img_open, dummy_request, tmp_path):
-    mock_load.return_value = None
-    mock_img = MagicMock()
+def test_mlx_provider_generate(mocker, dummy_request, tmp_path):
+    mocker.patch("image2image.providers.mlx.MLXProvider._load_model", return_value=None)
+    mock_img_open = mocker.patch("image2image.providers.mlx.Image.open")
+    mock_img = mocker.MagicMock()
     mock_img_open.return_value.convert.return_value = mock_img
 
     provider = MLXProvider()

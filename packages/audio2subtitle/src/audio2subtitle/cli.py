@@ -1,4 +1,5 @@
 import time
+from typing import Literal, cast
 
 import typer
 from aiservices_core.cli import device_option, verbose_option
@@ -33,7 +34,7 @@ def transcribe(
     request = Audio2SubtitleRequest(
         audio_path=audio,
         language=language,
-        output_format=format,
+        output_format=cast(Literal["srt", "vtt"], format),
         model_name=model,
         word_timestamps=not no_word_timestamps,
     )

@@ -18,7 +18,7 @@ class MLXProvider(BaseProvider):
         self, request: Video2SubtitleRequest, output_path: str | None = None
     ) -> Video2SubtitleResponse:
         if output_path is None:
-            output_path = "output.srt"
+            output_path = f"output.{request.output_format}"
 
         audio_path = self._extract_audio(request.video_path)
 
@@ -36,13 +36,16 @@ class MLXProvider(BaseProvider):
         finally:
             Path(audio_path).unlink(missing_ok=True)
 
-        entries = self._segments_to_entries(result.get("segments", []))
+        raw_segments = result.get("segments", [])
+        if not isinstance(raw_segments, list):
+            raw_segments = []
+        entries = self._segments_to_entries(raw_segments)
         self._write_subtitle_file(entries, output_path, request.output_format)
 
         return Video2SubtitleResponse(
             output_path=str(output_path),
             entries=entries,
-            language=result.get("language"),
+            language=str(result.get("language")) if result.get("language") else None,
             metadata={
                 "provider": "video2subtitle.mlx",
                 "model": request.model_name,
@@ -76,10 +79,13 @@ class MLXProvider(BaseProvider):
         except subprocess.CalledProcessError as e:
             Path(tmp.name).unlink(missing_ok=True)
             raise RuntimeError(f"ffmpeg audio extraction failed: {e.stderr.decode()}") from e
+        except subprocess.TimeoutExpired:
+            Path(tmp.name).unlink(missing_ok=True)
+            raise RuntimeError("ffmpeg audio extraction timed out after 600 seconds") from None
 
         return tmp.name
 
-    def _segments_to_entries(self, segments: list[dict]) -> list[SubtitleEntry]:
+    def _segments_to_entries(self, segments: list) -> list[SubtitleEntry]:
         entries: list[SubtitleEntry] = []
         for seg in segments:
             text = str(seg.get("text") or "").strip()

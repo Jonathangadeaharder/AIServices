@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pytest
 from text2image.models import Text2ImageRequest
@@ -28,14 +26,13 @@ def test_mlx_provider_custom_model():
     assert provider.model_name == "flux-dev"
 
 
-@patch("text2image.providers.mlx.Image.fromarray")
-@patch("text2image.providers.mlx.MLXProvider._load_pipeline")
-def test_mlx_provider_generate(mock_load, mock_fromarray, dummy_request, tmp_path):
-    mock_load.return_value = None
+def test_mlx_provider_generate(dummy_request, tmp_path, mocker):
+    mocker.patch("text2image.providers.mlx.MLXProvider._load_pipeline", return_value=None)
+    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
 
-    mock_pipeline = MagicMock()
+    mock_pipeline = mocker.MagicMock()
     mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
-    mock_img = MagicMock()
+    mock_img = mocker.MagicMock()
     mock_fromarray.return_value = mock_img
 
     provider = MLXProvider()

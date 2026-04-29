@@ -49,17 +49,25 @@ def test_response_model():
     assert resp.metadata["provider"] == "replicate"
 
 
-@pytest.mark.skipif(
-    not __import__("os").environ.get("RUN_INTEGRATION_TESTS"),
-    reason="Integration test - set RUN_INTEGRATION_TESTS=1 to run",
-)
-def test_replicate_integration():
+def test_replicate_generate_full(tmp_path, mocker):
     from text2audio.providers.replicate_cloud import ReplicateProvider
 
     provider = ReplicateProvider()
     request = Text2AudioRequest(prompt="calm piano music", duration_seconds=5.0)
-    import tempfile
+    out = tmp_path / "out.wav"
 
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        response = provider.generate(request, f.name)
-    assert response.output_path == f.name
+    mock_response = mocker.MagicMock()
+    mock_response.read.side_effect = [b"audio-data", b""]
+    mock_response.__enter__ = mocker.MagicMock(return_value=mock_response)
+    mock_response.__exit__ = mocker.MagicMock(return_value=False)
+
+    mocker.patch("replicate.run", return_value=["https://example.com/audio.wav"])
+    mocker.patch(
+        "text2audio.providers.replicate_cloud.urllib.request.urlopen",
+        return_value=mock_response,
+    )
+
+    response = provider.generate(request, str(out))
+
+    assert response.output_path == str(out)
+    assert out.read_bytes() == b"audio-data"

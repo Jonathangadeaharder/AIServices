@@ -1,4 +1,3 @@
-import os
 
 import pytest
 from image2video.models import Image2VideoRequest
@@ -41,16 +40,24 @@ def test_model_defaults():
     assert "static" in req.negative_prompt
 
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_INTEGRATION_TESTS") != "1",
-    reason="Requires RUN_INTEGRATION_TESTS=1",
-)
-def test_comfyui_provider_integration(dummy_request, tmp_path):
-    """Integration test requiring a running ComfyUI server."""
+def test_mlx_provider_generate_full_flow(dummy_request, tmp_path, mocker):
     from image2video.providers.mlx import MLXProvider
 
-    provider = MLXProvider()
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
+
+    provider = MLXProvider.__new__(MLXProvider)
+    provider._model_dir = "/fake"
+    provider._pipeline = mock_pipeline
+
     out_file = tmp_path / "out.mp4"
 
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_img = mocker.MagicMock()
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
     response = provider.generate(dummy_request, str(out_file))
-    assert os.path.exists(response.output_path)
+
+    assert response.output_path == str(out_file)
+    mock_pipeline.generate_from_image.assert_called_once()
+    mock_pipeline.save_video.assert_called_once()

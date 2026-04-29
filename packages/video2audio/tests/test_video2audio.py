@@ -1,6 +1,3 @@
-import os
-
-import pytest
 from video2audio.models import Video2AudioRequest
 
 
@@ -19,19 +16,19 @@ def test_model_valid_formats():
         assert req.output_format == fmt
 
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_INTEGRATION_TESTS") != "1",
-    reason="Requires RUN_INTEGRATION_TESTS=1",
-)
-def test_ffmpeg_provider_integration(tmp_path):
-    """Integration test requiring FFmpeg and a valid video file."""
+def test_ffmpeg_provider_generate(tmp_path, mocker):
     from video2audio.providers.ffmpeg import FFmpegProvider
 
     provider = FFmpegProvider()
     out_file = tmp_path / "out.wav"
 
-    request = Video2AudioRequest(
-        video_path=os.environ["TEST_VIDEO_PATH"],
-    )
+    request = Video2AudioRequest(video_path="/tmp/test.mp4")
+    mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
+    mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
+
     response = provider.generate(request, str(out_file))
-    assert os.path.exists(response.output_path)
+
+    assert response.output_path == str(out_file)
+    mock_run.assert_called_once()
+    cmd = mock_run.call_args[0][0]
+    assert "-vn" in cmd

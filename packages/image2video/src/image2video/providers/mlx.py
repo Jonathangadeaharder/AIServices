@@ -1,8 +1,14 @@
+import os
+import random
 from pathlib import Path
 
 from aiservices_core.providers import BaseProvider
 
 from ..models import Image2VideoRequest, Image2VideoResponse
+
+_DEFAULT_MODEL_DIR = (
+    Path(__file__).resolve().parent.parent.parent.parent.parent.parent / "models" / "ltx-2.3" / "q8"
+)
 
 
 class MLXProvider(BaseProvider):
@@ -16,31 +22,38 @@ class MLXProvider(BaseProvider):
         model_dir: str | None = None,
         **kwargs,
     ):
-        from ltx_pipelines_mlx.ti2vid_one_stage import ImageToVideoPipeline
-
         super().__init__(**kwargs)
-        if model_dir is None:
-            base_dir = (
-                Path(__file__).parent.parent.parent.parent.parent.parent
-                / "models"
-                / "ltx-2.3"
-                / "q8"
-            )
-            model_dir = str(base_dir)
+        self._model_dir = model_dir or os.environ.get(
+            "IMAGE2VIDEO_MODEL_DIR",
+            str(_DEFAULT_MODEL_DIR),
+        )
+        self._pipeline = None
 
-        self.pipeline = ImageToVideoPipeline(model_dir=model_dir)
+    def _load_pipeline(self):
+        if self._pipeline is not None:
+            return
+        from ltx_pipelines_mlx.ti2vid_one_stage import (
+            ImageToVideoPipeline,
+        )
+
+        self._pipeline = ImageToVideoPipeline(model_dir=self._model_dir)
 
     def generate(
         self, request: Image2VideoRequest, output_path: str | None = None
     ) -> Image2VideoResponse:
+        self._load_pipeline()
+        if self._pipeline is None:
+            raise RuntimeError("Pipeline failed to load")
         from PIL import Image
 
         if output_path is None:
             output_path = "output.mp4"
 
-        effective_seed = request.seed if request.seed is not None else 42
+        effective_seed = (
+            request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
+        )
         with Image.open(request.image_path) as image:
-            video_latent, _ = self.pipeline.generate_from_image(
+            video_latent, _ = self._pipeline.generate_from_image(
                 prompt=request.prompt,
                 image=image,
                 height=request.height,
@@ -50,7 +63,7 @@ class MLXProvider(BaseProvider):
                 num_steps=request.num_inference_steps,
             )
 
-        self.pipeline.save_video(
+        self._pipeline.save_video(
             video_latent,
             output_path,
             fps=request.fps,
@@ -60,7 +73,7 @@ class MLXProvider(BaseProvider):
             output_path=output_path,
             metadata={
                 "provider": "mlx",
-                "model_dir": str(self.pipeline.model_dir),
-                "seed": request.seed,
+                "model_dir": self._model_dir,
+                "seed": effective_seed,
             },
         )

@@ -25,7 +25,12 @@ class MLXProvider(BaseProvider):
         if self._pipeline is not None:
             return
 
-        from image2image.flux_mlx import FluxPipeline
+        try:
+            from image2image.flux_mlx import FluxPipeline  # type: ignore[import-not-found]
+        except ImportError as e:
+            raise ImportError(
+                "flux_mlx is not installed. Install image2image with [flux] extra."
+            ) from e
 
         self._pipeline = FluxPipeline(self.model_name)
 
@@ -33,6 +38,8 @@ class MLXProvider(BaseProvider):
         self, request: Text2ImageRequest, output_path: str | None = None
     ) -> Text2ImageResponse:
         self._load_pipeline()
+        if self._pipeline is None:
+            raise RuntimeError("Pipeline failed to load")
 
         if output_path is None:
             output_path = "output.png"
