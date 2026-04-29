@@ -95,7 +95,13 @@ def test_mlx_provider_generate_no_seed(mocker, tmp_path):
 
 def test_mlx_provider_load_pipeline(mocker):
     mock_module = mocker.MagicMock()
-    mocker.patch.dict(sys.modules, {"ltx_pipelines_mlx": mock_module, "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage})
+    mocker.patch.dict(
+        sys.modules,
+        {
+            "ltx_pipelines_mlx": mock_module,
+            "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
+        },
+    )
     mock_pipeline_cls = mock_module.ti2vid_one_stage.ImageToVideoPipeline
     mock_pipeline_cls.return_value = mocker.MagicMock()
 
@@ -110,7 +116,13 @@ def test_mlx_provider_load_pipeline(mocker):
 
 def test_mlx_provider_load_pipeline_cached(mocker):
     mock_module = mocker.MagicMock()
-    mocker.patch.dict(sys.modules, {"ltx_pipelines_mlx": mock_module, "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage})
+    mocker.patch.dict(
+        sys.modules,
+        {
+            "ltx_pipelines_mlx": mock_module,
+            "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
+        },
+    )
     mock_pipeline_cls = mock_module.ti2vid_one_stage.ImageToVideoPipeline
 
     provider = MLXProvider.__new__(MLXProvider)
