@@ -41,7 +41,9 @@ class FishSpeechProvider(BaseProvider):
             raise ImportError("ormsgpack is required for Fish Speech API") from e
 
         if output_path is None:
-            output_path = tempfile.mktemp(suffix=".wav")
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            tmp.close()
+            output_path = tmp.name
 
         payload = {
             "text": self._build_fish_text(request),

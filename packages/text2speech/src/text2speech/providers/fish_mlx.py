@@ -44,7 +44,9 @@ class FishMLXProvider(BaseProvider):
         from mlx_audio.tts.generate import generate_audio
 
         if output_path is None:
-            output_path = tempfile.mktemp(suffix=".wav")
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            tmp.close()
+            output_path = tmp.name
 
         model = self._get_model()
         text = self._build_text(request)
