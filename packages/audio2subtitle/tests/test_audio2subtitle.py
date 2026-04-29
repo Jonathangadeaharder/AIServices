@@ -3,14 +3,13 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import ValidationError
-
 from audio2subtitle.models import (
     Audio2SubtitleRequest,
     Audio2SubtitleResponse,
     SubtitleEntry,
 )
 from audio2subtitle.providers.mlx import _format_timestamp
+from pydantic import ValidationError
 
 _mock_whisper = MagicMock()
 

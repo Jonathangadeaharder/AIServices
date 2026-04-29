@@ -76,7 +76,7 @@ class MLXWhisperProvider(BaseProvider):
         return Audio2SubtitleResponse(
             output_path=output,
             entries=entries,
-            language=result.get("language"),
+            language=str(result.get("language")) if result.get("language") else None,
             metadata={
                 "provider": "mlx-whisper",
                 "model": request.model_name,

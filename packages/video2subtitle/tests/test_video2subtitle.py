@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
-
 from video2subtitle.models import (
     SubtitleEntry,
     Video2SubtitleRequest,

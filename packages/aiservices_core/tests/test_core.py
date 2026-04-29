@@ -1,4 +1,5 @@
 """Tests for aiservices_core package modules."""
+
 import os
 from pathlib import Path
 from unittest.mock import patch
@@ -67,7 +68,6 @@ def test_provider_registry_register_and_get():
         def __init__(self, **kwargs):
             self.kwargs = kwargs
 
-
         def generate(self, *args, **kwargs):
             return None
 
@@ -107,8 +107,9 @@ def test_get_optimal_device_auto_darwin_arm(monkeypatch):
     from aiservices_core.config import AIServicesConfig
 
     cfg_module.config = AIServicesConfig()
-    with patch("platform.system", return_value="Darwin"), patch(
-        "platform.machine", return_value="arm64"
+    with (
+        patch("platform.system", return_value="Darwin"),
+        patch("platform.machine", return_value="arm64"),
     ):
         from importlib import reload
 

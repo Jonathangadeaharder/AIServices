@@ -19,10 +19,6 @@ exclude = [
     "packages/studio",
     "packages/text2speech",
     "packages/text2video",
-    "packages/image2video",
-    "packages/video2subtitle",
-    "packages/video2audio",
-    "packages/audio2subtitle",
 ]
 
 [tool.uv.sources]
@@ -30,28 +26,18 @@ aiservices-core = { workspace = true }
 image2image = { workspace = true }
 text2image = { workspace = true }
 text2audio = { workspace = true }
+video2audio = { workspace = true }
+audio2subtitle = { workspace = true }
+video2subtitle = { workspace = true }
+image2video = { workspace = true }
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = [
-    "external/",
-    "packages/speech2text/",
-    "packages/studio/",
-    "packages/text2speech/",
-    "packages/text2video/",
-    "packages/image2video/",
-    "packages/video2subtitle/",
-    "packages/video2audio/",
-    "packages/audio2subtitle/",
-]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "N", "C", "B"]
 ignore = []
-
-[tool.ruff.lint.per-file-ignores]
-"packages/image2image/src/image2image/flux_mlx/*" = ["N806", "N803", "I001", "C901", "B019"]
 
 [tool.pyright]
 pythonVersion = "3.11"
@@ -62,22 +48,38 @@ venv = ".venv"
 reportPrivateImportUsage = "none"
 reportAttributeAccessIssue = "none"
 reportCallIssue = "none"
+exclude = [
+    ".venv/**",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests"]
-pythonpath = [
-    "packages/aiservices_core/src",
-    "packages/image2image/src",
-    "packages/text2image/src",
-    "packages/speech2text/src",
-    "packages/text2speech/src",
-    "packages/text2video/src",
-    "packages/image2video/src",
-    "packages/studio/src",
-    "packages/video2subtitle/src",
-    "packages/text2audio/src",
-    "packages/video2audio/src",
-    "packages/audio2subtitle/src",
+addopts = "--import-mode=importlib"
+
+[tool.coverage.run]
+branch = true
+source = [
+    "aiservices_core",
+    "image2image",
+    "text2image",
+    "text2audio",
+    "video2audio",
+    "audio2subtitle",
+    "video2subtitle",
+    "image2video",
+]
+omit = [
+    "*/tests/*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "pass$",
 ]
 
 [dependency-groups]
@@ -85,5 +87,6 @@ dev = [
     "copier>=9.14.3",
     "pyright>=1.1.409",
     "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
     "ruff>=0.15.12",
 ]

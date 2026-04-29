@@ -36,13 +36,16 @@ class MLXProvider(BaseProvider):
         finally:
             Path(audio_path).unlink(missing_ok=True)
 
-        entries = self._segments_to_entries(result.get("segments", []))
+        raw_segments = result.get("segments", [])
+        if not isinstance(raw_segments, list):
+            raw_segments = []
+        entries = self._segments_to_entries(raw_segments)
         self._write_subtitle_file(entries, output_path, request.output_format)
 
         return Video2SubtitleResponse(
             output_path=str(output_path),
             entries=entries,
-            language=result.get("language"),
+            language=str(result.get("language")) if result.get("language") else None,
             metadata={
                 "provider": "video2subtitle.mlx",
                 "model": request.model_name,
@@ -79,7 +82,7 @@ class MLXProvider(BaseProvider):
 
         return tmp.name
 
-    def _segments_to_entries(self, segments: list[dict]) -> list[SubtitleEntry]:
+    def _segments_to_entries(self, segments: list) -> list[SubtitleEntry]:
         entries: list[SubtitleEntry] = []
         for seg in segments:
             text = str(seg.get("text") or "").strip()
