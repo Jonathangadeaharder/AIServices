@@ -1,10 +1,9 @@
-import copy
-import os
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 from text2image.models import Text2ImageRequest
-from text2image.providers.replicate_cloud import ReplicateProvider
+from text2image.providers.mlx import MLXProvider
 
 
 @pytest.fixture
@@ -12,49 +11,49 @@ def dummy_request():
     return Text2ImageRequest(
         prompt="A beautiful test image",
         guidance_scale=7.5,
-        num_inference_steps=50,
+        num_inference_steps=4,
         width=1024,
         height=1024,
     )
 
 
-@patch("text2image.providers.replicate_cloud.replicate.run")
-@patch("text2image.providers.replicate_cloud.requests.get")
-@patch("text2image.providers.replicate_cloud.Image.open")
-def test_replicate_provider_mocked(mock_img_open, mock_get, mock_run, dummy_request, tmp_path):
-    # Setup mocks
-    mock_run.return_value = ["https://example.com/out.png"]
+def test_mlx_provider_init():
+    provider = MLXProvider()
+    assert provider.model_name == MLXProvider.DEFAULT_MODEL
+    assert provider._pipeline is None
 
-    mock_response = MagicMock()
-    mock_response.content = b"fake_image_data"
-    mock_get.return_value = mock_response
 
+def test_mlx_provider_custom_model():
+    provider = MLXProvider(model_name="flux-dev")
+    assert provider.model_name == "flux-dev"
+
+
+@patch("text2image.providers.mlx.Image.fromarray")
+@patch("text2image.providers.mlx.MLXProvider._load_pipeline")
+def test_mlx_provider_generate(mock_load, mock_fromarray, dummy_request, tmp_path):
+    mock_load.return_value = None
+
+    mock_pipeline = MagicMock()
+    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
     mock_img = MagicMock()
-    mock_img_open.return_value.convert.return_value = mock_img
+    mock_fromarray.return_value = mock_img
 
-    provider = ReplicateProvider()
+    provider = MLXProvider()
+    provider._pipeline = mock_pipeline
 
     out_file = tmp_path / "out.png"
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)
-    assert response.metadata["url"] == "https://example.com/out.png"
-    mock_run.assert_called_once()
-    mock_img.save.assert_called_once_with(str(out_file))
+    assert response.metadata["provider"] == "mlx"
+    mock_pipeline.generate_images.assert_called_once()
+    mock_img.save.assert_called_once()
 
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_INTEGRATION_TESTS") != "1", reason="Requires RUN_INTEGRATION_TESTS=1"
-)
-def test_local_provider_integration(dummy_request, tmp_path):
-    # This test will actually execute via ComfyUI WebSocket, so it's gated.
-    from text2image.providers.comfyui import ComfyUIProvider
-
-    provider = ComfyUIProvider()
-    out_file = tmp_path / "out.png"
-
-    new_request = copy.copy(dummy_request)
-    new_request.num_inference_steps = 1  # fast inference for test
-
-    response = provider.generate(new_request, str(out_file))
-    assert os.path.exists(response.output_path)
+def test_request_model_defaults():
+    req = Text2ImageRequest(prompt="test")
+    assert req.width == 1024
+    assert req.height == 1024
+    assert req.guidance_scale == 7.5
+    assert req.num_inference_steps == 50
+    assert req.seed is None

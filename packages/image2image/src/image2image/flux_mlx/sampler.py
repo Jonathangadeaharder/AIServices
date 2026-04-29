@@ -18,9 +18,7 @@ class FluxSampler:
         t = mx.where(t == 0, mx.zeros_like(t), exp_mu / (exp_mu + (1 / t - 1)))
         return t
 
-    def timesteps(
-        self, num_steps, image_sequence_length, start: float = 1, stop: float = 0
-    ):
+    def timesteps(self, num_steps, image_sequence_length, start: float = 1, stop: float = 0):
         t = mx.linspace(start, stop, num_steps + 1)
 
         if not self._schnell:
@@ -42,11 +40,7 @@ class FluxSampler:
         return mx.random.normal(shape, dtype=dtype, key=key)
 
     def add_noise(self, x, t, noise=None, key=None):
-        noise = (
-            noise
-            if noise is not None
-            else mx.random.normal(x.shape, dtype=x.dtype, key=key)
-        )
+        noise = noise if noise is not None else mx.random.normal(x.shape, dtype=x.dtype, key=key)
         t = t.reshape([-1] + [1] * (x.ndim - 1))
         return x * (1 - t) + t * noise
 

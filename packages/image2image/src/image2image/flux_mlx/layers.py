@@ -42,9 +42,7 @@ def _attention(q: mx.array, k: mx.array, v: mx.array, pe: mx.array):
     return x.transpose(0, 2, 1, 3).reshape(B, L, -1)
 
 
-def timestep_embedding(
-    t: mx.array, dim: int, max_period: int = 10000, time_factor: float = 1000.0
-):
+def timestep_embedding(t: mx.array, dim: int, max_period: int = 10000, time_factor: float = 1000.0):
     half = dim // 2
     freqs = mx.arange(0, half, dtype=mx.float32) / half
     freqs = freqs * (-math.log(max_period))
@@ -143,9 +141,7 @@ class Modulation(nn.Module):
 
 
 class DoubleStreamBlock(nn.Module):
-    def __init__(
-        self, hidden_size: int, num_heads: int, mlp_ratio: float, qkv_bias: bool = False
-    ):
+    def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, qkv_bias: bool = False):
         super().__init__()
 
         mlp_hidden_dim = int(hidden_size * mlp_ratio)
@@ -153,9 +149,7 @@ class DoubleStreamBlock(nn.Module):
         self.hidden_size = hidden_size
         self.img_mod = Modulation(hidden_size, double=True)
         self.img_norm1 = nn.LayerNorm(hidden_size, affine=False, eps=1e-6)
-        self.img_attn = SelfAttention(
-            dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias
-        )
+        self.img_attn = SelfAttention(dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias)
 
         self.img_norm2 = nn.LayerNorm(hidden_size, affine=False, eps=1e-6)
         self.img_mlp = nn.Sequential(
@@ -166,9 +160,7 @@ class DoubleStreamBlock(nn.Module):
 
         self.txt_mod = Modulation(hidden_size, double=True)
         self.txt_norm1 = nn.LayerNorm(hidden_size, affine=False, eps=1e-6)
-        self.txt_attn = SelfAttention(
-            dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias
-        )
+        self.txt_attn = SelfAttention(dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias)
 
         self.txt_norm2 = nn.LayerNorm(hidden_size, affine=False, eps=1e-6)
         self.txt_mlp = nn.Sequential(
@@ -222,14 +214,10 @@ class DoubleStreamBlock(nn.Module):
             txt_attn, img_attn = mx.split(attn, [S], axis=1)
 
         img = img + img_mod1.gate * img_attn
-        img_mlp = self.img_mlp(
-            (1 + img_mod2.scale) * self.img_norm2(img) + img_mod2.shift
-        )
+        img_mlp = self.img_mlp((1 + img_mod2.scale) * self.img_norm2(img) + img_mod2.shift)
 
         txt = txt + txt_mod1.gate * txt_attn
-        txt_mlp = self.txt_mlp(
-            (1 + txt_mod2.scale) * self.txt_norm2(txt) + txt_mod2.shift
-        )
+        txt_mlp = self.txt_mlp((1 + txt_mod2.scale) * self.txt_norm2(txt) + txt_mod2.shift)
 
         if self.sharding_group is not None:
             txt_img = mx.concatenate([txt_mlp, img_mlp], axis=1)
@@ -295,9 +283,7 @@ class LastLayer(nn.Module):
     def __init__(self, hidden_size: int, patch_size: int, out_channels: int):
         super().__init__()
         self.norm_final = nn.LayerNorm(hidden_size, affine=False, eps=1e-6)
-        self.linear = nn.Linear(
-            hidden_size, patch_size * patch_size * out_channels, bias=True
-        )
+        self.linear = nn.Linear(hidden_size, patch_size * patch_size * out_channels, bias=True)
         self.adaLN_modulation = nn.Sequential(
             nn.SiLU(), nn.Linear(hidden_size, 2 * hidden_size, bias=True)
         )

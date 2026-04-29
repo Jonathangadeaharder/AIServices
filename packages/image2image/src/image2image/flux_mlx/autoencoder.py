@@ -65,9 +65,7 @@ class ResnetBlock(nn.Module):
             affine=True,
             pytorch_compatible=True,
         )
-        self.conv1 = nn.Conv2d(
-            in_channels, out_channels, kernel_size=3, stride=1, padding=1
-        )
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.norm2 = nn.GroupNorm(
             num_groups=32,
             dims=out_channels,
@@ -75,9 +73,7 @@ class ResnetBlock(nn.Module):
             affine=True,
             pytorch_compatible=True,
         )
-        self.conv2 = nn.Conv2d(
-            out_channels, out_channels, kernel_size=3, stride=1, padding=1
-        )
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         if self.in_channels != self.out_channels:
             self.nin_shortcut = nn.Linear(in_channels, out_channels)
 
@@ -100,9 +96,7 @@ class ResnetBlock(nn.Module):
 class Downsample(nn.Module):
     def __init__(self, in_channels: int):
         super().__init__()
-        self.conv = nn.Conv2d(
-            in_channels, in_channels, kernel_size=3, stride=2, padding=0
-        )
+        self.conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=2, padding=0)
 
     def __call__(self, x: mx.array):
         x = mx.pad(x, [(0, 0), (0, 1), (0, 1), (0, 0)])
@@ -113,9 +107,7 @@ class Downsample(nn.Module):
 class Upsample(nn.Module):
     def __init__(self, in_channels: int):
         super().__init__()
-        self.conv = nn.Conv2d(
-            in_channels, in_channels, kernel_size=3, stride=1, padding=1
-        )
+        self.conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
 
     def __call__(self, x: mx.array):
         x = upsample_nearest(x, (2, 2))
@@ -139,9 +131,7 @@ class Encoder(nn.Module):
         self.num_res_blocks = num_res_blocks
         self.resolution = resolution
         self.in_channels = in_channels
-        self.conv_in = nn.Conv2d(
-            in_channels, self.ch, kernel_size=3, stride=1, padding=1
-        )
+        self.conv_in = nn.Conv2d(in_channels, self.ch, kernel_size=3, stride=1, padding=1)
 
         curr_res = resolution
         in_ch_mult = (1,) + tuple(ch_mult)
@@ -172,9 +162,7 @@ class Encoder(nn.Module):
         self.norm_out = nn.GroupNorm(
             num_groups=32, dims=block_in, eps=1e-6, affine=True, pytorch_compatible=True
         )
-        self.conv_out = nn.Conv2d(
-            block_in, 2 * z_channels, kernel_size=3, stride=1, padding=1
-        )
+        self.conv_out = nn.Conv2d(block_in, 2 * z_channels, kernel_size=3, stride=1, padding=1)
 
     def __call__(self, x: mx.array):
         hs = [self.conv_in(x)]
@@ -225,9 +213,7 @@ class Decoder(nn.Module):
         curr_res = resolution // 2 ** (self.num_resolutions - 1)
         self.z_shape = (1, z_channels, curr_res, curr_res)
 
-        self.conv_in = nn.Conv2d(
-            z_channels, block_in, kernel_size=3, stride=1, padding=1
-        )
+        self.conv_in = nn.Conv2d(z_channels, block_in, kernel_size=3, stride=1, padding=1)
 
         self.mid = {}
         self.mid["block_1"] = ResnetBlock(in_channels=block_in, out_channels=block_in)

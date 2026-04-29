@@ -160,9 +160,7 @@ class FluxPipeline:
         reload_text_encoders: bool = True,
         progress: bool = True,
     ):
-        latents = self.generate_latents(
-            text, n_images, num_steps, guidance, latent_size, seed
-        )
+        latents = self.generate_latents(text, n_images, num_steps, guidance, latent_size, seed)
         mx.eval(next(latents))
 
         if reload_text_encoders:
