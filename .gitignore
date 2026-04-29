@@ -42,3 +42,4 @@ external/comfyui/ComfyUI
 *.mp4
 *.wav
 *.mp3
+.worktrees/
