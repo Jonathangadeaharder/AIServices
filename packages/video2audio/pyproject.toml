@@ -1,0 +1,23 @@
+[project]
+name = "video2audio"
+version = "0.1.0"
+description = "Video to audio extraction and generation pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "aiservices-core",
+    "pydantic>=2.0.0",
+    "typer>=0.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+video2audio = "video2audio.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/video2audio"]
+
+[tool.uv.sources]
+aiservices-core = { workspace = true }

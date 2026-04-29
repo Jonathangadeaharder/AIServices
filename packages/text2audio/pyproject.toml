@@ -1,0 +1,24 @@
+[project]
+name = "text2audio"
+version = "0.1.0"
+description = "Text to audio (music, SFX, ambient) generation pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "aiservices-core",
+    "pydantic>=2.0.0",
+    "typer>=0.12.0",
+    "replicate>=0.25.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+text2audio = "text2audio.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/text2audio"]
+
+[tool.uv.sources]
+aiservices-core = { workspace = true }
