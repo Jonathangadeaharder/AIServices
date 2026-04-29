@@ -29,35 +29,40 @@ def extract(
     device: str = device_option,
 ):
     """Extract audio from a video file."""
-    request = Video2AudioRequest(
-        video_path=video,
-        output_format=output_format,
-        sample_rate=sample_rate,
-        mono=mono,
-    )
-
     logger.info(f"Using provider: {provider_name}")
 
-    with create_progress_bar() as progress:
-        task_id = progress.add_task("[cyan]Initializing provider...", total=None)
-
-        provider = registry.get(provider_name, device=device)
-
-        progress.update(task_id, description="[green]Extracting audio...")
-        start_time = time.time()
-
-        response = provider.generate(request, output)
-
-        elapsed = time.time() - start_time
-        progress.update(
-            task_id,
-            description=f"[bold green]Done in {elapsed:.2f}s!",
+    try:
+        request = Video2AudioRequest(
+            video_path=video,
+            output_format=output_format,
+            sample_rate=sample_rate,
+            mono=mono,
         )
 
-    logger.info(f"Audio saved to: {response.output_path}")
-    if response.duration_seconds is not None:
-        logger.info(f"Duration: {response.duration_seconds:.2f}s")
-    logger.debug(f"Metadata: {response.metadata}")
+        with create_progress_bar() as progress:
+            task_id = progress.add_task("[cyan]Initializing provider...", total=None)
+
+            provider = registry.get(provider_name, device=device)
+
+            progress.update(task_id, description="[green]Extracting audio...")
+            start_time = time.time()
+
+            response = provider.generate(request, output)
+
+            elapsed = time.time() - start_time
+            progress.update(
+                task_id,
+                description=f"[bold green]Done in {elapsed:.2f}s!",
+            )
+
+        logger.info(f"Audio saved to: {response.output_path}")
+        if response.duration_seconds is not None:
+            logger.info(f"Duration: {response.duration_seconds:.2f}s")
+        logger.debug(f"Metadata: {response.metadata}")
+    except Exception as e:
+        logger.error(f"Audio extraction failed: {str(e)}")
+        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

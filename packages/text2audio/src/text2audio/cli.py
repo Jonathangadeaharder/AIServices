@@ -18,7 +18,7 @@ def generate(
     category: str = typer.Option(
         "music", "--category", "-c", help="Audio category (music, sfx, ambient, speech)"
     ),
-    duration: float = typer.Option(10.0, "--duration", "-d", help="Duration in seconds"),
+    duration: float = typer.Option(10.0, "--duration", help="Duration in seconds"),
     format: str = typer.Option("wav", "--format", "-f", help="Output format (wav, mp3)"),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed"),
     provider_name: str = typer.Option("text2audio.replicate", "--provider", help="Provider name"),
@@ -26,27 +26,32 @@ def generate(
     device: str = device_option,
 ):
     """Generate audio from a text prompt."""
-    request = Text2AudioRequest(
-        prompt=prompt,
-        duration_seconds=duration,
-        output_format=format,
-        category=AudioCategory(category),
-        seed=seed,
-    )
-
     logger.info(f"Using provider: {provider_name}")
 
-    with create_progress_bar() as progress:
-        task_id = progress.add_task("[cyan]Initializing provider...", total=None)
-        provider = registry.get(provider_name, device=device)
+    try:
+        request = Text2AudioRequest(
+            prompt=prompt,
+            duration_seconds=duration,
+            output_format=format,
+            category=AudioCategory(category),
+            seed=seed,
+        )
 
-        progress.update(task_id, description="[green]Generating audio...")
-        start_time = time.time()
-        response = provider.generate(request, output)
-        elapsed = time.time() - start_time
-        progress.update(task_id, description=f"[bold green]Done in {elapsed:.2f}s!")
+        with create_progress_bar() as progress:
+            task_id = progress.add_task("[cyan]Initializing provider...", total=None)
+            provider = registry.get(provider_name, device=device)
 
-    logger.info(f"Audio saved to: {response.output_path}")
+            progress.update(task_id, description="[green]Generating audio...")
+            start_time = time.time()
+            response = provider.generate(request, output)
+            elapsed = time.time() - start_time
+            progress.update(task_id, description=f"[bold green]Done in {elapsed:.2f}s!")
+
+        logger.info(f"Audio saved to: {response.output_path}")
+    except Exception as e:
+        logger.error(f"Audio generation failed: {str(e)}")
+        typer.echo(f"\n[bold red]Error:[/bold red] {str(e)}", err=True)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":
