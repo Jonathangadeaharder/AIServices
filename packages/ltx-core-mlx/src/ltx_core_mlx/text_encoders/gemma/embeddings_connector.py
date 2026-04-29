@@ -362,9 +362,9 @@ def _replace_padding_with_registers(
     B, seq_len, dim = hidden_states.shape
     num_registers = registers.shape[1]
 
-    # Tile registers to cover full seq_len (at least 1 tile)
-    num_tiles = max(1, (seq_len + num_registers - 1) // num_registers)
-    tiled_registers = mx.tile(registers, (1, num_tiles, 1))[:, :seq_len, :]  # (B, seq_len, dim)
+    # Tile registers to cover full seq_len
+    num_tiles = seq_len // num_registers
+    tiled_registers = mx.tile(registers, (1, num_tiles, 1))  # (B, seq_len, dim)
 
     # For left-padded input: valid tokens are at the END.
     # Extract them and place at the FRONT.

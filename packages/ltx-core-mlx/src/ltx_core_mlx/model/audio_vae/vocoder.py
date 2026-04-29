@@ -304,11 +304,6 @@ class BigVGANVocoder(nn.Module):
         process_channels = False
         if mel.ndim == 4:
             B, C, T, M = mel.shape
-            if M != self.conv_pre.weight.shape[1]:
-                raise ValueError(
-                    f"Mel channels mismatch: got {M}, expected {self.conv_pre.weight.shape[1]}. "
-                    f"Conv1d expects {self.conv_pre.weight.shape[1]} mel channels."
-                )
             mel = mel.reshape(B * C, T, M)
             process_channels = True
 
@@ -333,12 +328,11 @@ class BigVGANVocoder(nn.Module):
         if self._apply_final_activation:
             x = mx.tanh(x)
 
-        # Average the 2 output channels to get mono waveform
-        x = x.mean(axis=-1)  # (B, T_audio)
-
         if process_channels:
-            # Reshape back to (B, C, T_audio) for stereo
-            x = x.reshape(B, C, x.shape[1])
+            # x is (B*C, T_audio, 2). Merge original-C and vocoder stereo
+            # into a single channel axis: (B, C*2, T_audio).
+            B_out, T_out, ch_out = x.shape
+            x = x.reshape(B, C * ch_out, T_out)
 
         return x
 

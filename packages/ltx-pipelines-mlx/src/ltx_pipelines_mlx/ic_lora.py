@@ -469,8 +469,6 @@ class ICLoraPipeline(TextToVideoPipeline):
             self.upsampler = None
         # Reload clean transformer without LoRA (matches reference: separate model ledgers)
         self._reload_clean_transformer()
-        # Recreate x0_model with the new transformer
-        x0_model = X0Model(self.dit)
 
         video_tokens_up, _ = self.video_patchifier.patchify(video_upscaled)
 

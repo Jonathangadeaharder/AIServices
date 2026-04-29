@@ -67,6 +67,7 @@ def test_provider_registry_register_and_get():
         def __init__(self, **kwargs):
             self.kwargs = kwargs
 
+
         def generate(self, *args, **kwargs):
             return None
 

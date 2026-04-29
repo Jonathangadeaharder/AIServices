@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "ltx-pipelines-mlx"
 version = "0.1.0"
 description = "Generation pipelines for LTX-2.3 on MLX"
+readme = "../../README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "dgrauet" }]
@@ -22,7 +23,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "aiservices-core",
     "ltx-core-mlx",
     "mlx-arsenal>=0.2.2",
     "pillow>=10.4.0",
@@ -36,5 +36,4 @@ ltx-2-mlx = "ltx_pipelines_mlx.cli:main"
 packages = ["src/ltx_pipelines_mlx"]
 
 [tool.uv.sources]
-aiservices-core = { workspace = true }
 ltx-core-mlx = { workspace = true }

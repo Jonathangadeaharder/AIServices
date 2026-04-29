@@ -613,10 +613,8 @@ def prepare_tiles_for_encoding(
         tile_size_px = cfg.tile_size_in_pixels
         overlap_px = cfg.tile_overlap_in_pixels
 
-        if 0 < overlap_px < _MINIMUM_SPATIAL_OVERLAP_PX:
-            overlap_px = min(_MINIMUM_SPATIAL_OVERLAP_PX, tile_size_px - 1)
-        if overlap_px >= tile_size_px:
-            raise ValueError("Spatial overlap must stay smaller than tile size")
+        if overlap_px < _MINIMUM_SPATIAL_OVERLAP_PX:
+            overlap_px = _MINIMUM_SPATIAL_OVERLAP_PX
 
         # Height (axis 3) and Width (axis 4)
         splitters[3] = split_with_symmetric_overlaps(tile_size_px, overlap_px)
@@ -630,10 +628,8 @@ def prepare_tiles_for_encoding(
         tile_size_frames = cfg.tile_size_in_frames
         overlap_frames = cfg.tile_overlap_in_frames
 
-        if 0 < overlap_frames < _MINIMUM_TEMPORAL_OVERLAP_FRAMES:
-            overlap_frames = min(_MINIMUM_TEMPORAL_OVERLAP_FRAMES, tile_size_frames - 1)
-        if overlap_frames >= tile_size_frames:
-            raise ValueError("Temporal overlap must stay smaller than tile size")
+        if overlap_frames < _MINIMUM_TEMPORAL_OVERLAP_FRAMES:
+            overlap_frames = _MINIMUM_TEMPORAL_OVERLAP_FRAMES
 
         splitters[2] = split_temporal_frames(tile_size_frames, overlap_frames)
         mappers[2] = make_mapping_operation(map_temporal_interval_to_latent, scale=_SCALE_TIME)

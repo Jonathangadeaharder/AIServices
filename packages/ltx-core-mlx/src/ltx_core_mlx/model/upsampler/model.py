@@ -345,7 +345,7 @@ class LatentUpsampler(nn.Module):
 
         # Remove first frame after temporal upsample
         # (first frame encodes one pixel frame in the VAE)
-        if self.temporal_upsample and x.shape[1] > 1:
+        if self.temporal_upsample:
             x = x[:, 1:, :, :, :]
 
         # Post-upsample residual blocks

@@ -385,22 +385,20 @@ class VideoDecoder(nn.Module):
         assert proc.stdin is not None
 
         try:
-            # Decode full volume and stream frames
-            pixels = self.decode(latent)
-            mx.async_eval(pixels)
-
-            num_frames = pixels.shape[2]
-            for i in range(num_frames):
-                frame = pixels[:, :, i, :, :]  # (B, 3, H, W)
-                frame = mx.clip(frame, -1.0, 1.0)
-                frame = ((frame + 1.0) * 127.5).astype(mx.uint8)
-                # (1, 3, H, W) -> (H, W, 3)
-                frame_hwc = frame[0].transpose(1, 2, 0)
-                mx.eval(frame_hwc)  # must be sync — async_eval can write before data is ready
-                proc.stdin.write(bytes(frame_hwc))
-                del frame, frame_hwc
-                if i % 8 == 0:
-                    aggressive_cleanup()
+            # Use tiled_decode to stream chunks and avoid OOM on large volumes
+            for chunk in self.tiled_decode(latent):
+                mx.eval(chunk)
+                num_frames = chunk.shape[2]
+                for i in range(num_frames):
+                    frame = chunk[:, :, i, :, :]
+                    frame = mx.clip(frame, -1.0, 1.0)
+                    frame = ((frame + 1.0) * 127.5).astype(mx.uint8)
+                    frame_hwc = frame[0].transpose(1, 2, 0)
+                    mx.eval(frame_hwc)
+                    proc.stdin.write(bytes(frame_hwc))
+                    del frame, frame_hwc
+                del chunk
+                aggressive_cleanup()
         except BrokenPipeError:
             pass  # ffmpeg may close early with -shortest; output is still valid
         finally:
