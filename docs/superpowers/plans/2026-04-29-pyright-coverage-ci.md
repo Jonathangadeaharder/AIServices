@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Fix pyright config — exclude vendored code
+## Task 1: Fix pyright config — exclude vendored code
 
 **Files:**
 - Modify: `pyproject.toml`

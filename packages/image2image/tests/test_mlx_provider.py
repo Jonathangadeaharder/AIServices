@@ -28,8 +28,7 @@ def test_mlx_provider_load_model_cached():
     assert provider._model == {"already": "loaded"}
 
 
-@patch("image2image.providers.mlx.Image.open")
-def test_mlx_provider_generate_file_not_found(mock_open, tmp_path):
+def test_mlx_provider_generate_file_not_found(tmp_path):
     provider = MLXProvider()
     provider._model = {"dummy": True}
 
@@ -38,10 +37,10 @@ def test_mlx_provider_generate_file_not_found(mock_open, tmp_path):
         prompt="test",
     )
     out = tmp_path / "out.png"
-    try:
+    import pytest
+
+    with pytest.raises(FileNotFoundError, match="Input image not found"):
         provider.generate(request, str(out))
-    except FileNotFoundError:
-        pass
 
 
 @patch("image2image.providers.mlx.Image.open")

@@ -18,7 +18,7 @@ class MLXProvider(BaseProvider):
         self, request: Video2SubtitleRequest, output_path: str | None = None
     ) -> Video2SubtitleResponse:
         if output_path is None:
-            output_path = "output.srt"
+            output_path = f"output.{request.output_format}"
 
         audio_path = self._extract_audio(request.video_path)
 
@@ -79,6 +79,9 @@ class MLXProvider(BaseProvider):
         except subprocess.CalledProcessError as e:
             Path(tmp.name).unlink(missing_ok=True)
             raise RuntimeError(f"ffmpeg audio extraction failed: {e.stderr.decode()}") from e
+        except subprocess.TimeoutExpired:
+            Path(tmp.name).unlink(missing_ok=True)
+            raise RuntimeError("ffmpeg audio extraction timed out after 600 seconds") from None
 
         return tmp.name
 

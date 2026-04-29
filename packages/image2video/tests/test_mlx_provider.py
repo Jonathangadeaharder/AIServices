@@ -88,7 +88,7 @@ def test_mlx_provider_generate_no_seed(mock_open, tmp_path):
     out = tmp_path / "out.mp4"
     response = provider.generate(request, str(out))
 
-    assert response.metadata["seed"] is None
+    assert isinstance(response.metadata["seed"], int)
     call_kwargs = mock_pipeline.generate_from_image.call_args[1]
     assert isinstance(call_kwargs["seed"], int)
 

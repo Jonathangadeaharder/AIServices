@@ -46,7 +46,8 @@ class MLXProvider(BaseProvider):
 
     def generate(self, request: Image2ImageRequest, output_path: str) -> Image2ImageResponse:
         self._load_model()
-        assert self._model is not None
+        if self._model is None:
+            raise RuntimeError("Model failed to load")
 
         seed = request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
 

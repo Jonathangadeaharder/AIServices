@@ -7,7 +7,7 @@ from aiservices_core.providers import BaseProvider
 from ..models import Image2VideoRequest, Image2VideoResponse
 
 _DEFAULT_MODEL_DIR = (
-    Path(__file__).resolve().parent.parent.parent.parent.parent / "models" / "ltx-2.3" / "q8"
+    Path(__file__).resolve().parent.parent.parent.parent.parent.parent / "models" / "ltx-2.3" / "q8"
 )
 
 
@@ -42,7 +42,8 @@ class MLXProvider(BaseProvider):
         self, request: Image2VideoRequest, output_path: str | None = None
     ) -> Image2VideoResponse:
         self._load_pipeline()
-        assert self._pipeline is not None
+        if self._pipeline is None:
+            raise RuntimeError("Pipeline failed to load")
         from PIL import Image
 
         if output_path is None:
@@ -73,6 +74,6 @@ class MLXProvider(BaseProvider):
             metadata={
                 "provider": "mlx",
                 "model_dir": self._model_dir,
-                "seed": request.seed,
+                "seed": effective_seed,
             },
         )

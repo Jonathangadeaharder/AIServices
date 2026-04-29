@@ -97,6 +97,6 @@ def test_generate_download_error(mock_run, mock_urlopen, tmp_path):
 
 
 def test_init_warns_without_token():
-    with patch.dict("os.environ", {}, clear=False):
+    with patch.dict("os.environ", {}, clear=True):
         provider = ReplicateProvider()
         assert provider.device == "auto"

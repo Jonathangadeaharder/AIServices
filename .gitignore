@@ -43,3 +43,4 @@ external/comfyui/ComfyUI
 *.wav
 *.mp3
 .worktrees/
+packages/fish_speech/
