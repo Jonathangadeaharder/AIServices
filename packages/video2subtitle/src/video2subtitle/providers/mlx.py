@@ -82,7 +82,7 @@ class MLXProvider(BaseProvider):
     def _segments_to_entries(self, segments: list[dict]) -> list[SubtitleEntry]:
         entries: list[SubtitleEntry] = []
         for seg in segments:
-            text = seg.get("text", "").strip()
+            text = str(seg.get("text") or "").strip()
             if not text:
                 continue
             entries.append(
