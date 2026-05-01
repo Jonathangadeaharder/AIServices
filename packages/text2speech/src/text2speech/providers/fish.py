@@ -36,7 +36,7 @@ class FishSpeechProvider(BaseProvider):
         self, request: Text2SpeechRequest, output_path: str | None = None
     ) -> Text2SpeechResponse:
         try:
-            import ormsgpack
+            import ormsgpack  # type: ignore[import-not-found]
         except ImportError as e:
             raise ImportError("ormsgpack is required for Fish Speech API") from e
 

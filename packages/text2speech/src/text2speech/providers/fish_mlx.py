@@ -20,7 +20,7 @@ class FishMLXProvider(BaseProvider):
 
     def _get_model(self):
         if self._model is None:
-            from mlx_audio.tts.utils import load_model
+            from mlx_audio.tts.utils import load_model  # type: ignore[import-not-found]
 
             self._model = load_model(self.model_name)
         return self._model
@@ -41,7 +41,7 @@ class FishMLXProvider(BaseProvider):
     def generate(
         self, request: Text2SpeechRequest, output_path: str | None = None
     ) -> Text2SpeechResponse:
-        from mlx_audio.tts.generate import generate_audio
+        from mlx_audio.tts.generate import generate_audio  # type: ignore[import-not-found]
 
         if output_path is None:
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
