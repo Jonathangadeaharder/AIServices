@@ -12,25 +12,6 @@ class Audio2SubtitleRequest(BaseModel):
         description="Whisper model name",
     )
     word_timestamps: bool = Field(True, description="Enable word-level timestamps")
-    translate_to: str | None = Field(
-        None, description="Target language code for translation (e.g. 'es'). None = no translation."
-    )
-    translation_model: str = Field(
-        "Helsinki-NLP/opus-mt-tc-big-de-es",
-        description="HuggingFace translation model name (for tokenizer)",
-    )
-    ct2_model_path: str = Field(
-        "",
-        description="Path to CTranslate2-converted model directory.",
-    )
-    vocab_filter_path: str | None = Field(
-        None,
-        description="Path to directory containing vocab CSVs (A1_vokabeln.csv, etc.). None = no filtering.",
-    )
-    vocab_levels: list[str] = Field(
-        default_factory=lambda: ["A1", "A2", "B1"],
-        description="Vocabulary levels to load for filtering",
-    )
 
 
 class SubtitleEntry(BaseModel):
@@ -38,7 +19,6 @@ class SubtitleEntry(BaseModel):
     start_time: float = Field(..., description="Start time in seconds")
     end_time: float = Field(..., description="End time in seconds")
     text: str = Field(..., description="Subtitle text")
-    translated_text: str | None = Field(None, description="Translated subtitle text")
 
 
 class Audio2SubtitleResponse(BaseModel):

@@ -1,8 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
-
-from .models import SubtitleEntry
+import pysrt
 
 
 class VocabFilter:
@@ -10,7 +9,6 @@ class VocabFilter:
 
     @staticmethod
     def load_vocab(vocab_dir: str, levels: list[str]) -> set[str]:
-        """Load vocabulary CSVs from directory. Each CSV: one word per row, no header."""
         vocab: set[str] = set()
         for level in levels:
             path = Path(vocab_dir) / f"{level}_vokabeln.csv"
@@ -25,15 +23,15 @@ class VocabFilter:
         return vocab
 
     @staticmethod
-    def filter_segments(
-        entries: list[SubtitleEntry],
+    def filter_subs(
+        subs: pysrt.SubRipFile,
         nlp: object,
         vocab_set: set[str],
-    ) -> list[SubtitleEntry]:
+    ) -> pysrt.SubRipFile:
         """Keep segments that contain at least one word NOT in vocab_set."""
-        filtered: list[SubtitleEntry] = []
-        for entry in entries:
-            doc = nlp(entry.text)  # type: ignore[operator]
+        filtered = pysrt.SubRipFile()
+        for sub in subs:
+            doc = nlp(sub.text)  # type: ignore[operator]
             lemmas: list[str] = []
             for token in doc:
                 if token.is_punct or token.is_stop or token.pos_ in ("PROPN", "NUM", "INTJ", "X", "SPACE"):
@@ -42,5 +40,8 @@ class VocabFilter:
                 if lemma:
                     lemmas.append(lemma)
             if lemmas and not all(l in vocab_set for l in lemmas):
-                filtered.append(entry)
+                filtered.append(sub)
+        # Re-index
+        for i, sub in enumerate(filtered, 1):
+            sub.index = i
         return filtered

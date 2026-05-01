@@ -180,37 +180,6 @@ def test_mlx_provider_skips_empty_segments(tmp_path, mocker):
     assert response.entries[1].text == "World."
 
 
-class TestTranslatedEntry:
-    def test_subtitle_entry_translated_text(self):
-        entry = SubtitleEntry(index=1, start_time=0.0, end_time=2.5, text="Hallo Welt", translated_text="Hola Mundo")
-        assert entry.translated_text == "Hola Mundo"
-
-    def test_subtitle_entry_translated_text_default_none(self):
-        entry = SubtitleEntry(index=1, start_time=0.0, end_time=2.5, text="Hello")
-        assert entry.translated_text is None
-
-    def test_request_translate_to(self):
-        req = Audio2SubtitleRequest(audio_path="/tmp/audio.wav", translate_to="es")
-        assert req.translate_to == "es"
-        assert req.translation_model == "Helsinki-NLP/opus-mt-tc-big-de-es"
-
-    def test_request_ct2_model_path(self):
-        req = Audio2SubtitleRequest(audio_path="/tmp/audio.wav", translate_to="es", ct2_model_path="/tmp/ct2-model")
-        assert req.ct2_model_path == "/tmp/ct2-model"
-
-    def test_request_vocab_filter(self):
-        req = Audio2SubtitleRequest(audio_path="/tmp/audio.wav", vocab_filter_path="/data/vocab", vocab_levels=["A1", "B1"])
-        assert req.vocab_filter_path == "/data/vocab"
-        assert req.vocab_levels == ["A1", "B1"]
-
-    def test_request_defaults_no_filter_no_translate(self):
-        req = Audio2SubtitleRequest(audio_path="/tmp/audio.wav")
-        assert req.translate_to is None
-        assert req.ct2_model_path == ""
-        assert req.vocab_filter_path is None
-        assert req.vocab_levels == ["A1", "A2", "B1"]
-
-
 def test_mlx_whisper_transcription_error(tmp_path, mocker):
     _mock_whisper = mocker.MagicMock()
     mocker.patch.dict(sys.modules, {"mlx_whisper": _mock_whisper})

@@ -30,6 +30,8 @@ video2audio = { workspace = true }
 audio2subtitle = { workspace = true }
 video2subtitle = { workspace = true }
 image2video = { workspace = true }
+subtitle-translate = { workspace = true }
+subtitle-filter = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -53,7 +55,7 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/text2speech/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests"]
+testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/text2speech/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests", "packages/subtitle-translate/tests", "packages/subtitle-filter/tests"]
 addopts = "--import-mode=importlib"
 
 [tool.coverage.run]
@@ -68,6 +70,8 @@ source = [
     "audio2subtitle",
     "video2subtitle",
     "image2video",
+    "subtitle_translate",
+    "subtitle_filter",
 ]
 omit = [
     "*/tests/*",

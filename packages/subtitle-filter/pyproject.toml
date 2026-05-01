@@ -1,13 +1,19 @@
 [project]
-name = "audio2subtitle"
+name = "subtitle-filter"
 version = "0.1.0"
-description = "Audio to subtitle (SRT/VTT) transcription pipeline"
+description = "Filter SRT subtitle segments by vocabulary level using spaCy"
 requires-python = ">=3.10"
 dependencies = [
     "aiservices-core",
-    "mlx-whisper>=0.4.3",
     "pydantic>=2.0.0",
     "typer>=0.12.0",
+    "pysrt>=1.1.0",
+]
+
+[project.optional-dependencies]
+filter = [
+    "spacy>=3.0.0",
+    "pandas>=2.0.0",
 ]
 
 [build-system]
@@ -15,10 +21,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-audio2subtitle = "audio2subtitle.cli:app"
+subtitle-filter = "subtitle_filter.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/audio2subtitle"]
+packages = ["src/subtitle_filter"]
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
