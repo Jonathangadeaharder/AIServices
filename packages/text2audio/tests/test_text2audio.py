@@ -42,32 +42,8 @@ def test_response_model():
     resp = Text2AudioResponse(
         output_path="/tmp/out.wav",
         duration_seconds=10.0,
-        metadata={"provider": "replicate"},
+        metadata={"provider": "test"},
     )
     assert resp.output_path == "/tmp/out.wav"
     assert resp.duration_seconds == 10.0
-    assert resp.metadata["provider"] == "replicate"
-
-
-def test_replicate_generate_full(tmp_path, mocker):
-    from text2audio.providers.replicate_cloud import ReplicateProvider
-
-    provider = ReplicateProvider()
-    request = Text2AudioRequest(prompt="calm piano music", duration_seconds=5.0)
-    out = tmp_path / "out.wav"
-
-    mock_response = mocker.MagicMock()
-    mock_response.read.side_effect = [b"audio-data", b""]
-    mock_response.__enter__ = mocker.MagicMock(return_value=mock_response)
-    mock_response.__exit__ = mocker.MagicMock(return_value=False)
-
-    mocker.patch("replicate.run", return_value=["https://example.com/audio.wav"])
-    mocker.patch(
-        "text2audio.providers.replicate_cloud.urllib.request.urlopen",
-        return_value=mock_response,
-    )
-
-    response = provider.generate(request, str(out))
-
-    assert response.output_path == str(out)
-    assert out.read_bytes() == b"audio-data"
+    assert resp.metadata["provider"] == "test"

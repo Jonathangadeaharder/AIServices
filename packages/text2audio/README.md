@@ -13,7 +13,7 @@ uv sync --all-packages
 ### CLI
 
 ```bash
-text2audio generate --prompt "calm piano music" --output out.wav --category music --duration 10
+text2audio generate --prompt "calm piano music" --output out.wav --category music --duration 10 --provider <provider-name>
 ```
 
 ### Python
@@ -28,19 +28,13 @@ request = Text2AudioRequest(
     category=AudioCategory.MUSIC,
 )
 
-provider = registry.get("text2audio.replicate")
+provider = registry.get("<provider-name>")
 response = provider.generate(request, "output.wav")
 ```
 
 ## Providers
 
-| Name | Description |
-|------|-------------|
-| `text2audio.replicate` | Replicate cloud API (Meta MusicGen) |
-
-## Environment Variables
-
-- `REPLICATE_API_TOKEN` - Required for the Replicate provider
+No providers are currently registered. This package is a placeholder for future local MLX-based audio generation models (e.g. MusicGen, AudioLDM2).
 
 ## Audio Categories
 

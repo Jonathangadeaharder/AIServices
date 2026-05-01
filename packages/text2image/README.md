@@ -1,6 +1,6 @@
 # text2image
 
-Text-to-Image generation module for AIServices. Uses ComfyUI as the local backend.
+Text-to-Image generation module for AIServices. Uses MLX for local inference on Apple Silicon.
 
 ## Installation
 
@@ -19,9 +19,4 @@ text2image generate --prompt "A futuristic cityscape at sunset" --output out.png
 ```
 
 Available providers:
-- `text2image.comfyui`: Uses a running ComfyUI server with the Flux2 workflow (default)
-- `text2image.replicate`: Uses Replicate Cloud (Requires `REPLICATE_API_TOKEN` environment variable)
-
-## Prerequisites
-
-For the `comfyui` provider, you need a running ComfyUI server at `127.0.0.1:8188` with the Flux2 models installed.
+- `text2image.mlx`: Local MLX inference using FLUX.2-klein-9B (default)

@@ -21,7 +21,7 @@ def generate(
     duration: float = typer.Option(10.0, "--duration", help="Duration in seconds"),
     format: str = typer.Option("wav", "--format", "-f", help="Output format (wav, mp3)"),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed"),
-    provider_name: str = typer.Option("text2audio.replicate", "--provider", help="Provider name"),
+    provider_name: str = typer.Option(..., "--provider", help="Provider name"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
