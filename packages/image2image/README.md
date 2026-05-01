@@ -13,9 +13,8 @@ uv tool install ./packages/image2image
 ## Usage
 
 ```bash
-image2image --input in.jpg --prompt "watercolor painting" --output out.jpg --provider local_sdxl
+image2image --input in.jpg --prompt "watercolor painting" --output out.jpg
 ```
 
 ### Providers
-- `local_sdxl`: Uses `diffusers` locally (optimized for MPS/CUDA/CPU).
-- `replicate`: Uses Replicate API (requires `REPLICATE_API_TOKEN`).
+- `image2image.mlx`: Local MLX inference using FLUX.2-klein-9B on Apple Silicon.
