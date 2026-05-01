@@ -93,8 +93,8 @@ def test_fish_provider_api_mocked(tmp_path):
 
 
 def test_fish_provider_build_text():
-    from text2speech.providers.fish import FishSpeechProvider
     from text2speech.models import Text2SpeechRequest
+    from text2speech.providers.fish import FishSpeechProvider
 
     provider = FishSpeechProvider()
 
