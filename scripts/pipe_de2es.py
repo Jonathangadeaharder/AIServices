@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Pipe pipeline: German video → German SRT → (filtered) → Spanish SRT
+Pipeline: German video → German SRT → Spanish SRT
 
 Usage:
   python scripts/pipe_de2es.py
 
-Composes: video2audio → audio2subtitle → subtitle-filter → subtitle-translate
+Steps: ffmpeg → audio2subtitle → subtitle-translate
 """
 import subprocess
 import sys
@@ -22,17 +22,6 @@ CT2_MODEL = str(Path.home() / ".cache" / "aiservices" / "ct2-opus-mt-de-es")
 OUTPUT_DIR = Path("/Users/jonathangadeaharder/Downloads/subtitles")
 
 
-def run(cmd: list[str], input_data: str | None = None, timeout: int = 600) -> str:
-    """Run a command, optionally piping stdin. Returns stdout."""
-    result = subprocess.run(
-        cmd, input=input_data, capture_output=True, text=True, timeout=timeout
-    )
-    if result.returncode != 0:
-        print(f"  ERROR: {result.stderr}", file=sys.stderr)
-        raise subprocess.CalledProcessError(result.returncode, cmd)
-    return result.stdout
-
-
 def process_video(video_path: str) -> None:
     video_name = Path(video_path).stem
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,47 +32,37 @@ def process_video(video_path: str) -> None:
     print(f"{'='*60}")
 
     # Step 1: video → audio (ffmpeg)
-    print("  [1/4] Extracting audio...")
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-        audio_path = tmp.name
+    print("  [1/3] Extracting audio...")
+    audio_path = tempfile.mktemp(suffix=".wav")
     subprocess.run(
         ["ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path, "-y"],
         capture_output=True, timeout=600, check=True,
     )
 
     # Step 2: audio → German SRT (audio2subtitle)
-    print("  [2/4] Transcribing...")
-    de_srt = run([
-        sys.executable, "-m", "audio2subtitle.cli", "transcribe",
-        "--audio", audio_path, "--output", "/dev/stdout",
-        "--language", "de", "--format", "srt",
-    ])
+    print("  [2/3] Transcribing DE...")
+    de_srt = tempfile.mktemp(suffix=".srt")
+    subprocess.run(
+        [sys.executable, "-m", "audio2subtitle.cli",
+         "--audio", audio_path, "--output", de_srt, "--language", "de", "--format", "srt"],
+        timeout=900, check=True,
+    )
     Path(audio_path).unlink(missing_ok=True)
 
-    # Step 3: German SRT → filtered SRT (subtitle-filter)
-    print("  [3/4] Filtering vocabulary...")
-    filtered_srt = de_srt  # Skip filtering for now (no vocab CSVs available)
-    # To enable: pipe through subtitle-filter
-    # filtered_srt = run([
-    #     sys.executable, "-m", "subtitle_filter.cli", "filter",
-    #     "--vocab", "./IdeaProjects/src/backend/data/",
-    #     "--levels", "A1,A2,B1",
-    # ], input_data=de_srt)
+    # Step 3: German SRT → Spanish SRT (subtitle-translate)
+    print("  [3/3] Translating DE→ES...")
+    subprocess.run(
+        [sys.executable, "-m", "subtitle_translate.cli",
+         "--input", de_srt, "--output", str(srt_path), "--to", "es", "--ct2-model", CT2_MODEL],
+        timeout=300, check=True,
+    )
+    Path(de_srt).unlink(missing_ok=True)
 
-    # Step 4: filtered SRT → Spanish SRT (subtitle-translate)
-    print("  [4/4] Translating DE→ES...")
-    es_srt = run([
-        sys.executable, "-m", "subtitle_translate.cli", "translate",
-        "--to", "es", "--ct2-model", CT2_MODEL,
-    ], input_data=filtered_srt)
-
-    # Write output
-    srt_path.write_text(es_srt, encoding="utf-8")
     print(f"  ✓ → {srt_path}")
 
 
 def main():
-    print("Pipe: video → audio → SRT → translate → Spanish SRT")
+    print("Pipeline: video → audio → DE SRT → ES SRT")
     for video in VIDEO_FILES:
         if not Path(video).exists():
             print(f"  ⚠ Not found: {video}")
