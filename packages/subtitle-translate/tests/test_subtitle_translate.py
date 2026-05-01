@@ -1,13 +1,17 @@
 import sys
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pysrt
 
 
-def test_translate_srt(tmp_path, mocker):
+def test_translate_srt(tmp_path, monkeypatch):
     mock_ct2 = MagicMock()
     mock_transformers = MagicMock()
-    mocker.patch.dict(sys.modules, {"ctranslate2": mock_ct2, "transformers": mock_transformers})
+    monkeypatch.setitem(sys.modules, "ctranslate2", mock_ct2)
+    monkeypatch.setitem(sys.modules, "transformers", mock_transformers)
+
+    if "subtitle_translate.translator" in sys.modules:
+        del sys.modules["subtitle_translate.translator"]
 
     mock_tokenizer = MagicMock()
     mock_model = MagicMock()
@@ -29,32 +33,40 @@ def test_translate_srt(tmp_path, mocker):
     assert result == ["Hola mundo"]
 
 
-def test_translate_empty():
-    from unittest.mock import patch, MagicMock
+def test_translate_batch_empty(tmp_path, monkeypatch):
+    mock_ct2 = MagicMock()
+    mock_transformers = MagicMock()
+    monkeypatch.setitem(sys.modules, "ctranslate2", mock_ct2)
+    monkeypatch.setitem(sys.modules, "transformers", mock_transformers)
 
-    with patch("subtitle_translate.translator.ctranslate2") as mock_ct2, \
-         patch("subtitle_translate.translator.transformers") as mock_tf:
-        mock_tf.AutoTokenizer.from_pretrained.return_value = MagicMock()
-        mock_ct2.Translator.return_value = MagicMock()
+    if "subtitle_translate.translator" in sys.modules:
+        del sys.modules["subtitle_translate.translator"]
 
-        from subtitle_translate.translator import MarianTranslator
-        translator = MarianTranslator("/tmp/model")
-        assert translator.translate_batch([]) == []
+    mock_transformers.AutoTokenizer.from_pretrained.return_value = MagicMock()
+    mock_ct2.Translator.return_value = MagicMock()
+
+    from subtitle_translate.translator import MarianTranslator
+
+    translator = MarianTranslator("/tmp/model")
+    assert translator.translate_batch([]) == []
 
 
 def test_srt_io_roundtrip(tmp_path):
-    import io
-    import pysrt
-    from subtitle_translate.srt_io import read_srt, write_srt
+    from subtitle_translate.srt_io import read_srt
 
-    subs = pysrt.SubRipFile()
-    subs.append(pysrt.SubRipItem(index=1, start=pysrt.SubRipTime(seconds=0), end=pysrt.SubRipTime(seconds=2), text="Hola"))
-    subs.append(pysrt.SubRipItem(index=2, start=pysrt.SubRipTime(seconds=2), end=pysrt.SubRipTime(seconds=4), text="Mundo"))
+    srt_content = """\
+1
+00:00:00,000 --> 00:00:02,000
+Hola
 
-    out_file = tmp_path / "test.srt"
-    write_srt(subs, str(out_file))
+2
+00:00:02,000 --> 00:00:04,000
+Mundo
+"""
+    srt_file = tmp_path / "test.srt"
+    srt_file.write_text(srt_content, encoding="utf-8")
 
-    loaded = read_srt(str(out_file))
+    loaded = read_srt(str(srt_file))
     assert len(loaded) == 2
     assert loaded[0].text == "Hola"
     assert loaded[1].text == "Mundo"

@@ -14,11 +14,7 @@ def read_srt(input_path: str | None = None) -> pysrt.SubRipFile:
 
 def write_srt(subs: pysrt.SubRipFile, output_path: str | None = None) -> None:
     """Write SRT to file path or stdout."""
-    buf = io.StringIO()
-    subs.write(buf)
-    content = buf.getvalue()
     if output_path:
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        subs.save(output_path, encoding="utf-8")
     else:
-        sys.stdout.write(content)
+        sys.stdout.write(str(subs))
