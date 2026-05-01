@@ -20,8 +20,8 @@ class Showrunner:
     def __init__(
         self,
         output_dir: str | Path,
-        tts_provider: str = "text2speech.fish",
-        t2v_provider: str = "text2video.comfyui",
+        tts_provider: str = "text2speech.fish_mlx",
+        t2v_provider: str = "text2video.mlx",
         device: str = "auto",
         dry_run: bool = False,
     ):

@@ -20,10 +20,10 @@ def render(  # noqa: B008
         "output/rendered", "--output", "-o", help="Output directory"
     ),
     tts_provider: str = typer.Option(  # noqa: B008
-        "text2speech.fish", "--tts-provider"
+        "text2speech.fish_mlx", "--tts-provider"
     ),
     t2v_provider: str = typer.Option(  # noqa: B008
-        "text2video.comfyui", "--t2v-provider"
+        "text2video.mlx", "--t2v-provider"
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Simulate rendering without calling providers"),
     keep_temp: bool = typer.Option(False, "--keep-temp", help="Keep temporary files after rendering"),

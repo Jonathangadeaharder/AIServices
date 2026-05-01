@@ -47,12 +47,13 @@ def test_model_defaults():
     os.environ.get("RUN_INTEGRATION_TESTS") != "1",
     reason="Requires RUN_INTEGRATION_TESTS=1",
 )
-def test_comfyui_provider_integration(dummy_request, tmp_path):
-    """Integration test requiring a running ComfyUI server."""
-    from text2video.providers.comfyui import ComfyUIProvider
+def test_mlx_provider_integration(dummy_request, tmp_path):
+    """Integration test requiring local LTX 2.3 MLX weights."""
+    from text2video.providers.mlx import MLXProvider
 
-    provider = ComfyUIProvider()
-    out_file = tmp_path / "out.png"
+    provider = MLXProvider()
+    out_file = tmp_path / "out.mp4"
 
     response = provider.generate(dummy_request, str(out_file))
     assert os.path.exists(response.output_path)
+    assert response.metadata["provider"] == "mlx"

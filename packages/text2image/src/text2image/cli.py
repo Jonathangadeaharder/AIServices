@@ -16,7 +16,7 @@ def generate(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt for image generation"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output image"),
     provider_name: str = typer.Option(
-        "text2image.comfyui",
+        "text2image.mlx",
         "--provider",
         help="Provider name",
     ),

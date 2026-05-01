@@ -18,7 +18,7 @@ def generate(
     provider_name: str = typer.Option(
         "text2video.mlx",
         "--provider",
-        help="Provider name (text2video.mlx, text2video.comfyui)",
+        help="Provider name",
     ),
     negative_prompt: str = typer.Option(None, "--negative-prompt", "-n", help="Negative prompt"),
     width: int = typer.Option(640, "--width", help="Video width"),
