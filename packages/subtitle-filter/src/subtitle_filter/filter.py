@@ -21,8 +21,8 @@ class VocabFilter:
                 df = pd.read_csv(path, header=None)
                 words = df.iloc[:, 0].astype(str).str.strip().str.lower().tolist()
                 vocab.update(words)
-            except Exception:
-                continue
+            except Exception as exc:
+                raise ValueError(f"Failed to load vocabulary file '{path}': {exc}") from exc
         return vocab
 
     @staticmethod
