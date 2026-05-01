@@ -1,11 +1,17 @@
-import ctranslate2
-import transformers
+from __future__ import annotations
 
 
 class MarianTranslator:
     """Batch translator using CTranslate2-optimized MarianMT models."""
 
-    def __init__(self, ct2_model_path: str, model_name: str = "Helsinki-NLP/opus-mt-tc-big-de-es"):
+    def __init__(
+        self,
+        ct2_model_path: str,
+        model_name: str = "Helsinki-NLP/opus-mt-tc-big-de-es",
+    ):
+        import ctranslate2
+        import transformers
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
         self.translator = ctranslate2.Translator(ct2_model_path)
 
@@ -21,6 +27,10 @@ class MarianTranslator:
             ]
             results = self.translator.translate_batch(source_tokens)
             for result in results:
-                target_ids = self.tokenizer.convert_tokens_to_ids(result.hypotheses[0])
-                translations.append(self.tokenizer.decode(target_ids, skip_special_tokens=True))
+                target_ids = self.tokenizer.convert_tokens_to_ids(
+                    result.hypotheses[0]
+                )
+                translations.append(
+                    self.tokenizer.decode(target_ids, skip_special_tokens=True)
+                )
         return translations

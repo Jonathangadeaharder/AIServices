@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
 
-import pandas as pd
 import pysrt
 
 
@@ -9,6 +10,8 @@ class VocabFilter:
 
     @staticmethod
     def load_vocab(vocab_dir: str, levels: list[str]) -> set[str]:
+        import pandas as pd
+
         vocab: set[str] = set()
         for level in levels:
             path = Path(vocab_dir) / f"{level}_vokabeln.csv"
