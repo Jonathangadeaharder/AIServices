@@ -1,44 +1,11 @@
+import importlib.util
 import os
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-
-def test_model_validation():
-    from text2speech.models import Text2SpeechRequest
-
-    req = Text2SpeechRequest(text="Hello", emotion="happy")
-    assert req.text == "Hello"
-    assert req.emotion == "happy"
-
-
-def test_model_defaults():
-    from text2speech.models import Text2SpeechRequest
-
-    req = Text2SpeechRequest(text="test")
-    assert req.voice_id is None
-    assert req.emotion is None
-    assert req.reference_audio is None
-
-
-def test_reference_fields():
-    from text2speech.models import Text2SpeechRequest
-
-    req = Text2SpeechRequest(
-        text="Hello",
-        reference_audio="/tmp/ref.wav",
-        reference_text="Reference text",
-    )
-    assert req.reference_audio == "/tmp/ref.wav"
-    assert req.reference_text == "Reference text"
-
-
-try:
-    import ormsgpack  # type: ignore[import-not-found]
-
-    _HAS_ORMSGPACK = True
-except ImportError:
-    _HAS_ORMSGPACK = False
+_HAS_ORMSGPACK = importlib.util.find_spec("ormsgpack") is not None
 
 
 def test_model_validation():
@@ -114,3 +81,57 @@ def test_fish_mlx_integration(tmp_path):
     response = provider.generate(request, str(out_file))
     assert response.output_path == str(out_file)
     assert response.metadata["provider"] == "fish-s2-pro-mlx"
+
+
+def test_fish_mlx_build_text():
+    sys.modules["mlx_audio"] = MagicMock()
+    sys.modules["mlx_audio.tts"] = MagicMock()
+    sys.modules["mlx_audio.tts.utils"] = MagicMock()
+    sys.modules["mlx_audio.tts.generate"] = MagicMock()
+
+    from text2speech.providers.fish_mlx import FishMLXProvider
+    from text2speech.models import Text2SpeechRequest
+
+    provider = FishMLXProvider()
+
+    req = Text2SpeechRequest(text="Hello")
+    assert provider._build_text(req) == "Hello"
+
+    req_emotion = Text2SpeechRequest(text="Hello", emotion="happy")
+    assert provider._build_text(req_emotion) == "[happy] Hello"
+
+    req_tone = Text2SpeechRequest(text="Hello", tone="calm")
+    assert provider._build_text(req_tone) == "[calm] Hello"
+
+    req_effect = Text2SpeechRequest(text="Hello", effect="echo")
+    assert provider._build_text(req_effect) == "[echo] Hello"
+
+    req_all = Text2SpeechRequest(text="Hello", emotion="happy", tone="calm", effect="echo")
+    assert provider._build_text(req_all) == "[happy][calm][echo] Hello"
+
+
+def test_fish_mlx_generate_mocked(tmp_path):
+    mock_load_model = MagicMock()
+    mock_generate_audio = MagicMock()
+
+    sys.modules["mlx_audio"] = MagicMock()
+    sys.modules["mlx_audio.tts"] = MagicMock()
+    sys.modules["mlx_audio.tts.utils"] = MagicMock()
+    sys.modules["mlx_audio.tts.utils"].load_model = mock_load_model
+    sys.modules["mlx_audio.tts.generate"] = MagicMock()
+    sys.modules["mlx_audio.tts.generate"].generate_audio = mock_generate_audio
+
+    from text2speech.providers.fish_mlx import FishMLXProvider
+    from text2speech.models import Text2SpeechRequest
+
+    provider = FishMLXProvider()
+    out_file = tmp_path / "out.wav"
+    request = Text2SpeechRequest(text="Hello", voice_id="test_voice")
+
+    response = provider.generate(request, str(out_file))
+
+    assert response.output_path == str(out_file)
+    assert response.metadata["provider"] == "fish-s2-pro-mlx"
+    assert response.metadata["voice_id"] == "test_voice"
+    mock_load_model.assert_called_once()
+    mock_generate_audio.assert_called_once()
