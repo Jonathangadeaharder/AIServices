@@ -53,7 +53,7 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests"]
+testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/text2speech/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests"]
 addopts = "--import-mode=importlib"
 
 [tool.coverage.run]
