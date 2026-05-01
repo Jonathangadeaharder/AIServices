@@ -16,10 +16,11 @@ def filter(
     spacy_model: str = typer.Option("de_core_news_lg", "--spacy-model", help="spaCy model name"),
 ):
     """Filter SRT segments, keeping only those with words above the given vocabulary level."""
-    from .filter import VocabFilter
     import spacy
 
-    level_list = [l.strip() for l in levels.split(",")]
+    from .filter import VocabFilter
+
+    level_list = [lev.strip() for lev in levels.split(",")]
     subs = read_srt(input)
     logger.info(f"Filtering {len(subs)} segments (levels: {level_list})")
 

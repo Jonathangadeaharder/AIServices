@@ -35,7 +35,10 @@ def process_video(video_path: str) -> None:
     print("  [1/3] Extracting audio...")
     audio_path = tempfile.mktemp(suffix=".wav")
     subprocess.run(
-        ["ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path, "-y"],
+        [
+            "ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le",
+            "-ar", "16000", "-ac", "1", audio_path, "-y",
+        ],
         capture_output=True, timeout=600, check=True,
     )
 

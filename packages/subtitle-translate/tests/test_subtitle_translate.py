@@ -1,7 +1,5 @@
 import sys
-from unittest.mock import MagicMock, patch
-
-import pysrt
+from unittest.mock import MagicMock
 
 
 def test_translate_srt(tmp_path, monkeypatch):

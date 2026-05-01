@@ -34,12 +34,16 @@ class VocabFilter:
             doc = nlp(sub.text)  # type: ignore[operator]
             lemmas: list[str] = []
             for token in doc:
-                if token.is_punct or token.is_stop or token.pos_ in ("PROPN", "NUM", "INTJ", "X", "SPACE"):
+                if (
+                    token.is_punct
+                    or token.is_stop
+                    or token.pos_ in ("PROPN", "NUM", "INTJ", "X", "SPACE")
+                ):
                     continue
                 lemma = token.lemma_.lower().strip()
                 if lemma:
                     lemmas.append(lemma)
-            if lemmas and not all(l in vocab_set for l in lemmas):
+            if lemmas and not all(lem in vocab_set for lem in lemmas):
                 filtered.append(sub)
         # Re-index
         for i, sub in enumerate(filtered, 1):
