@@ -4,8 +4,9 @@ import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
 
+from aiservices_core.providers import registry
+
 from .models import AudioCategory, Text2AudioRequest
-from .providers import registry
 
 app = typer.Typer(help="Text to audio (music, SFX, ambient) generation pipeline")
 logger = get_logger(__name__)

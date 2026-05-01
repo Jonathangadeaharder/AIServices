@@ -15,7 +15,7 @@ def test_generate_success(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--prompt", "calm piano music", "--output", str(out)],
+        ["--prompt", "calm piano music", "--output", str(out), "--provider", "test-provider"],
     )
     assert result.exit_code == 0
 
@@ -26,7 +26,7 @@ def test_generate_error(mocker):
 
     result = runner.invoke(
         app,
-        ["--prompt", "test", "--output", "/tmp/out.wav"],
+        ["--prompt", "test", "--output", "/tmp/out.wav", "--provider", "test-provider"],
     )
     assert result.exit_code == 1
 
@@ -42,6 +42,6 @@ def test_generate_with_seed(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--prompt", "test", "--output", str(out), "--seed", "42"],
+        ["--prompt", "test", "--output", str(out), "--seed", "42", "--provider", "test-provider"],
     )
     assert result.exit_code == 0
