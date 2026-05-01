@@ -17,7 +17,6 @@ members = ["packages/*"]
 exclude = [
     "packages/speech2text",
     "packages/studio",
-    "packages/text2speech",
     "packages/text2video",
 ]
 
@@ -26,6 +25,7 @@ aiservices-core = { workspace = true }
 image2image = { workspace = true }
 text2image = { workspace = true }
 text2audio = { workspace = true }
+text2speech = { workspace = true }
 video2audio = { workspace = true }
 audio2subtitle = { workspace = true }
 video2subtitle = { workspace = true }
@@ -63,6 +63,7 @@ source = [
     "image2image",
     "text2image",
     "text2audio",
+    "text2speech",
     "video2audio",
     "audio2subtitle",
     "video2subtitle",
