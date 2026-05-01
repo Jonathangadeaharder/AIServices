@@ -51,6 +51,28 @@ class MLXWhisperProvider(BaseProvider):
                 )
             )
 
+        # Optional: vocabulary filtering
+        if request.vocab_filter_path:
+            from ..filter import VocabFilter
+            import spacy
+
+            vocab_set = VocabFilter.load_vocab(request.vocab_filter_path, request.vocab_levels)
+            nlp = spacy.load("de_core_news_lg", disable=["parser", "ner"])
+            entries = VocabFilter.filter_segments(entries, nlp, vocab_set)
+            for i, entry in enumerate(entries, 1):
+                entry.index = i
+
+        # Optional: translation
+        if request.translate_to and entries:
+            from ..translator import MarianTranslator
+
+            translator = MarianTranslator(request.translation_model, request.ct2_model_path)
+            texts = [e.text for e in entries]
+            translated = translator.translate_batch(texts)
+            for entry, trans in zip(entries, translated):
+                entry.translated_text = trans
+
+        # Write output
         fmt = request.output_format
         if fmt not in {"srt", "vtt"}:
             raise ValueError(f"Unsupported output format: {fmt}")
@@ -62,13 +84,15 @@ class MLXWhisperProvider(BaseProvider):
             for entry in entries:
                 start = _format_timestamp(entry.start_time, "vtt")
                 end = _format_timestamp(entry.end_time, "vtt")
-                content += f"{start} --> {end}\n{entry.text}\n\n"
+                text = entry.translated_text or entry.text
+                content += f"{start} --> {end}\n{text}\n\n"
         else:
             content = ""
             for entry in entries:
                 start = _format_timestamp(entry.start_time, "srt")
                 end = _format_timestamp(entry.end_time, "srt")
-                content += f"{entry.index}\n{start} --> {end}\n{entry.text}\n\n"
+                text = entry.translated_text or entry.text
+                content += f"{entry.index}\n{start} --> {end}\n{text}\n\n"
 
         with open(output, "w", encoding="utf-8") as f:
             f.write(content)
@@ -83,5 +107,7 @@ class MLXWhisperProvider(BaseProvider):
                 "format": fmt,
                 "total_entries": len(entries),
                 "word_timestamps": request.word_timestamps,
+                "filtered": request.vocab_filter_path is not None,
+                "translated": request.translate_to is not None,
             },
         )

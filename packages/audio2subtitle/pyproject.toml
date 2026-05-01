@@ -1,13 +1,27 @@
 [project]
 name = "audio2subtitle"
-version = "0.1.0"
-description = "Audio to subtitle (SRT/VTT) transcription pipeline"
+version = "0.2.0"
+description = "Audio to subtitle (SRT/VTT) transcription pipeline with optional filtering and translation"
 requires-python = ">=3.10"
 dependencies = [
     "aiservices-core",
     "mlx-whisper>=0.4.3",
     "pydantic>=2.0.0",
     "typer>=0.12.0",
+]
+
+[project.optional-dependencies]
+filter = [
+    "spacy>=3.0.0",
+    "pandas>=2.0.0",
+]
+translate = [
+    "ctranslate2>=4.0.0",
+    "transformers>=4.30.0",
+    "sentencepiece>=0.1.99",
+]
+all = [
+    "audio2subtitle[filter,translate]",
 ]
 
 [build-system]
