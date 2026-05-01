@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import copy
 from pathlib import Path
 
 import pysrt
@@ -47,7 +48,7 @@ class VocabFilter:
                 if lemma:
                     lemmas.append(lemma)
             if lemmas and not all(lem in vocab_set for lem in lemmas):
-                filtered.append(sub)
+                filtered.append(copy(sub))
         # Re-index
         for i, sub in enumerate(filtered, 1):
             sub.index = i
