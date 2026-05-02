@@ -17,7 +17,7 @@ def transcribe(
     audio: str = typer.Option(..., "--audio", "-a", help="Path to input audio file"),
     output: str = typer.Option(..., "--output", "-o", help="Path to output subtitle file"),
     format: str = typer.Option("srt", "--format", "-f", help="Output format: srt or vtt"),
-    language: str = typer.Option(None, "--language", "-l", help="Language code (e.g. 'en')"),
+    language: str = typer.Option(None, "--language", "-l", help="Language code (e.g. 'de')"),
     model: str = typer.Option(
         "mlx-community/whisper-large-v3-turbo",
         "--model",

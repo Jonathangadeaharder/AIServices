@@ -93,10 +93,14 @@ debug = true
 [dependency-groups]
 dev = [
     "copier>=9.14.3",
+    "ctranslate2>=4.0.0",
     "mutmut>=3.5.0",
+    "pandas>=2.0.0",
     "pyright>=1.1.409",
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "pytest-mock>=3.15.1",
     "ruff>=0.15.12",
+    "spacy>=3.0.0",
+    "transformers>=4.30.0",
 ]
