@@ -31,6 +31,7 @@ class TestGenerate:
         generate("Hello", "/tmp/out.wav", provider_name="custom.provider")
 
         mock_registry.get.assert_called_once_with("custom.provider")
+        mock_provider.generate.assert_called_once()
 
     @patch("text2speech.providers.registry")
     def test_passes_voice_params(self, mock_registry):
@@ -44,6 +45,7 @@ class TestGenerate:
 
         generate("Hello", "/tmp/out.wav", emotion="happy", voice_id="v1")
 
+        mock_provider.generate.assert_called_once()
         call_args = mock_provider.generate.call_args
         req = call_args[0][0]
         assert req.emotion == "happy"

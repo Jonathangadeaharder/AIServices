@@ -18,7 +18,7 @@ def test_generate_success(tmp_path, mocker):
         ["--text", "Hello world", "--output", str(out), "--provider", "text2speech.fish_mlx"],
     )
     assert result.exit_code == 0
-    mock_registry.get.assert_called_once()
+    mock_registry.get.assert_called_once_with("text2speech.fish_mlx", device="auto")
     mock_provider.generate.assert_called_once()
 
 
@@ -31,7 +31,7 @@ def test_generate_error(mocker):
         ["--text", "test", "--output", "/tmp/out.wav", "--provider", "text2speech.fish_mlx"],
     )
     assert result.exit_code == 1
-    mock_registry.get.assert_called_once()
+    mock_registry.get.assert_called_once_with("text2speech.fish_mlx", device="auto")
 
 
 def test_generate_default_provider(tmp_path, mocker):

@@ -50,6 +50,7 @@ def test_ffmpeg_generate_mp3(tmp_path, mocker):
     assert response.metadata["codec"] == "libmp3lame"
     assert response.metadata["format"] == "mp3"
     assert response.metadata["mono"] is False
+    mock_run.assert_called_once()
 
 
 def test_ffmpeg_generate_default_output(tmp_path, mocker):
