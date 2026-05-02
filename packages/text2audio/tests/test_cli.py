@@ -18,6 +18,8 @@ def test_generate_success(tmp_path, mocker):
         ["--prompt", "calm piano music", "--output", str(out), "--provider", "test-provider"],
     )
     assert result.exit_code == 0
+    mock_registry.get.assert_called_once()
+    mock_provider.generate.assert_called_once()
 
 
 def test_generate_error(mocker):
@@ -29,6 +31,7 @@ def test_generate_error(mocker):
         ["--prompt", "test", "--output", "/tmp/out.wav", "--provider", "test-provider"],
     )
     assert result.exit_code == 1
+    mock_registry.get.assert_called_once()
 
 
 def test_generate_with_seed(tmp_path, mocker):
@@ -45,3 +48,6 @@ def test_generate_with_seed(tmp_path, mocker):
         ["--prompt", "test", "--output", str(out), "--seed", "42", "--provider", "test-provider"],
     )
     assert result.exit_code == 0
+    call_args = mock_provider.generate.call_args
+    req = call_args[0][0]
+    assert req.seed == 42

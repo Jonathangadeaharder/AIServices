@@ -20,6 +20,8 @@ def test_extract_success(tmp_path, mocker):
         ["--video", "/tmp/video.mp4", "--output", str(out)],
     )
     assert result.exit_code == 0
+    mock_registry.get.assert_called_once()
+    mock_provider.generate.assert_called_once()
 
 
 def test_extract_error(mocker):
@@ -31,6 +33,7 @@ def test_extract_error(mocker):
         ["--video", "/tmp/video.mp4", "--output", "/tmp/out.wav"],
     )
     assert result.exit_code == 1
+    mock_registry.get.assert_called_once()
 
 
 def test_extract_stereo(tmp_path, mocker):
@@ -49,3 +52,6 @@ def test_extract_stereo(tmp_path, mocker):
         ["--video", "/tmp/video.mp4", "--output", str(out), "--stereo"],
     )
     assert result.exit_code == 0
+    call_args = mock_provider.generate.call_args
+    req = call_args[0][0]
+    assert req.mono is False
