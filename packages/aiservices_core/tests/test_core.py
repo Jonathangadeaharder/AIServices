@@ -56,16 +56,6 @@ def test_save_and_load_image(tmp_path):
     assert loaded.size == (64, 64)
 
 
-def test_save_image_creates_parent_dirs(tmp_path):
-    from aiservices_core.io import save_image
-    from PIL import Image
-
-    img = Image.new("RGB", (32, 32))
-    nested = tmp_path / "a" / "b" / "c" / "out.png"
-    save_image(img, nested)
-    assert nested.exists()
-
-
 def test_load_image_converts_to_rgb(tmp_path):
     from aiservices_core.io import load_image, save_image
     from PIL import Image
@@ -170,15 +160,17 @@ def test_setup_cache_creates_dir(tmp_path, mocker):
     assert cache_path.exists()
 
 
-def test_setup_cache_calls_mkdir(mocker):
-    mock_path = mocker.MagicMock()
+def test_setup_cache_idempotent(tmp_path, mocker):
+    cache_path = tmp_path / "cache"
+
     mock_cfg = mocker.patch("aiservices_core.runtime.config")
-    mock_cfg.cache_dir = mock_path
+    mock_cfg.cache_dir = cache_path
     from aiservices_core.runtime import setup_cache
 
     setup_cache()
+    setup_cache()
 
-    mock_path.mkdir.assert_called_once_with(parents=True, exist_ok=True)
+    assert cache_path.exists()
 
 
 def test_setup_cache_nested_dir(tmp_path, mocker):

@@ -22,6 +22,7 @@ def test_transcribe_success(tmp_path, mocker):
     assert result.exit_code == 0
     assert str(out) in result.output
     mock_registry.get.assert_called_once()
+    mock_provider.generate.assert_called_once()
 
 
 def test_transcribe_error(mocker):
@@ -33,6 +34,7 @@ def test_transcribe_error(mocker):
         ["--audio", "/tmp/audio.wav", "--output", "/tmp/out.srt"],
     )
     assert result.exit_code == 1
+    mock_registry.get.assert_called_once()
 
 
 def test_transcribe_vtt_format(tmp_path, mocker):
@@ -51,3 +53,6 @@ def test_transcribe_vtt_format(tmp_path, mocker):
         ["--audio", "/tmp/audio.wav", "--output", str(out), "--format", "vtt"],
     )
     assert result.exit_code == 0
+    call_args = mock_provider.generate.call_args
+    req = call_args[0][0]
+    assert req.output_format == "vtt"

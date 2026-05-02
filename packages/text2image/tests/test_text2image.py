@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 from text2image.models import Text2ImageRequest
@@ -47,6 +49,55 @@ def test_mlx_provider_generate(dummy_request, tmp_path, mocker):
     mock_img.save.assert_called_once()
 
 
+def test_mlx_provider_generate_default_output(dummy_request, mocker):
+    mocker.patch("text2image.providers.mlx.MLXProvider._load_pipeline", return_value=None)
+    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
+
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
+    mock_img = mocker.MagicMock()
+    mock_fromarray.return_value = mock_img
+
+    provider = MLXProvider()
+    provider._pipeline = mock_pipeline
+
+    response = provider.generate(dummy_request)
+
+    assert response.output_path == "output.png"
+
+
+def test_mlx_provider_load_pipeline(mocker):
+    mock_flux = mocker.MagicMock()
+    mocker.patch.dict(
+        sys.modules,
+        {"image2image": mocker.MagicMock(), "image2image.flux_mlx": mock_flux},
+    )
+    mock_pipeline_cls = mock_flux.FluxPipeline
+    mock_pipeline_cls.return_value = mocker.MagicMock()
+
+    provider = MLXProvider()
+    provider._pipeline = None
+    provider._load_pipeline()
+
+    mock_pipeline_cls.assert_called_once_with(provider.model_name)
+    assert provider._pipeline is not None
+
+
+def test_mlx_provider_load_pipeline_cached(mocker):
+    mock_flux = mocker.MagicMock()
+    mocker.patch.dict(
+        sys.modules,
+        {"image2image": mocker.MagicMock(), "image2image.flux_mlx": mock_flux},
+    )
+    mock_pipeline_cls = mock_flux.FluxPipeline
+
+    provider = MLXProvider()
+    provider._pipeline = mocker.MagicMock()
+
+    provider._load_pipeline()
+    mock_pipeline_cls.assert_not_called()
+
+
 def test_request_model_defaults():
     req = Text2ImageRequest(prompt="test")
     assert req.width == 1024
@@ -54,3 +105,19 @@ def test_request_model_defaults():
     assert req.guidance_scale == 7.5
     assert req.num_inference_steps == 50
     assert req.seed is None
+
+
+def test_request_model_dimension_validation():
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError, match="must be >= 512"):
+        Text2ImageRequest(prompt="test", width=256)
+
+    with pytest.raises(ValidationError, match="must be divisible by 8"):
+        Text2ImageRequest(prompt="test", width=513)
+
+    with pytest.raises(ValidationError, match="must be >= 512"):
+        Text2ImageRequest(prompt="test", height=100)
+
+    with pytest.raises(ValidationError, match="must be divisible by 8"):
+        Text2ImageRequest(prompt="test", height=513)

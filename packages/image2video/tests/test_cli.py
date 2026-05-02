@@ -23,6 +23,8 @@ def test_generate_success(mocker, tmp_path):
         ],
     )
     assert result.exit_code == 0
+    mock_registry.get.assert_called_once()
+    mock_provider.generate.assert_called_once()
 
 
 def test_generate_error(mocker, tmp_path):
@@ -34,6 +36,7 @@ def test_generate_error(mocker, tmp_path):
         ["--image", "/tmp/test.png", "--prompt", "test", "--output", "/tmp/out.mp4"],
     )
     assert result.exit_code == 1
+    mock_registry.get.assert_called_once()
 
 
 def test_generate_with_options(mocker, tmp_path):
@@ -60,3 +63,7 @@ def test_generate_with_options(mocker, tmp_path):
         ],
     )
     assert result.exit_code == 0
+    call_args = mock_provider.generate.call_args
+    req = call_args[0][0]
+    assert req.num_frames == 81
+    assert req.fps == 16

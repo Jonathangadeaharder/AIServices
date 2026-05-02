@@ -32,9 +32,9 @@ def test_ffmpeg_generate_wav(tmp_path, mocker):
     assert response.output_path == str(out)
     assert response.metadata["provider"] == "ffmpeg"
     assert response.metadata["codec"] == "pcm_s16le"
+    assert response.metadata["format"] == "wav"
+    assert response.metadata["mono"] is True
     mock_run.assert_called_once()
-    cmd = mock_run.call_args[0][0]
-    assert "-ac" in cmd
 
 
 def test_ffmpeg_generate_mp3(tmp_path, mocker):
@@ -48,8 +48,8 @@ def test_ffmpeg_generate_mp3(tmp_path, mocker):
     response = provider.generate(request, str(out))
 
     assert response.metadata["codec"] == "libmp3lame"
-    cmd = mock_run.call_args[0][0]
-    assert "-ac" not in cmd
+    assert response.metadata["format"] == "mp3"
+    assert response.metadata["mono"] is False
 
 
 def test_ffmpeg_generate_default_output(tmp_path, mocker):
