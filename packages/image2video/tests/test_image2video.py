@@ -12,7 +12,7 @@ def dummy_request():
         height=640,
         num_frames=81,
         num_inference_steps=4,
-        fps=16,
+        fps=24,
     )
 
 
@@ -35,7 +35,7 @@ def test_model_defaults():
     assert req.height == 640
     assert req.num_frames == 81
     assert req.num_inference_steps == 4
-    assert req.fps == 16
+    assert req.fps == 24
     assert req.seed is None
     assert "static" in req.negative_prompt
 

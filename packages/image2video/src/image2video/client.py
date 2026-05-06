@@ -17,7 +17,7 @@ def generate(
     height: int = 640,
     num_frames: int = 81,
     num_inference_steps: int = 4,
-    fps: int = 16,
+    fps: int = 24,
     provider_name: str = "image2video.mlx",
 ) -> Path:
     from .models import Image2VideoRequest

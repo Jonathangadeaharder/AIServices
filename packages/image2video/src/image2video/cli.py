@@ -13,9 +13,11 @@ logger = get_logger(__name__)
 
 @app.command()
 def generate(
-    image: str = typer.Option(..., "--image", "-i", help="Path to the input image"),
-    prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt for video generation"),
-    output: str = typer.Option(..., "--output", "-o", help="Path to save output"),
+    input: str = typer.Option(..., "--input", "-i", help="Path to the input image"),
+    output: str = typer.Option(..., "--output", "-o", help="Path to save output video"),
+    seconds: int = typer.Option(4, "--seconds", "-s", help="Video duration in seconds"),
+    fps: int = typer.Option(24, "--fps", help="Frames per second"),
+    prompt: str = typer.Option("", "--prompt", "-p", help="Text prompt for video generation"),
     provider_name: str = typer.Option(
         "image2video.mlx",
         "--provider",
@@ -24,16 +26,16 @@ def generate(
     negative_prompt: str = typer.Option(None, "--negative-prompt", "-n", help="Negative prompt"),
     width: int = typer.Option(640, "--width", help="Video width"),
     height: int = typer.Option(640, "--height", help="Video height"),
-    num_frames: int = typer.Option(81, "--frames", help="Number of frames to generate"),
     steps: int = typer.Option(4, "--steps", help="Inference steps"),
     seed: int = typer.Option(None, "--seed", help="Random seed"),
-    fps: int = typer.Option(16, "--fps", help="Frames per second"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
     """Generate a video from an image."""
+    num_frames = seconds * fps
+
     kwargs = {
-        "image_path": image,
+        "image_path": input,
         "prompt": prompt,
         "width": width,
         "height": height,
