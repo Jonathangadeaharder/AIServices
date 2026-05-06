@@ -57,12 +57,12 @@ def test_fish_provider_api(mock_request, mock_urlopen, tmp_path):
 
     response = provider.generate(request, str(out_file))
 
-    assert response.output_path == str(out_file)
-    assert response.metadata["provider"] == "fish-speech-api"
-    assert out_file.exists()
-    assert out_file.read_bytes() == b"fake_audio_data"
+    assert response.output_path == str(out_file), "output_path should match"
+    assert response.metadata["provider"] == "fish-speech-api", "provider should be fish-speech-api"
+    assert out_file.exists(), "output file should exist"
+    assert out_file.read_bytes() == b"fake_audio_data", "output should contain audio data"
 
-    assert provider._build_fish_text(request) == "[happy] Hello"
+    assert provider._build_fish_text(request) == "[happy] Hello", "text should include emotion"
 
 
 def test_fish_provider_api_mocked(tmp_path):
@@ -87,9 +87,9 @@ def test_fish_provider_api_mocked(tmp_path):
 
         response = provider.generate(request, str(out_file))
 
-        assert response.output_path == str(out_file)
-        assert response.metadata["provider"] == "fish-speech-api"
-        assert out_file.exists()
+    assert response.output_path == str(out_file), "output_path should match"
+    assert response.metadata["provider"] == "fish-speech-api", "provider should be fish-speech-api"
+    assert out_file.exists(), "output file should exist"
 
 
 def test_fish_provider_build_text():
@@ -99,16 +99,16 @@ def test_fish_provider_build_text():
     provider = FishSpeechProvider()
 
     req = Text2SpeechRequest(text="Hello")
-    assert provider._build_fish_text(req) == "Hello"
+    assert provider._build_fish_text(req) == "Hello", "plain text"
 
     req_emotion = Text2SpeechRequest(text="Hello", emotion="happy")
-    assert provider._build_fish_text(req_emotion) == "[happy] Hello"
+    assert provider._build_fish_text(req_emotion) == "[happy] Hello", "emotion prefix"
 
     req_tone = Text2SpeechRequest(text="Hello", tone="calm")
-    assert provider._build_fish_text(req_tone) == "[calm] Hello"
+    assert provider._build_fish_text(req_tone) == "[calm] Hello", "tone prefix"
 
     req_effect = Text2SpeechRequest(text="Hello", effect="echo")
-    assert provider._build_fish_text(req_effect) == "[echo] Hello"
+    assert provider._build_fish_text(req_effect) == "[echo] Hello", "effect prefix"
 
 
 @pytest.mark.skipif(
@@ -141,19 +141,19 @@ def test_fish_mlx_build_text():
     provider = FishMLXProvider()
 
     req = Text2SpeechRequest(text="Hello")
-    assert provider._build_text(req) == "Hello"
+    assert provider._build_text(req) == "Hello", "plain text"
 
     req_emotion = Text2SpeechRequest(text="Hello", emotion="happy")
-    assert provider._build_text(req_emotion) == "[happy] Hello"
+    assert provider._build_text(req_emotion) == "[happy] Hello", "emotion prefix"
 
     req_tone = Text2SpeechRequest(text="Hello", tone="calm")
-    assert provider._build_text(req_tone) == "[calm] Hello"
+    assert provider._build_text(req_tone) == "[calm] Hello", "tone prefix"
 
     req_effect = Text2SpeechRequest(text="Hello", effect="echo")
-    assert provider._build_text(req_effect) == "[echo] Hello"
+    assert provider._build_text(req_effect) == "[echo] Hello", "effect prefix"
 
     req_all = Text2SpeechRequest(text="Hello", emotion="happy", tone="calm", effect="echo")
-    assert provider._build_text(req_all) == "[happy][calm][echo] Hello"
+    assert provider._build_text(req_all) == "[happy][calm][echo] Hello", "all modifiers"
 
 
 def test_fish_mlx_generate_mocked(tmp_path):

@@ -60,9 +60,9 @@ def test_generate_custom_dimensions(tmp_path, mocker):
             "42",
         ],
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, "CLI should exit successfully"
     call_args = mock_provider.generate.call_args
     req = call_args[0][0]
-    assert req.width == 512
-    assert req.height == 512
-    assert req.seed == 42
+    assert req.width == 512, "width should be 512"
+    assert req.height == 512, "height should be 512"
+    assert req.seed == 42, "seed should be 42"

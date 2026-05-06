@@ -6,17 +6,6 @@ from text2image.models import Text2ImageRequest
 from text2image.providers.mlx import MLXProvider
 
 
-@pytest.fixture
-def dummy_request():
-    return Text2ImageRequest(
-        prompt="A beautiful test image",
-        guidance_scale=7.5,
-        num_inference_steps=4,
-        width=1024,
-        height=1024,
-    )
-
-
 def test_mlx_provider_init():
     provider = MLXProvider()
     assert provider.model_name == MLXProvider.DEFAULT_MODEL
@@ -96,28 +85,33 @@ def test_mlx_provider_load_pipeline_cached(mocker):
 
     provider._load_pipeline()
     mock_pipeline_cls.assert_not_called()
+    assert provider._pipeline is not None, "pipeline should remain cached"
 
 
 def test_request_model_defaults():
     req = Text2ImageRequest(prompt="test")
-    assert req.width == 1024
-    assert req.height == 1024
-    assert req.guidance_scale == 7.5
-    assert req.num_inference_steps == 50
-    assert req.seed is None
+    assert req.width == 1024, "default width"
+    assert req.height == 1024, "default height"
+    assert req.guidance_scale == 7.5, "default guidance_scale"
+    assert req.num_inference_steps == 50, "default num_inference_steps"
+    assert req.seed is None, "default seed"
 
 
 def test_request_model_dimension_validation():
     from pydantic import ValidationError
 
-    with pytest.raises(ValidationError, match="must be >= 512"):
+    with pytest.raises(ValidationError, match="must be >= 512") as exc_info:
         Text2ImageRequest(prompt="test", width=256)
+    assert "width" in str(exc_info.value)
 
-    with pytest.raises(ValidationError, match="must be divisible by 8"):
+    with pytest.raises(ValidationError, match="must be divisible by 8") as exc_info:
         Text2ImageRequest(prompt="test", width=513)
+    assert "width" in str(exc_info.value)
 
-    with pytest.raises(ValidationError, match="must be >= 512"):
+    with pytest.raises(ValidationError, match="must be >= 512") as exc_info:
         Text2ImageRequest(prompt="test", height=100)
+    assert "height" in str(exc_info.value)
 
-    with pytest.raises(ValidationError, match="must be divisible by 8"):
+    with pytest.raises(ValidationError, match="must be divisible by 8") as exc_info:
         Text2ImageRequest(prompt="test", height=513)
+    assert "height" in str(exc_info.value)

@@ -1,4 +1,4 @@
-import subprocess
+from subprocess import CalledProcessError, TimeoutExpired
 
 import pytest
 from aiservices_core.errors import ProviderError
@@ -15,8 +15,9 @@ def test_ffmpeg_provider_init(mocker):
 def test_ffmpeg_not_found(mocker):
     mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value=None)
     provider = FFmpegProvider()
-    with pytest.raises(ProviderError, match="ffmpeg not found"):
+    with pytest.raises(ProviderError, match="ffmpeg not found") as exc_info:
         provider._find_ffmpeg()
+    assert "ffmpeg not found" in str(exc_info.value)
 
 
 def test_ffmpeg_generate_wav(tmp_path, mocker):
@@ -29,11 +30,11 @@ def test_ffmpeg_generate_wav(tmp_path, mocker):
     out = tmp_path / "out.wav"
     response = provider.generate(request, str(out))
 
-    assert response.output_path == str(out)
-    assert response.metadata["provider"] == "ffmpeg"
-    assert response.metadata["codec"] == "pcm_s16le"
-    assert response.metadata["format"] == "wav"
-    assert response.metadata["mono"] is True
+    assert response.output_path == str(out), "output_path should match"
+    assert response.metadata["provider"] == "ffmpeg", "provider should be ffmpeg"
+    assert response.metadata["codec"] == "pcm_s16le", "codec should be pcm_s16le"
+    assert response.metadata["format"] == "wav", "format should be wav"
+    assert response.metadata["mono"] is True, "mono should be True"
     mock_run.assert_called_once()
 
 
@@ -69,23 +70,25 @@ def test_ffmpeg_generate_default_output(tmp_path, mocker):
 def test_ffmpeg_generate_error(tmp_path, mocker):
     mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
     mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
-    mock_run.side_effect = subprocess.CalledProcessError(1, "ffmpeg", stderr="error")
+    mock_run.side_effect = CalledProcessError(1, "ffmpeg", stderr="error")
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4")
-    with pytest.raises(ProviderError, match="FFmpeg failed"):
+    with pytest.raises(ProviderError, match="FFmpeg failed") as exc_info:
         provider.generate(request, str(tmp_path / "out.wav"))
+    assert "FFmpeg failed" in str(exc_info.value)
 
 
 def test_ffmpeg_timeout(tmp_path, mocker):
     mocker.patch("video2audio.providers.ffmpeg.shutil.which", return_value="/usr/bin/ffmpeg")
     mock_run = mocker.patch("video2audio.providers.ffmpeg.subprocess.run")
-    mock_run.side_effect = subprocess.TimeoutExpired(cmd="ffmpeg", timeout=600)
+    mock_run.side_effect = TimeoutExpired(cmd="ffmpeg", timeout=600)
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4")
-    with pytest.raises(ProviderError, match="timed out"):
+    with pytest.raises(ProviderError, match="timed out") as exc_info:
         provider.generate(request, str(tmp_path / "out.wav"))
+    assert "timed out" in str(exc_info.value)
 
 
 def test_ffmpeg_file_not_found(tmp_path, mocker):
@@ -95,5 +98,6 @@ def test_ffmpeg_file_not_found(tmp_path, mocker):
 
     provider = FFmpegProvider()
     request = Video2AudioRequest(video_path="/tmp/test.mp4")
-    with pytest.raises(ProviderError, match="FFmpeg not found"):
+    with pytest.raises(ProviderError, match="FFmpeg not found") as exc_info:
         provider.generate(request, str(tmp_path / "out.wav"))
+    assert "FFmpeg not found" in str(exc_info.value)

@@ -131,3 +131,4 @@ def test_mlx_provider_load_pipeline_cached(mocker):
 
     provider._load_pipeline()
     mock_pipeline_cls.assert_not_called()
+    assert provider._pipeline is not None, "pipeline should remain cached"

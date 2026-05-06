@@ -37,8 +37,9 @@ def test_mlx_provider_generate_file_not_found(tmp_path):
     out = tmp_path / "out.png"
     import pytest
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(FileNotFoundError) as exc_info:
         provider.generate(request, str(out))
+    assert exc_info.value is not None
 
 
 def test_mlx_provider_generate_with_seed(mocker, tmp_path):
