@@ -44,3 +44,12 @@ external/comfyui/ComfyUI
 *.mp3
 .worktrees/
 packages/fish_speech/
+
+# iCloud duplicates and stale envs
+.venv-old/
+* 2*
+* 3*
+
+# Generated artifacts
+pr_feedback.json
+output.vtt
