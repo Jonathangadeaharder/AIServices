@@ -16,7 +16,7 @@ class TestModelDefaults:
         assert req.audio_path == "/tmp/audio.wav"
         assert req.language is None
         assert req.output_format == "srt"
-        assert req.model_name == "mlx-community/whisper-large-v3-turbo"
+        assert req.model_name == "mlx-community/whisper-large-v3"
         assert req.word_timestamps is True
 
     def test_request_requires_audio_path(self):
@@ -123,7 +123,7 @@ def test_mlx_provider_srt(tmp_path, mocker):
 
     _mock_whisper.transcribe.assert_called_once_with(
         "/tmp/audio.wav",
-        path_or_hf_repo="mlx-community/whisper-large-v3-turbo",
+        path_or_hf_repo=        "mlx-community/whisper-large-v3",
         language=None,
         word_timestamps=True,
     )

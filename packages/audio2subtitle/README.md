@@ -13,26 +13,24 @@ uv tool install ./packages/audio2subtitle
 ## Usage
 
 ```bash
-audio2subtitle transcribe --audio recording.wav --output subtitles.srt
-audio2subtitle transcribe --audio recording.wav --output captions.vtt --format vtt
+audio2subtitle --input recording.wav --output subtitles.srt
+audio2subtitle -i recording.wav -o subtitles.srt --language en
+audio2subtitle -i recording.wav -o subtitles.srt --model mlx-community/whisper-large-v3
 ```
 
 ### Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--audio`, `-a` | *(required)* | Path to input audio file |
+| `--input`, `-i` | *(required)* | Path to input audio file |
 | `--output`, `-o` | *(required)* | Path to output subtitle file |
-| `--format`, `-f` | `srt` | Output format: `srt` or `vtt` |
 | `--language`, `-l` | `None` | Language code (e.g. `en`), auto-detect if omitted |
-| `--model` | `mlx-community/whisper-large-v3-turbo` | Whisper model name |
-| `--no-word-timestamps` | `false` | Disable word-level timestamps |
-| `--provider` | `audio2subtitle.mlx` | Provider name |
-| `--verbose`, `-v` | `false` | Enable verbose output |
+| `--model` | `mlx-community/whisper-large-v3` | Whisper model name |
 
-## Output Formats
+## Output Format
 
-### SRT
+SRT with word-level timestamps:
+
 ```
 1
 00:00:00,000 --> 00:00:02,500
@@ -43,17 +41,6 @@ Hello world.
 Goodbye.
 ```
 
-### VTT
-```
-WEBVTT
+## Provider
 
-00:00:00.000 --> 00:00:02.500
-Hello world.
-
-00:00:02.500 --> 00:00:05.000
-Goodbye.
-```
-
-## Providers
-
-- `audio2subtitle.mlx`: Local transcription using mlx-whisper (Apple Silicon optimised)
+Uses `audio2subtitle.mlx` — local transcription via mlx-whisper (Apple Silicon optimised).
