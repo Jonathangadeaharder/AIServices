@@ -17,7 +17,7 @@ def test_extract_success(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--video", "/tmp/video.mp4", "--output", str(out)],
+        ["--input", "/tmp/video.mp4", "--output", str(out)],
     )
     assert result.exit_code == 0
     mock_registry.get.assert_called_once()
@@ -30,28 +30,36 @@ def test_extract_error(mocker):
 
     result = runner.invoke(
         app,
-        ["--video", "/tmp/video.mp4", "--output", "/tmp/out.wav"],
+        ["--input", "/tmp/video.mp4", "--output", "/tmp/out.wav"],
     )
     assert result.exit_code == 1
     mock_registry.get.assert_called_once()
 
 
-def test_extract_stereo(tmp_path, mocker):
+def test_extract_codec_option(tmp_path, mocker):
     mock_registry = mocker.patch("video2audio.cli.registry")
     mock_provider = mocker.MagicMock()
     mock_response = mocker.MagicMock()
-    mock_response.output_path = str(tmp_path / "out.wav")
+    mock_response.output_path = str(tmp_path / "out.mp3")
     mock_response.duration_seconds = None
     mock_response.metadata = {}
     mock_provider.generate.return_value = mock_response
     mock_registry.get.return_value = mock_provider
 
-    out = tmp_path / "out.wav"
+    out = tmp_path / "out.mp3"
     result = runner.invoke(
         app,
-        ["--video", "/tmp/video.mp4", "--output", str(out), "--stereo"],
+        ["--input", "/tmp/video.mp4", "--output", str(out), "--codec", "mp3"],
     )
     assert result.exit_code == 0
     call_args = mock_provider.generate.call_args
     req = call_args[0][0]
-    assert req.mono is False
+    assert req.output_format == "mp3"
+
+
+def test_help_shows_options():
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "--input" in result.output
+    assert "--output" in result.output
+    assert "--codec" in result.output
