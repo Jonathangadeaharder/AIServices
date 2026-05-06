@@ -25,6 +25,7 @@ members = [
     "text2audio",
     "text2image",
     "text2speech",
+    "text2video",
     "video2audio",
     "video2subtitle",
 ]
@@ -69,12 +70,16 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "copier" },
+    { name = "ctranslate2" },
     { name = "mutmut" },
+    { name = "pandas" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "ruff" },
+    { name = "spacy" },
+    { name = "transformers" },
 ]
 
 [package.metadata]
@@ -87,12 +92,16 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "copier", specifier = ">=9.14.3" },
+    { name = "ctranslate2", specifier = ">=4.0.0" },
     { name = "mutmut", specifier = ">=3.5.0" },
+    { name = "pandas", specifier = ">=2.0.0" },
     { name = "pyright", specifier = ">=1.1.409" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "ruff", specifier = ">=0.15.12" },
+    { name = "spacy", specifier = ">=3.0.0" },
+    { name = "transformers", specifier = ">=4.30.0" },
 ]
 
 [[package]]
@@ -3088,6 +3097,25 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12.0" },
 ]
 provides-extras = ["mlx", "fish-api"]
+
+[[package]]
+name = "text2video"
+version = "0.1.0"
+source = { editable = "packages/text2video" }
+dependencies = [
+    { name = "aiservices-core" },
+    { name = "ltx-pipelines-mlx" },
+    { name = "pydantic" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiservices-core", editable = "packages/aiservices_core" },
+    { name = "ltx-pipelines-mlx", git = "https://github.com/dgrauet/ltx-2-mlx?subdirectory=packages%2Fltx-pipelines-mlx" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "typer", specifier = ">=0.12.0" },
+]
 
 [[package]]
 name = "textual"
