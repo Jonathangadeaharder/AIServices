@@ -1,0 +1,77 @@
+root: true
+
+exclude:
+  - __pycache__/**
+  - .git/**
+  - .venv/**
+  - "*.egg-info/**"
+  - venv/**
+  - .pytest_cache/**
+  - .ruff_cache/**
+  - .mypy_cache/**
+  - htmlcov/**
+  - .coverage
+  - output.vtt
+
+rules:
+  max-depth:
+    max: 5
+    exemptions:
+      - ".git/**"
+      - "**/__pycache__/**"
+
+  max-files-in-dir:
+    max: 30
+    exemptions:
+      - ".git/**"
+
+  max-subdirs:
+    max: 15
+    exemptions:
+      - ".git/**"
+
+  naming-convention:
+    style: "snake_case"
+    apply-to:
+      - "**/*.py"
+    exemptions:
+      - "**/__pycache__/**"
+      - ".git/**"
+      - "README.md"
+      - "LICENSE"
+
+  file-existence:
+    "README.md":
+      rule: "exists:1"
+      exemptions:
+        - "packages/**"
+        - "templates/**"
+        - "external/**"
+        - "tests/**"
+    "pyproject.toml":
+      rule: "exists:1"
+      exemptions:
+        - "packages/**"
+        - "templates/**"
+        - "tests/**"
+
+  disallowed-patterns:
+    - "*.tmp"
+    - "*.bak"
+    - ".DS_Store"
+    - "*.pyc"
+    - "*.pyo"
+    - "*.orig"
+
+  test-adjacency:
+    pattern: "separate"
+    test-dir: "tests"
+    file-patterns:
+      - "**/*.py"
+    exemptions:
+      - "**/__init__.py"
+      - "**/conftest.py"
+      - "packages/**"
+      - "templates/**"
+      - "external/**"
+      - "scripts/**"
