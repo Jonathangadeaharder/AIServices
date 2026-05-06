@@ -69,12 +69,16 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "copier" },
+    { name = "ctranslate2" },
     { name = "mutmut" },
+    { name = "pandas" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "ruff" },
+    { name = "spacy" },
+    { name = "transformers" },
 ]
 
 [package.metadata]
@@ -87,12 +91,16 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "copier", specifier = ">=9.14.3" },
+    { name = "ctranslate2", specifier = ">=4.0.0" },
     { name = "mutmut", specifier = ">=3.5.0" },
+    { name = "pandas", specifier = ">=2.0.0" },
     { name = "pyright", specifier = ">=1.1.409" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "ruff", specifier = ">=0.15.12" },
+    { name = "spacy", specifier = ">=3.0.0" },
+    { name = "transformers", specifier = ">=4.30.0" },
 ]
 
 [[package]]
@@ -3021,7 +3029,7 @@ wheels = [
 
 [[package]]
 name = "text2audio"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "packages/text2audio" }
 dependencies = [
     { name = "aiservices-core" },

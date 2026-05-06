@@ -1,11 +1,11 @@
 # text2audio
 
-Text-to-audio generation pipeline for the AIServices monorepo. Generates non-speech audio: music, sound effects, and ambient textures.
+Text-to-audio generation pipeline for the AIServices monorepo.
 
 ## Installation
 
 ```bash
-uv sync --all-packages
+uv tool install ./packages/text2audio
 ```
 
 ## Usage
@@ -13,32 +13,37 @@ uv sync --all-packages
 ### CLI
 
 ```bash
-text2audio generate --prompt "calm piano music" --output out.wav --category music --duration 10 --provider <provider-name>
+text2audio --text "calm piano music" --output out.wav
+text2audio --text "thunder and rain" --output rain.wav --voice speaker1 --speed 1.2
+text2audio --help
 ```
 
 ### Python
 
 ```python
-from text2audio.models import Text2AudioRequest, AudioCategory
+from text2audio.models import Text2AudioRequest
 from text2audio.providers import registry
 
 request = Text2AudioRequest(
-    prompt="calm piano music",
-    duration_seconds=10.0,
-    category=AudioCategory.MUSIC,
+    text="calm piano music",
+    voice="default",
+    speed=1.0,
 )
 
-provider = registry.get("<provider-name>")
+provider = registry.get("text2audio.fish_mlx")
 response = provider.generate(request, "output.wav")
 ```
 
 ## Providers
 
-No providers are currently registered. This package is a placeholder for future local MLX-based audio generation models (e.g. MusicGen, AudioLDM2).
+- `text2audio.fish_mlx` - Fish S2 Pro MLX (Apple Silicon) - placeholder, not yet implemented
 
-## Audio Categories
+## Options
 
-- `music` - Musical compositions
-- `sfx` - Sound effects
-- `ambient` - Ambient textures and soundscapes
-- `speech` - Speech-like audio (non-TTS)
+- `--text`, `-t` - Text description of audio to generate (required)
+- `--output`, `-o` - Path to save output audio file (required)
+- `--voice` - Voice/speaker ID (default: "default")
+- `--speed` - Playback speed multiplier (default: 1.0, range: 0.5-2.0)
+- `--seed`, `-s` - Random seed for reproducibility
+- `--verbose` - Enable verbose logging
+- `--device` - Device to use for generation
