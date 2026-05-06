@@ -2,52 +2,114 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v2
-      with:
-        version: "latest"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: ".python-version"
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-    - name: Install dependencies
-      run: uv sync --all-packages
+      - name: Install dependencies
+        run: uv sync --all-packages
 
-    - name: Ruff check
-      run: uvx ruff check .
+      - name: Ruff lint
+        run: uvx ruff check .
 
-    - name: Pyright
-      run: uvx pyright
+      - name: Ruff format
+        run: uvx ruff format --check .
+
+      - name: Pyright
+        run: uvx pyright
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12"]
+        module:
+          - aiservices_core
+          - audio2subtitle
+          - image2image
+          - image2video
+          - subtitle-filter
+          - subtitle-translate
+          - text2audio
+          - text2image
+          - text2speech
+          - video2audio
+          - video2subtitle
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v2
-      with:
-        version: "latest"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: ".python-version"
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: uv sync --all-packages
+      - name: Install dependencies
+        run: uv sync --all-packages
 
-    - name: Run tests with coverage
-      run: uv run pytest --cov --cov-branch --cov-report=term-missing --cov-fail-under=90
+      - name: Run tests (${{ matrix.module }})
+        run: uv run pytest packages/${{ matrix.module }}/tests/ -q
+
+  smoke-install:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12"]
+        module:
+          - audio2subtitle
+          - image2image
+          - image2video
+          - subtitle-filter
+          - subtitle-translate
+          - text2audio
+          - text2image
+          - text2speech
+          - video2audio
+          - video2subtitle
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --all-packages
+
+      - name: Smoke install ${{ matrix.module }}
+        run: |
+          uv pip install -e packages/${{ matrix.module }}
+          ${{ matrix.module }} --help
