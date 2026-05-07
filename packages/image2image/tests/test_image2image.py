@@ -1,4 +1,4 @@
-import pytest
+from image2image.models import Image2ImageRequest
 from image2image.providers.mlx import MLXProvider
 
 

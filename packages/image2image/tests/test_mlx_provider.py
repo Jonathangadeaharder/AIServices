@@ -39,7 +39,7 @@ def test_mlx_provider_generate_file_not_found(tmp_path):
 
     with pytest.raises(FileNotFoundError) as exc_info:
         provider.generate(request, str(out))
-    assert exc_info.value is not None
+    assert request.image_path in str(exc_info.value), "missing path context in FileNotFoundError"
 
 
 def test_mlx_provider_generate_with_seed(mocker, tmp_path):
