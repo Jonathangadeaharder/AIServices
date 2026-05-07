@@ -1,3 +1,5 @@
+import re
+
 from audio2subtitle.cli import app
 from typer.testing import CliRunner
 
@@ -83,7 +85,8 @@ def test_help_shows_input_output(mocker):
     mocker.patch("audio2subtitle.cli.registry")
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--input" in result.output
-    assert "--output" in result.output
-    assert "--language" in result.output
-    assert "--model" in result.output
+    clean = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", result.output)
+    assert "--input" in clean
+    assert "--output" in clean
+    assert "--language" in clean
+    assert "--model" in clean
