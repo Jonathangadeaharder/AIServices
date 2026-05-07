@@ -11,8 +11,9 @@ app = typer.Typer(help="Text to image generation pipeline")
 logger = get_logger(__name__)
 
 
-@app.command()
-def generate(
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
     prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt for image generation"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output image"),
     provider_name: str = typer.Option(
@@ -30,6 +31,9 @@ def generate(
     device: str = device_option,
 ):
     """Generate an image from text."""
+    if ctx.invoked_subcommand is not None:
+        return
+
     try:
         request = Text2ImageRequest(
             prompt=prompt,
