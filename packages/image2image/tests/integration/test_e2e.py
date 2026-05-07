@@ -1,9 +1,6 @@
-from pathlib import Path
-
+from image2image.cli import app
 from PIL import Image
 from typer.testing import CliRunner
-
-from image2image.cli import app
 
 runner = CliRunner()
 
@@ -26,11 +23,16 @@ def test_cli_end_to_end(tmp_path, mocker):
     result = runner.invoke(
         app,
         [
-            "--input", str(input_path),
-            "--prompt", "a red square",
-            "--output", str(output_path),
-            "--strength", "0.7",
-            "--seed", "42",
+            "--input",
+            str(input_path),
+            "--prompt",
+            "a red square",
+            "--output",
+            str(output_path),
+            "--strength",
+            "0.7",
+            "--seed",
+            "42",
         ],
     )
 

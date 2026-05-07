@@ -54,10 +54,14 @@ def test_generate_custom_strength(mocker, tmp_path):
     result = runner.invoke(
         app,
         [
-            "--input", str(dummy_input),
-            "--prompt", "test",
-            "--output", str(out),
-            "--strength", "0.8",
+            "--input",
+            str(dummy_input),
+            "--prompt",
+            "test",
+            "--output",
+            str(out),
+            "--strength",
+            "0.8",
         ],
     )
     assert result.exit_code == 0
