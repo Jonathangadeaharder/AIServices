@@ -5,35 +5,31 @@ from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
 from aiservices_core.providers import registry
 
-from .models import AudioCategory, Text2AudioRequest
+from .models import Text2AudioRequest
 
-app = typer.Typer(help="Text to audio (music, SFX, ambient) generation pipeline")
+app = typer.Typer(help="Text to audio generation pipeline")
 logger = get_logger(__name__)
 
 
-@app.command()
-def generate(
-    prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt describing the audio"),
+@app.callback(invoke_without_command=True)
+def main(
+    text: str = typer.Option(..., "--text", "-t", help="Text description of audio to generate"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output audio file"),
-    category: str = typer.Option(
-        "music", "--category", "-c", help="Audio category (music, sfx, ambient, speech)"
-    ),
-    duration: float = typer.Option(10.0, "--duration", help="Duration in seconds"),
-    format: str = typer.Option("wav", "--format", "-f", help="Output format (wav, mp3)"),
+    voice: str = typer.Option("default", "--voice", help="Voice/speaker ID"),
+    speed: float = typer.Option(1.0, "--speed", help="Playback speed multiplier"),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed"),
-    provider_name: str = typer.Option(..., "--provider", help="Provider name"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
-    """Generate audio from a text prompt."""
+    """Generate audio from a text description."""
+    provider_name = "text2audio.fish_mlx"
     logger.info(f"Using provider: {provider_name}")
 
     try:
         request = Text2AudioRequest(
-            prompt=prompt,
-            duration_seconds=duration,
-            output_format=format,
-            category=AudioCategory(category),
+            text=text,
+            voice=voice,
+            speed=speed,
             seed=seed,
         )
 
