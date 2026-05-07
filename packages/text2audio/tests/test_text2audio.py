@@ -5,9 +5,9 @@ from text2audio.models import Text2AudioRequest, Text2AudioResponse
 
 def test_model_defaults():
     req = Text2AudioRequest(text="ambient rain sounds")
-    assert req.voice == "default"
-    assert req.speed == 1.0
-    assert req.seed is None
+    assert req.voice == "default", "default voice"
+    assert req.speed == 1.0, "default speed"
+    assert req.seed is None, "default seed"
 
 
 def test_speed_validation_too_slow():

@@ -8,8 +8,7 @@ def test_translate_srt(tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "ctranslate2", mock_ct2)
     monkeypatch.setitem(sys.modules, "transformers", mock_transformers)
 
-    if "subtitle_translate.translator" in sys.modules:
-        del sys.modules["subtitle_translate.translator"]
+    sys.modules.pop("subtitle_translate.translator", None)
 
     mock_tokenizer = MagicMock()
     mock_model = MagicMock()
@@ -37,8 +36,7 @@ def test_translate_batch_empty(tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "ctranslate2", mock_ct2)
     monkeypatch.setitem(sys.modules, "transformers", mock_transformers)
 
-    if "subtitle_translate.translator" in sys.modules:
-        del sys.modules["subtitle_translate.translator"]
+    sys.modules.pop("subtitle_translate.translator", None)
 
     mock_transformers.AutoTokenizer.from_pretrained.return_value = MagicMock()
     mock_ct2.Translator.return_value = MagicMock()

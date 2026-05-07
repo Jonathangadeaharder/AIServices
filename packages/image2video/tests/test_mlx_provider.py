@@ -127,7 +127,9 @@ def test_mlx_provider_load_pipeline_cached(mocker):
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
-    provider._pipeline = mocker.MagicMock()
+    cached_pipeline = mocker.MagicMock()
+    provider._pipeline = cached_pipeline
 
     provider._load_pipeline()
     mock_pipeline_cls.assert_not_called()
+    assert provider._pipeline is cached_pipeline, "pipeline should remain cached"

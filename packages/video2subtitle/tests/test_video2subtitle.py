@@ -110,10 +110,10 @@ def test_mlx_provider_srt_output(tmp_path, mocker):
 
     response = provider.generate(request, output)
 
-    assert response.output_path == output
-    assert len(response.entries) == 1
-    assert response.entries[0].text == "Hello world"
-    assert response.language == "en"
+    assert response.output_path == output, "output_path should match"
+    assert len(response.entries) == 1, "should have exactly 1 entry"
+    assert response.entries[0].text == "Hello world", "entry text should match"
+    assert response.language == "en", "language should be en"
 
     content = (tmp_path / "out.srt").read_text()
     assert "00:00:00,000 --> 00:00:02,500" in content
@@ -186,5 +186,6 @@ def test_mlx_provider_transcription_error(tmp_path, mocker):
     provider = MLXProvider()
     request = Video2SubtitleRequest(video_path="/tmp/video.mp4")
 
-    with pytest.raises(RuntimeError, match="Transcription failed"):
+    with pytest.raises(RuntimeError, match="Transcription failed") as exc_info:
         provider.generate(request, str(tmp_path / "out.srt"))
+    assert "Transcription failed" in str(exc_info.value)

@@ -2,19 +2,6 @@ import pytest
 from image2video.models import Image2VideoRequest
 
 
-@pytest.fixture
-def dummy_request():
-    return Image2VideoRequest(
-        image_path="/tmp/test_image.png",
-        prompt="A test video prompt",
-        width=640,
-        height=640,
-        num_frames=81,
-        num_inference_steps=4,
-        fps=24,
-    )
-
-
 def test_model_validation():
     """Test that model validation constraints work."""
     req = Image2VideoRequest(image_path="/tmp/test.png", prompt="test", width=640, height=640)
@@ -30,13 +17,13 @@ def test_model_validation():
 def test_model_defaults():
     """Test that default values are sensible."""
     req = Image2VideoRequest(image_path="/tmp/test.png", prompt="test")
-    assert req.width == 640
-    assert req.height == 640
-    assert req.num_frames == 81
-    assert req.num_inference_steps == 4
-    assert req.fps == 24
-    assert req.seed is None
-    assert "static" in req.negative_prompt
+    assert req.width == 640, "default width"
+    assert req.height == 640, "default height"
+    assert req.num_frames == 81, "default num_frames"
+    assert req.num_inference_steps == 4, "default num_inference_steps"
+    assert req.fps == 24, "default fps"
+    assert req.seed is None, "default seed"
+    assert "static" in req.negative_prompt, "default negative_prompt contains static"
 
 
 def test_mlx_provider_generate_full_flow(dummy_request, tmp_path, mocker):

@@ -6,18 +6,6 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture
-def isolated_root_logger():
-    root = logging.getLogger()
-    old_handlers = list(root.handlers)
-    old_level = root.level
-    root.handlers.clear()
-    yield root
-    root.handlers.clear()
-    root.handlers.extend(old_handlers)
-    root.setLevel(old_level)
-
-
 def test_version():
     from aiservices_core import __version__
 
@@ -106,8 +94,9 @@ def test_provider_registry_unknown_raises():
     from aiservices_core.providers import ProviderRegistry
 
     reg = ProviderRegistry()
-    with pytest.raises(ValueError, match="not found"):
+    with pytest.raises(ValueError, match="not found") as exc_info:
         reg.get("nonexistent")
+    assert "not found" in str(exc_info.value)
 
 
 def test_provider_registry_error_lists_available():
@@ -122,8 +111,9 @@ def test_provider_registry_error_lists_available():
 
     reg = ProviderRegistry()
     reg.register("alpha", StubProvider)
-    with pytest.raises(ValueError, match="alpha"):
+    with pytest.raises(ValueError, match="alpha") as exc_info:
         reg.get("missing")
+    assert "alpha" in str(exc_info.value)
 
 
 def test_get_optimal_device_explicit(monkeypatch, mocker):
@@ -205,12 +195,12 @@ def test_create_progress_bar_columns():
     from rich.progress import BarColumn, SpinnerColumn, TextColumn, TimeElapsedColumn
 
     bar = create_progress_bar()
-    assert len(bar.columns) == 5
-    assert isinstance(bar.columns[0], SpinnerColumn)
-    assert isinstance(bar.columns[1], TextColumn)
-    assert isinstance(bar.columns[2], BarColumn)
-    assert isinstance(bar.columns[3], TextColumn)
-    assert isinstance(bar.columns[4], TimeElapsedColumn)
+    assert len(bar.columns) == 5, "progress bar should have 5 columns"
+    assert isinstance(bar.columns[0], SpinnerColumn), "column 0 should be SpinnerColumn"
+    assert isinstance(bar.columns[1], TextColumn), "column 1 should be TextColumn"
+    assert isinstance(bar.columns[2], BarColumn), "column 2 should be BarColumn"
+    assert isinstance(bar.columns[3], TextColumn), "column 3 should be TextColumn"
+    assert isinstance(bar.columns[4], TimeElapsedColumn), "column 4 should be TimeElapsedColumn"
 
 
 def test_create_progress_bar_console():
@@ -267,11 +257,13 @@ def test_setup_logging_handler_console(isolated_root_logger):
     assert handler.console is console
 
 
-def test_setup_logging_no_exception():
+def test_setup_logging_no_exception(isolated_root_logger):
     from aiservices_core.logging import setup_logging
 
+    isolated_root_logger.handlers.clear()
     setup_logging(debug=False)
     setup_logging(debug=True)
+    assert isolated_root_logger.handlers, "root logger should remain configured"
 
 
 def test_verbose_option_exists():

@@ -192,5 +192,6 @@ def test_mlx_whisper_transcription_error(tmp_path, mocker):
     request = Audio2SubtitleRequest(audio_path="/tmp/audio.wav")
     out_file = tmp_path / "out.srt"
 
-    with pytest.raises(RuntimeError, match="Subtitle generation failed"):
+    with pytest.raises(RuntimeError, match="Subtitle generation failed") as exc_info:
         provider.generate(request, str(out_file))
+    assert "Subtitle generation failed" in str(exc_info.value)

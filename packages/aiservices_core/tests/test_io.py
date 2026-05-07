@@ -19,7 +19,7 @@ def test_load_image_from_path(tmp_path):
     assert loaded.size == (64, 64)
 
 
-def test_load_image_from_url(mocker):
+def test_load_image_from_url(mocker, tmp_path):
     mock_get = mocker.patch("requests.get")
     img = Image.new("RGB", (64, 64), color=(0, 255, 0))
     buf = io.BytesIO()
@@ -36,7 +36,7 @@ def test_load_image_from_url(mocker):
     mock_get.assert_called_once_with("https://example.com/test.png", timeout=10)
 
 
-def test_load_image_from_http_url(mocker):
+def test_load_image_from_http_url(mocker, tmp_path):
     mock_get = mocker.patch("requests.get")
     img = Image.new("RGB", (32, 32))
     buf = io.BytesIO()

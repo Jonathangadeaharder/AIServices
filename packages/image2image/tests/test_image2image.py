@@ -1,15 +1,5 @@
-import pytest
 from image2image.models import Image2ImageRequest
 from image2image.providers.mlx import MLXProvider
-
-
-@pytest.fixture
-def dummy_request(tmp_path):
-    dummy_file = tmp_path / "dummy.jpg"
-    dummy_file.write_bytes(b"fake image data")
-    return Image2ImageRequest(
-        image_path=str(dummy_file), prompt="A beautiful test image", strength=0.5
-    )
 
 
 def test_mlx_provider_init():
@@ -41,7 +31,7 @@ def test_mlx_provider_generate(mocker, dummy_request, tmp_path):
 
 def test_request_model_defaults():
     req = Image2ImageRequest(image_path="/tmp/test.jpg", prompt="test")
-    assert req.strength == 0.5
-    assert req.guidance_scale == 7.5
-    assert req.num_inference_steps == 50
-    assert req.seed is None
+    assert req.strength == 0.5, "default strength"
+    assert req.guidance_scale == 7.5, "default guidance_scale"
+    assert req.num_inference_steps == 50, "default num_inference_steps"
+    assert req.seed is None, "default seed"
