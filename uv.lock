@@ -25,6 +25,7 @@ members = [
     "text2audio",
     "text2image",
     "text2speech",
+    "text2video",
     "video2audio",
     "video2subtitle",
 ]
@@ -3096,6 +3097,25 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12.0" },
 ]
 provides-extras = ["mlx", "fish-api"]
+
+[[package]]
+name = "text2video"
+version = "0.1.0"
+source = { editable = "packages/text2video" }
+dependencies = [
+    { name = "aiservices-core" },
+    { name = "ltx-pipelines-mlx" },
+    { name = "pydantic" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiservices-core", editable = "packages/aiservices_core" },
+    { name = "ltx-pipelines-mlx", git = "https://github.com/dgrauet/ltx-2-mlx?subdirectory=packages%2Fltx-pipelines-mlx" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "typer", specifier = ">=0.12.0" },
+]
 
 [[package]]
 name = "textual"

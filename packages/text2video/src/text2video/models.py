@@ -1,0 +1,42 @@
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
+
+
+class Text2VideoRequest(BaseModel):
+    """Request model for text-to-video generation."""
+
+    prompt: str = Field(..., description="Text prompt for video generation")
+    negative_prompt: str = Field(
+        "overexposed, static, blurry, worst quality, low quality, ugly, deformed",
+        description="Negative text prompt",
+    )
+    width: int = Field(704, description="Width of the video frames")
+    height: int = Field(480, description="Height of the video frames")
+    num_frames: int = Field(97, ge=9, description="Number of frames (must be 8k+1)")
+    num_inference_steps: int = Field(8, ge=1, le=100, description="Number of denoising steps")
+    seed: int | None = Field(None, description="Random seed")
+    fps: int = Field(24, ge=1, le=60, description="Frames per second for output")
+
+    @field_validator("width", "height")
+    @classmethod
+    def validate_dimensions(cls, v: int) -> int:
+        if v % 8 != 0:
+            raise ValueError(f"Dimension must be divisible by 8, got {v}")
+        if v < 64 or v > 2048:
+            raise ValueError(f"Dimension must be 64-2048, got {v}")
+        return v
+
+    @field_validator("num_frames")
+    @classmethod
+    def validate_frames(cls, v: int) -> int:
+        if (v - 1) % 8 != 0:
+            raise ValueError(f"num_frames must be 8k+1, got {v}")
+        return v
+
+
+class Text2VideoResponse(BaseModel):
+    """Response model for text-to-video generation."""
+
+    output_path: str = Field(..., description="Path where the output video is saved")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Generation metadata")
