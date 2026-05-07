@@ -7,6 +7,7 @@ Usage:
 
 Steps: ffmpeg → audio2subtitle → subtitle-translate
 """
+
 import subprocess
 import sys
 import tempfile
@@ -27,37 +28,73 @@ def process_video(video_path: str) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     srt_path = OUTPUT_DIR / f"{video_name}.es.srt"
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {video_name}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Step 1: video → audio (ffmpeg)
     print("  [1/3] Extracting audio...")
     audio_path = tempfile.mktemp(suffix=".wav")
     subprocess.run(
         [
-            "ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le",
-            "-ar", "16000", "-ac", "1", audio_path, "-y",
+            "ffmpeg",
+            "-i",
+            video_path,
+            "-vn",
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            audio_path,
+            "-y",
         ],
-        capture_output=True, timeout=600, check=True,
+        capture_output=True,
+        timeout=600,
+        check=True,
     )
 
     # Step 2: audio → German SRT (audio2subtitle)
     print("  [2/3] Transcribing DE...")
     de_srt = tempfile.mktemp(suffix=".srt")
     subprocess.run(
-        [sys.executable, "-m", "audio2subtitle.cli",
-         "--audio", audio_path, "--output", de_srt, "--language", "de", "--format", "srt"],
-        timeout=900, check=True,
+        [
+            sys.executable,
+            "-m",
+            "audio2subtitle.cli",
+            "--audio",
+            audio_path,
+            "--output",
+            de_srt,
+            "--language",
+            "de",
+            "--format",
+            "srt",
+        ],
+        timeout=900,
+        check=True,
     )
     Path(audio_path).unlink(missing_ok=True)
 
     # Step 3: German SRT → Spanish SRT (subtitle-translate)
     print("  [3/3] Translating DE→ES...")
     subprocess.run(
-        [sys.executable, "-m", "subtitle_translate.cli",
-         "--input", de_srt, "--output", str(srt_path), "--to", "es", "--ct2-model", CT2_MODEL],
-        timeout=300, check=True,
+        [
+            sys.executable,
+            "-m",
+            "subtitle_translate.cli",
+            "--input",
+            de_srt,
+            "--output",
+            str(srt_path),
+            "--to",
+            "es",
+            "--ct2-model",
+            CT2_MODEL,
+        ],
+        timeout=300,
+        check=True,
     )
     Path(de_srt).unlink(missing_ok=True)
 

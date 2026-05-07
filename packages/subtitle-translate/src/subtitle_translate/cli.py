@@ -9,12 +9,8 @@ logger = get_logger(__name__)
 
 @app.command()
 def translate(
-    input: str = typer.Option(
-        None, "--input", "-i", help="Input SRT file (default: stdin)"
-    ),
-    output: str = typer.Option(
-        None, "--output", "-o", help="Output SRT file (default: stdout)"
-    ),
+    input: str = typer.Option(None, "--input", "-i", help="Input SRT file (default: stdin)"),
+    output: str = typer.Option(None, "--output", "-o", help="Output SRT file (default: stdout)"),
     to: str = typer.Option(..., "--to", "-t", help="Target language code (e.g. 'es')"),
     model: str = typer.Option(
         "Helsinki-NLP/opus-mt-tc-big-de-es",
@@ -25,9 +21,7 @@ def translate(
     ct2_model: str = typer.Option(
         ..., "--ct2-model", "-c", help="Path to CTranslate2 model directory"
     ),
-    batch_size: int = typer.Option(
-        32, "--batch-size", "-b", help="Translation batch size"
-    ),
+    batch_size: int = typer.Option(32, "--batch-size", "-b", help="Translation batch size"),
 ):
     """Translate an SRT file from one language to another."""
     from .translator import MarianTranslator

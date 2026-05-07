@@ -22,15 +22,10 @@ class MarianTranslator:
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
             source_tokens = [
-                self.tokenizer.convert_ids_to_tokens(self.tokenizer.encode(text))
-                for text in batch
+                self.tokenizer.convert_ids_to_tokens(self.tokenizer.encode(text)) for text in batch
             ]
             results = self.translator.translate_batch(source_tokens)
             for result in results:
-                target_ids = self.tokenizer.convert_tokens_to_ids(
-                    result.hypotheses[0]
-                )
-                translations.append(
-                    self.tokenizer.decode(target_ids, skip_special_tokens=True)
-                )
+                target_ids = self.tokenizer.convert_tokens_to_ids(result.hypotheses[0])
+                translations.append(self.tokenizer.decode(target_ids, skip_special_tokens=True))
         return translations
