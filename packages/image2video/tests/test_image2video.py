@@ -1,4 +1,3 @@
-
 import pytest
 from image2video.models import Image2VideoRequest
 

@@ -1,10 +1,13 @@
 """Integration tests for image2video CLI."""
 
+import re
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
 @pytest.fixture
@@ -70,8 +73,9 @@ def test_cli_help_shows_spec_options():
     )
 
     assert result.returncode == 0
-    assert "--input" in result.stdout
-    assert "--output" in result.stdout
-    assert "--seconds" in result.stdout
-    assert "--fps" in result.stdout
-    assert "--prompt" in result.stdout
+    clean = _ANSI_RE.sub("", result.stdout)
+    assert "--input" in clean
+    assert "--output" in clean
+    assert "--seconds" in clean
+    assert "--fps" in clean
+    assert "--prompt" in clean
