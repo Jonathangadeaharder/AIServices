@@ -1,7 +1,11 @@
+import re
+
 from typer.testing import CliRunner
 from video2audio.cli import app
 
 runner = CliRunner()
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
 def test_extract_success(tmp_path, mocker):
@@ -60,6 +64,7 @@ def test_extract_codec_option(tmp_path, mocker):
 def test_help_shows_options():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--input" in result.output
-    assert "--output" in result.output
-    assert "--codec" in result.output
+    clean = _ANSI_RE.sub("", result.output)
+    assert "--input" in clean
+    assert "--output" in clean
+    assert "--codec" in clean

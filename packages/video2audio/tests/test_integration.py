@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 
 import pytest
@@ -6,6 +7,8 @@ from typer.testing import CliRunner
 from video2audio.cli import app
 
 runner = CliRunner()
+
+pytestmark = pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")
 
 
 @pytest.fixture
