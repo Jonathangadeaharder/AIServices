@@ -1,6 +1,6 @@
 [project]
 name = "video2audio"
-version = "0.1.0"
+version = "1.0.0"
 description = "Video to audio extraction and generation pipeline"
 requires-python = ">=3.10"
 dependencies = [

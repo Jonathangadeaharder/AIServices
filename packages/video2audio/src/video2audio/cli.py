@@ -8,19 +8,15 @@ from aiservices_core.logging import create_progress_bar, get_logger
 from .models import Video2AudioRequest
 from .providers import registry
 
-app = typer.Typer(help="Video to audio extraction and generation pipeline")
+app = typer.Typer(help="Extract audio from video files")
 logger = get_logger(__name__)
 
 
 @app.command()
 def extract(
-    video: str = typer.Option(..., "--video", "-i", help="Path to input video file"),
+    input_path: str = typer.Option(..., "--input", "-i", help="Path to input video file"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output audio"),
-    output_format: str = typer.Option(
-        "wav", "--format", "-f", help="Output audio format (wav, mp3, aac)"
-    ),
-    sample_rate: int = typer.Option(44100, "--sample-rate", "-r", help="Output sample rate in Hz"),
-    mono: bool = typer.Option(True, "--mono/--stereo", help="Convert to mono"),
+    codec: str = typer.Option("wav", "--codec", "-c", help="Output audio format (wav, mp3, aac)"),
     provider_name: str = typer.Option(
         "video2audio.ffmpeg",
         "--provider",
@@ -34,10 +30,8 @@ def extract(
 
     try:
         request = Video2AudioRequest(
-            video_path=video,
-            output_format=cast(Literal["wav", "mp3", "aac"], output_format),
-            sample_rate=sample_rate,
-            mono=mono,
+            video_path=input_path,
+            output_format=cast(Literal["wav", "mp3", "aac"], codec),
         )
 
         with create_progress_bar() as progress:
