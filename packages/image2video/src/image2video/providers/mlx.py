@@ -49,9 +49,7 @@ class MLXProvider(BaseProvider):
         if output_path is None:
             output_path = "output.mp4"
 
-        effective_seed = (
-            request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
-        )
+        effective_seed = request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
         image = load_image(request.image_path)
         video_latent, _ = self._pipeline.generate_from_image(
             prompt=request.prompt,

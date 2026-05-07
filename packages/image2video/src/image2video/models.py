@@ -17,7 +17,7 @@ class Image2VideoRequest(BaseModel):
     num_frames: int = Field(81, ge=1, le=257, description="Number of frames")
     num_inference_steps: int = Field(4, ge=1, le=100, description="Number of denoising steps")
     seed: int | None = Field(None, description="Random seed")
-    fps: int = Field(16, ge=1, le=60, description="Frames per second for output")
+    fps: int = Field(24, ge=1, le=60, description="Frames per second for output")
 
     @field_validator("width", "height")
     @classmethod

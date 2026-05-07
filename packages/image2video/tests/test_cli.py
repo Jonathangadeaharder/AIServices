@@ -17,9 +17,12 @@ def test_generate_success(mocker, tmp_path):
     result = runner.invoke(
         app,
         [
-            "--image", "/tmp/test.png",
-            "--prompt", "a test video",
-            "--output", str(out),
+            "--input",
+            "/tmp/test.png",
+            "--prompt",
+            "a test video",
+            "--output",
+            str(out),
         ],
     )
     assert result.exit_code == 0
@@ -33,7 +36,7 @@ def test_generate_error(mocker, tmp_path):
 
     result = runner.invoke(
         app,
-        ["--image", "/tmp/test.png", "--prompt", "test", "--output", "/tmp/out.mp4"],
+        ["--input", "/tmp/test.png", "--prompt", "test", "--output", "/tmp/out.mp4"],
     )
     assert result.exit_code == 1
     mock_registry.get.assert_called_once()
@@ -52,18 +55,26 @@ def test_generate_with_options(mocker, tmp_path):
     result = runner.invoke(
         app,
         [
-            "--image", "/tmp/test.png",
-            "--prompt", "test",
-            "--output", str(out),
-            "--width", "640",
-            "--height", "640",
-            "--frames", "81",
-            "--steps", "4",
-            "--fps", "16",
+            "--input",
+            "/tmp/test.png",
+            "--prompt",
+            "test",
+            "--output",
+            str(out),
+            "--seconds",
+            "4",
+            "--fps",
+            "24",
+            "--width",
+            "640",
+            "--height",
+            "640",
+            "--steps",
+            "4",
         ],
     )
     assert result.exit_code == 0
     call_args = mock_provider.generate.call_args
     req = call_args[0][0]
-    assert req.num_frames == 81
-    assert req.fps == 16
+    assert req.num_frames == 96  # 4 seconds * 24 fps
+    assert req.fps == 24

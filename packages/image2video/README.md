@@ -13,27 +13,24 @@ uv tool install ./packages/image2video
 ## CLI Usage
 
 ```bash
-image2video generate \
-  --image input.png \
-  --prompt "A cinematic drone shot over a mountain lake" \
-  --output out.mp4
+image2video --input input.png --output out.mp4 [--seconds 4] [--fps 24] [--prompt "text"]
 ```
 
 ### Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--image`, `-i` | (required) | Path to the input image |
-| `--prompt`, `-p` | (required) | Text prompt for video generation |
+| `--input`, `-i` | (required) | Path to the input image |
 | `--output`, `-o` | (required) | Path to save output video |
+| `--seconds`, `-s` | 4 | Video duration in seconds |
+| `--fps` | 24 | Frames per second |
+| `--prompt`, `-p` | "" | Text prompt for video generation |
 | `--provider` | `image2video.mlx` | Provider to use |
 | `--negative-prompt`, `-n` | (default) | Negative prompt |
 | `--width` | 640 | Video width (must be divisible by 8) |
 | `--height` | 640 | Video height (must be divisible by 8) |
-| `--frames` | 81 | Number of frames to generate |
 | `--steps` | 4 | Number of inference steps |
 | `--seed` | random | Random seed |
-| `--fps` | 16 | Frames per second |
 
 ## Python API
 
