@@ -6,9 +6,8 @@ Skipped if MLX/flux not available (CI without Apple Silicon).
 
 import pytest
 from PIL import Image
-from typer.testing import CliRunner
-
 from text2image.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -23,11 +22,16 @@ def test_generate_512x512_red_cube(tmp_path):
     result = runner.invoke(
         app,
         [
-            "--prompt", "a red cube",
-            "--output", str(out),
-            "--width", "512",
-            "--height", "512",
-            "--steps", "4",
+            "--prompt",
+            "a red cube",
+            "--output",
+            str(out),
+            "--width",
+            "512",
+            "--height",
+            "512",
+            "--steps",
+            "4",
         ],
     )
     assert result.exit_code == 0, f"CLI failed: {result.output}"

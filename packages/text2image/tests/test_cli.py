@@ -48,11 +48,16 @@ def test_generate_custom_dimensions(tmp_path, mocker):
     result = runner.invoke(
         app,
         [
-            "--prompt", "test",
-            "--output", str(out),
-            "--width", "512",
-            "--height", "512",
-            "--seed", "42",
+            "--prompt",
+            "test",
+            "--output",
+            str(out),
+            "--width",
+            "512",
+            "--height",
+            "512",
+            "--seed",
+            "42",
         ],
     )
     assert result.exit_code == 0
