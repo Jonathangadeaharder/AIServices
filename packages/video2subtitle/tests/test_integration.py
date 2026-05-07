@@ -1,9 +1,7 @@
 import re
-from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
-
 from video2subtitle.cli import app
 
 runner = CliRunner()
@@ -39,7 +37,9 @@ def test_transcribe_10s_video(test_video_10s, tmp_path, mlx_whisper_available):
 
 
 @pytest.mark.integration
-def test_transcribe_10s_video_default_output(test_video_10s, tmp_path, monkeypatch, mlx_whisper_available):
+def test_transcribe_10s_video_default_output(
+    test_video_10s, tmp_path, monkeypatch, mlx_whisper_available
+):
     """Integration test: default output path is <input>.srt."""
     if not mlx_whisper_available:
         pytest.skip("mlx_whisper not available")
@@ -56,10 +56,14 @@ def test_transcribe_10s_video_default_output(test_video_10s, tmp_path, monkeypat
 
 
 @pytest.mark.integration
-def test_burn_in_produces_mp4(test_video_10s, tmp_path, mlx_whisper_available):
+def test_burn_in_produces_mp4(
+    test_video_10s, tmp_path, mlx_whisper_available, ffmpeg_subtitles_filter_available
+):
     """Integration test: --burn-in produces a new mp4 with hard-coded subtitles."""
     if not mlx_whisper_available:
         pytest.skip("mlx_whisper not available")
+    if not ffmpeg_subtitles_filter_available:
+        pytest.skip("ffmpeg subtitles filter not available (needs libass)")
     output_srt = tmp_path / "output.srt"
 
     result = runner.invoke(
@@ -75,7 +79,15 @@ def test_burn_in_produces_mp4(test_video_10s, tmp_path, mlx_whisper_available):
     import subprocess
 
     probe = subprocess.run(
-        ["ffprobe", "-v", "quiet", "-show_streams", "-print_format", "json", str(burned_video)],
+        [
+            "ffprobe",
+            "-v",
+            "quiet",
+            "-show_streams",
+            "-print_format",
+            "json",
+            str(burned_video),
+        ],
         capture_output=True,
         text=True,
     )
@@ -83,4 +95,6 @@ def test_burn_in_produces_mp4(test_video_10s, tmp_path, mlx_whisper_available):
 
     streams = json.loads(probe.stdout).get("streams", [])
     subtitle_streams = [s for s in streams if s.get("codec_type") == "subtitle"]
-    assert len(subtitle_streams) == 0, f"Burned video has {len(subtitle_streams)} subtitle streams (should be 0)"
+    assert len(subtitle_streams) == 0, (
+        f"Burned video has {len(subtitle_streams)} subtitle streams (should be 0)"
+    )
