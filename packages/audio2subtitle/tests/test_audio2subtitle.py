@@ -123,7 +123,7 @@ def test_mlx_provider_srt(tmp_path, mocker):
 
     _mock_whisper.transcribe.assert_called_once_with(
         "/tmp/audio.wav",
-        path_or_hf_repo=        "mlx-community/whisper-large-v3",
+        path_or_hf_repo="mlx-community/whisper-large-v3",
         language=None,
         word_timestamps=True,
     )

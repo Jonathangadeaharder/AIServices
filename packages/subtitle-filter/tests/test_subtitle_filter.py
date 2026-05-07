@@ -18,6 +18,7 @@ def test_load_vocab(tmp_path):
 
 def test_load_vocab_missing_level(tmp_path):
     from subtitle_filter.filter import VocabFilter
+
     assert VocabFilter.load_vocab(str(tmp_path), ["Z99"]) == set()
 
 
@@ -33,12 +34,14 @@ def test_filter_keeps_advanced():
     mock_nlp.return_value = [mock_token]
 
     subs = pysrt.SubRipFile()
-    subs.append(pysrt.SubRipItem(
-        index=1,
-        start=pysrt.SubRipTime(seconds=0),
-        end=pysrt.SubRipTime(seconds=2),
-        text="Quantenphysik ist komplex",
-    ))
+    subs.append(
+        pysrt.SubRipItem(
+            index=1,
+            start=pysrt.SubRipTime(seconds=0),
+            end=pysrt.SubRipTime(seconds=2),
+            text="Quantenphysik ist komplex",
+        )
+    )
 
     result = VocabFilter.filter_subs(subs, mock_nlp, {"hallo"})
     assert len(result) == 1
@@ -56,12 +59,14 @@ def test_filter_removes_basic():
     mock_nlp.return_value = [mock_token]
 
     subs = pysrt.SubRipFile()
-    subs.append(pysrt.SubRipItem(
-        index=1,
-        start=pysrt.SubRipTime(seconds=0),
-        end=pysrt.SubRipTime(seconds=2),
-        text="hallo",
-    ))
+    subs.append(
+        pysrt.SubRipItem(
+            index=1,
+            start=pysrt.SubRipTime(seconds=0),
+            end=pysrt.SubRipTime(seconds=2),
+            text="hallo",
+        )
+    )
 
     result = VocabFilter.filter_subs(subs, mock_nlp, {"hallo", "und"})
     assert len(result) == 0
@@ -79,18 +84,22 @@ def test_filter_reindexes():
     mock_nlp.return_value = [mock_token]
 
     subs = pysrt.SubRipFile()
-    subs.append(pysrt.SubRipItem(
-        index=1,
-        start=pysrt.SubRipTime(seconds=0),
-        end=pysrt.SubRipTime(seconds=2),
-        text="advanced",
-    ))
-    subs.append(pysrt.SubRipItem(
-        index=2,
-        start=pysrt.SubRipTime(seconds=2),
-        end=pysrt.SubRipTime(seconds=4),
-        text="advanced",
-    ))
+    subs.append(
+        pysrt.SubRipItem(
+            index=1,
+            start=pysrt.SubRipTime(seconds=0),
+            end=pysrt.SubRipTime(seconds=2),
+            text="advanced",
+        )
+    )
+    subs.append(
+        pysrt.SubRipItem(
+            index=2,
+            start=pysrt.SubRipTime(seconds=2),
+            end=pysrt.SubRipTime(seconds=4),
+            text="advanced",
+        )
+    )
 
     result = VocabFilter.filter_subs(subs, mock_nlp, {"hallo"})
     assert result[0].index == 1

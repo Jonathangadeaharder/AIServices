@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*-v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Parse tag
+        id: tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          MODULE="${TAG%-v*}"
+          VERSION="${TAG##*-v}"
+          echo "module=$MODULE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build
+        working-directory: packages/${{ steps.tag.outputs.module }}
+        run: uv build
+
+      - name: Publish to PyPI
+        working-directory: packages/${{ steps.tag.outputs.module }}
+        run: uv publish
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          MODULE="${{ steps.tag.outputs.module }}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          CHANGELOG="packages/${MODULE}/CHANGELOG.md"
+          if [ -f "$CHANGELOG" ]; then
+            # Extract section for this version
+            NOTES=$(sed -n "/^## .*${{ steps.tag.outputs.version }}/,/^## /p" "$CHANGELOG" | head -n -1)
+            if [ -n "$NOTES" ]; then
+              echo "body<<EOF" >> "$GITHUB_OUTPUT"
+              echo "$NOTES" >> "$GITHUB_OUTPUT"
+              echo "EOF" >> "$GITHUB_OUTPUT"
+            else
+              echo "body=" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "body=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "${{ steps.tag.outputs.module }} v${{ steps.tag.outputs.version }}"
+          body: ${{ steps.notes.outputs.body }}
+          generate_release_notes: ${{ steps.notes.outputs.body == '' }}
