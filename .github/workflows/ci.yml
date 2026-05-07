@@ -111,5 +111,5 @@ jobs:
 
       - name: Smoke install ${{ matrix.module }}
         run: |
-          uv pip install -e packages/${{ matrix.module }}
+          uv tool install --force ./packages/${{ matrix.module }}
           ${{ matrix.module }} --help
