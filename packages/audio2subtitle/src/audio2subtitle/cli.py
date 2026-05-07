@@ -1,5 +1,4 @@
 import time
-from typing import Literal, cast
 
 import typer
 from aiservices_core.cli import device_option, verbose_option
@@ -11,34 +10,28 @@ from .providers import registry
 app = typer.Typer(help="Audio to subtitle (SRT/VTT) transcription pipeline")
 logger = get_logger(__name__)
 
+DEFAULT_MODEL = "mlx-community/whisper-large-v3"
 
-@app.command()
-def transcribe(
-    audio: str = typer.Option(..., "--audio", "-a", help="Path to input audio file"),
+
+@app.callback(invoke_without_command=True)
+def main(
+    input: str = typer.Option(..., "--input", "-i", help="Path to input audio file"),
     output: str = typer.Option(..., "--output", "-o", help="Path to output subtitle file"),
-    format: str = typer.Option("srt", "--format", "-f", help="Output format: srt or vtt"),
-    language: str = typer.Option(None, "--language", "-l", help="Language code (e.g. 'de')"),
-    model: str = typer.Option(
-        "mlx-community/whisper-large-v3-turbo",
-        "--model",
-        help="Whisper model name",
+    language: str = typer.Option(
+        None, "--language", "-l", help="Language code (e.g. 'en'), auto-detect if omitted"
     ),
-    no_word_timestamps: bool = typer.Option(
-        False, "--no-word-timestamps", help="Disable word-level timestamps"
-    ),
-    provider_name: str = typer.Option("audio2subtitle.mlx", "--provider", help="Provider name"),
+    model: str = typer.Option(DEFAULT_MODEL, "--model", help="Whisper model name"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
     """Transcribe audio to subtitle file (SRT/VTT)."""
     request = Audio2SubtitleRequest(
-        audio_path=audio,
+        audio_path=input,
         language=language,
-        output_format=cast(Literal["srt", "vtt"], format),
         model_name=model,
-        word_timestamps=not no_word_timestamps,
     )
 
+    provider_name = "audio2subtitle.mlx"
     logger.info(f"Using provider: {provider_name}")
 
     try:

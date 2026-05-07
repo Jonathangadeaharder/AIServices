@@ -8,7 +8,7 @@ class Audio2SubtitleRequest(BaseModel):
     language: str | None = Field(None, description="Language of the audio (auto-detect if None)")
     output_format: Literal["srt", "vtt"] = Field("srt", description="Output format: srt or vtt")
     model_name: str = Field(
-        "mlx-community/whisper-large-v3-turbo",
+        "mlx-community/whisper-large-v3",
         description="Whisper model name",
     )
     word_timestamps: bool = Field(True, description="Enable word-level timestamps")
