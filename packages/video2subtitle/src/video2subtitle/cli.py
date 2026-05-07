@@ -1,5 +1,5 @@
 import time
-from typing import Literal, cast
+from pathlib import Path
 
 import typer
 from aiservices_core.cli import device_option, verbose_option
@@ -12,33 +12,47 @@ app = typer.Typer(help="Video to subtitle transcription pipeline")
 logger = get_logger(__name__)
 
 
-@app.command()
-def transcribe(
-    video: str = typer.Option(..., "--video", help="Path to input video file"),
-    output: str = typer.Option(..., "--output", "-o", help="Path to save subtitle file"),
-    format: str = typer.Option("srt", "--format", "-f", help="Output format: srt or vtt"),
-    language: str = typer.Option(None, "--language", "-l", help="Language code (e.g. 'en')"),
-    model: str = typer.Option(
-        "mlx-community/whisper-large-v3-turbo",
-        "--model",
-        help="Whisper model name",
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    input_path: str = typer.Option(..., "--input", "-i", help="Path to input video file"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Path to save subtitle file (default: <input>.srt)"
     ),
-    no_word_timestamps: bool = typer.Option(
-        False, "--no-word-timestamps", help="Disable word-level timestamps"
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Language code (e.g. 'en') or 'auto' for auto-detect",
     ),
-    provider_name: str = typer.Option("video2subtitle.mlx", "--provider", help="Provider name"),
+    burn_in: bool = typer.Option(False, "--burn-in", help="Burn subtitles into a new mp4 file"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
     """Transcribe video to SRT/VTT subtitles."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    input_path = str(Path(input_path).expanduser().resolve())
+    if not Path(input_path).exists():
+        typer.secho(
+            f"Error: Input file not found: {input_path}",
+            fg=typer.colors.RED,
+            bold=True,
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    if output is None:
+        output = str(Path(input_path).with_suffix(".srt"))
+
     request = Video2SubtitleRequest(
-        video_path=video,
-        language=language,
-        output_format=cast(Literal["srt", "vtt"], format),
-        model_name=model,
-        word_timestamps=not no_word_timestamps,
+        video_path=input_path,
+        language=language if language != "auto" else None,
+        output_format="srt",
     )
 
+    provider_name = "video2subtitle.mlx"
     logger.info(f"Using provider: {provider_name}")
 
     try:
@@ -56,10 +70,55 @@ def transcribe(
         typer.echo(f"Entries: {len(response.entries)}")
         if response.language:
             typer.echo(f"Language: {response.language}")
+
+        if burn_in:
+            burned_output = str(Path(input_path).with_stem(Path(input_path).stem + "_subtitled"))
+            progress.add_task("[cyan]Burning subtitles into video...", total=None)
+            _burn_subtitles(input_path, output, burned_output)
+            typer.echo(f"\nBurned-in video saved to: {burned_output}")
+
     except Exception as e:
         logger.error(f"Transcription failed: {str(e)}")
         typer.secho(f"\nError: {str(e)}", fg=typer.colors.RED, bold=True, err=True)
         raise typer.Exit(code=1) from e
+
+
+def _burn_subtitles(video_path: str, subtitle_path: str, output_path: str) -> None:
+    """Burn subtitles into video using ffmpeg."""
+    import shutil
+    import subprocess
+
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("ffmpeg not found. Install ffmpeg and ensure it is on PATH.")
+
+    subtitle_path_escaped = (
+        subtitle_path.replace("\\", "\\\\")
+        .replace(":", "\\:")
+        .replace("'", "'\\''")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+    )
+    filter_str = f"subtitles='{subtitle_path_escaped}'"
+
+    cmd = [
+        ffmpeg,
+        "-i",
+        video_path,
+        "-vf",
+        filter_str,
+        "-c:a",
+        "copy",
+        "-y",
+        output_path,
+    ]
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, timeout=600)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"ffmpeg subtitle burn failed: {e.stderr.decode()}") from e
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("ffmpeg subtitle burn timed out after 600 seconds") from None
 
 
 if __name__ == "__main__":
