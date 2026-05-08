@@ -1,12 +1,21 @@
-from typing import Any
+from enum import Enum
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 
+class AudioCategory(str, Enum):
+    music = "music"
+    sfx = "sfx"
+    ambient = "ambient"
+    speech = "speech"
+
+
 class Text2AudioRequest(BaseModel):
-    text: str = Field(..., description="Text description of audio to generate")
-    voice: str = Field("default", description="Voice/speaker ID")
-    speed: float = Field(1.0, ge=0.5, le=2.0, description="Playback speed multiplier")
+    prompt: str = Field(..., description="Text prompt describing the audio")
+    duration_seconds: float = Field(10.0, gt=0, description="Duration in seconds")
+    output_format: Literal["wav", "mp3"] = Field("wav", description="Output format")
+    category: AudioCategory = Field(AudioCategory.music, description="Audio category")
     seed: int | None = Field(None, description="Random seed for reproducibility")
 
 

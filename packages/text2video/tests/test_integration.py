@@ -75,6 +75,7 @@ def test_mlx_provider_load_pipeline(mocker):
     )
     mock_pipeline_cls = mock_module.TextToVideoPipeline
     mock_pipeline_cls.return_value = mocker.MagicMock()
+    mocker.patch("text2video.providers.mlx.Path.exists", return_value=True)
 
     provider = MLXProvider(model_dir="/fake")
     provider._pipeline = None

@@ -15,7 +15,7 @@ def test_generate_success(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--text", "calm piano music", "--output", str(out)],
+        ["--prompt", "calm piano music", "--output", str(out)],
     )
     assert result.exit_code == 0
     mock_registry.get.assert_called_once()
@@ -28,7 +28,7 @@ def test_generate_error(mocker):
 
     result = runner.invoke(
         app,
-        ["--text", "test", "--output", "/tmp/out.wav"],
+        ["--prompt", "test", "--output", "/tmp/out.wav"],
     )
     assert result.exit_code == 1
     mock_registry.get.assert_called_once()
@@ -45,7 +45,7 @@ def test_generate_with_seed(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--text", "test", "--output", str(out), "--seed", "42"],
+        ["--prompt", "test", "--output", str(out), "--seed", "42"],
     )
     assert result.exit_code == 0
     call_args = mock_provider.generate.call_args
@@ -53,7 +53,7 @@ def test_generate_with_seed(tmp_path, mocker):
     assert req.seed == 42
 
 
-def test_generate_with_voice_and_speed(tmp_path, mocker):
+def test_generate_with_category_and_duration(tmp_path, mocker):
     mock_registry = mocker.patch("text2audio.cli.registry")
     mock_provider = mocker.MagicMock()
     mock_response = mocker.MagicMock()
@@ -64,10 +64,10 @@ def test_generate_with_voice_and_speed(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--text", "test", "--output", str(out), "--voice", "speaker1", "--speed", "1.5"],
+        ["--prompt", "test", "--output", str(out), "--category", "ambient", "--duration", "30.0"],
     )
     assert result.exit_code == 0
     call_args = mock_provider.generate.call_args
     req = call_args[0][0]
-    assert req.voice == "speaker1"
-    assert req.speed == 1.5
+    assert req.category.value == "ambient"
+    assert req.duration_seconds == 30.0

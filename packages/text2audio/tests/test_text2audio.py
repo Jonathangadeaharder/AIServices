@@ -1,31 +1,29 @@
 import pytest
 from pydantic import ValidationError
-from text2audio.models import Text2AudioRequest, Text2AudioResponse
+from text2audio.models import AudioCategory, Text2AudioRequest, Text2AudioResponse
 
 
 def test_model_defaults():
-    req = Text2AudioRequest(text="ambient rain sounds")
-    assert req.voice == "default", "default voice"
-    assert req.speed == 1.0, "default speed"
-    assert req.seed is None, "default seed"
+    req = Text2AudioRequest(prompt="ambient rain sounds")
+    assert req.category == AudioCategory.music
+    assert req.duration_seconds == 10.0
+    assert req.output_format == "wav"
+    assert req.seed is None
 
 
-def test_speed_validation_too_slow():
+def test_category_validation():
     with pytest.raises(ValidationError):
-        Text2AudioRequest(text="test", speed=0.1)
+        Text2AudioRequest(prompt="test", category="invalid")
 
 
-def test_speed_validation_too_fast():
+def test_output_format_validation():
     with pytest.raises(ValidationError):
-        Text2AudioRequest(text="test", speed=3.0)
+        Text2AudioRequest(prompt="test", output_format="flac")
 
 
-def test_speed_validation_at_bounds():
-    req_min = Text2AudioRequest(text="test", speed=0.5)
-    assert req_min.speed == 0.5
-
-    req_max = Text2AudioRequest(text="test", speed=2.0)
-    assert req_max.speed == 2.0
+def test_duration_must_be_positive():
+    with pytest.raises(ValidationError):
+        Text2AudioRequest(prompt="test", duration_seconds=0)
 
 
 def test_response_model():
