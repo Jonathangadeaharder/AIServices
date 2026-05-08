@@ -3,33 +3,37 @@ import time
 import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
-from aiservices_core.providers import registry
 
-from .models import Text2AudioRequest
+from .models import AudioCategory, Text2AudioRequest
+from .providers import registry
 
-app = typer.Typer(help="Text to audio generation pipeline")
+app = typer.Typer(help="Text to audio (music, SFX, ambient) generation pipeline")
 logger = get_logger(__name__)
 
 
-@app.callback(invoke_without_command=True)
-def main(
-    text: str = typer.Option(..., "--text", "-t", help="Text description of audio to generate"),
+@app.command()
+def generate(
+    prompt: str = typer.Option(..., "--prompt", "-p", help="Text prompt describing the audio"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output audio file"),
-    voice: str = typer.Option("default", "--voice", help="Voice/speaker ID"),
-    speed: float = typer.Option(1.0, "--speed", help="Playback speed multiplier"),
+    category: str = typer.Option(
+        "music", "--category", "-c", help="Audio category (music, sfx, ambient, speech)"
+    ),
+    duration: float = typer.Option(10.0, "--duration", help="Duration in seconds"),
+    format: str = typer.Option("wav", "--format", "-f", help="Output format (wav, mp3)"),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed"),
+    provider_name: str = typer.Option("text2audio.mlx", "--provider", help="Provider name"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
-    """Generate audio from a text description."""
-    provider_name = "text2audio.fish_mlx"
+    """Generate audio from a text prompt."""
     logger.info(f"Using provider: {provider_name}")
 
     try:
         request = Text2AudioRequest(
-            text=text,
-            voice=voice,
-            speed=speed,
+            prompt=prompt,
+            duration_seconds=duration,
+            output_format=format,
+            category=AudioCategory(category),
             seed=seed,
         )
 

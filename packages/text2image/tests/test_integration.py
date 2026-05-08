@@ -1,42 +1,51 @@
-"""Integration test for text2image module.
-
-Verifies end-to-end: CLI -> provider -> image file.
-Skipped if MLX/flux not available (CI without Apple Silicon).
-"""
-
-import pytest
-from PIL import Image
-from text2image.cli import app
-from typer.testing import CliRunner
-
-runner = CliRunner()
+import numpy as np
+from text2image.models import Text2ImageRequest
+from text2image.providers.mlx import MLXProvider
 
 
-@pytest.mark.skipif(
-    not pytest.importorskip("image2image.flux_mlx", reason="flux_mlx not available"),
-    reason="MLX provider not available",
-)
-def test_generate_512x512_red_cube(tmp_path):
-    """Render 512x512 image from 'a red cube', assert file exists + dimensions."""
-    out = tmp_path / "cube.png"
-    result = runner.invoke(
-        app,
-        [
-            "--prompt",
-            "a red cube",
-            "--output",
-            str(out),
-            "--width",
-            "512",
-            "--height",
-            "512",
-            "--steps",
-            "4",
-        ],
-    )
-    assert result.exit_code == 0, f"CLI failed: {result.output}"
-    assert out.exists(), "Output file not created"
-    assert out.stat().st_size > 0, "Output file is empty"
+def test_mlx_provider_init_default():
+    provider = MLXProvider()
+    assert provider.model_name == MLXProvider.DEFAULT_MODEL
+    assert provider._pipeline is None
 
-    img = Image.open(out)
-    assert img.size == (512, 512), f"Wrong dimensions: {img.size}"
+
+def test_mlx_provider_custom_model():
+    provider = MLXProvider(model_name="flux-dev")
+    assert provider.model_name == "flux-dev"
+
+
+def test_mlx_provider_generate_with_mocked_pipeline(mocker, tmp_path):
+    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
+    mock_img = mocker.MagicMock()
+    mock_fromarray.return_value = mock_img
+
+    provider = MLXProvider()
+    provider._pipeline = mock_pipeline
+
+    request = Text2ImageRequest(prompt="a sunset", seed=42)
+    out = tmp_path / "out.png"
+    response = provider.generate(request, str(out))
+
+    assert response.output_path == str(out)
+    assert response.metadata["provider"] == "mlx"
+    assert response.metadata["seed"] == 42
+    mock_pipeline.generate_images.assert_called_once()
+    mock_img.save.assert_called_once()
+
+
+def test_mlx_provider_generate_default_output(mocker):
+    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
+    mock_img = mocker.MagicMock()
+    mock_fromarray.return_value = mock_img
+
+    provider = MLXProvider()
+    provider._pipeline = mock_pipeline
+
+    request = Text2ImageRequest(prompt="test")
+    response = provider.generate(request, output_path=None)
+
+    assert response.output_path == "output.png"

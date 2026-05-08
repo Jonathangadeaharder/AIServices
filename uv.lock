@@ -63,8 +63,15 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiservices-core" },
+    { name = "audio2subtitle" },
     { name = "image2image" },
+    { name = "image2video" },
+    { name = "text2audio" },
     { name = "text2image" },
+    { name = "text2speech" },
+    { name = "text2video" },
+    { name = "video2audio" },
+    { name = "video2subtitle" },
 ]
 
 [package.dev-dependencies]
@@ -85,8 +92,15 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiservices-core", editable = "packages/aiservices_core" },
+    { name = "audio2subtitle", editable = "packages/audio2subtitle" },
     { name = "image2image", editable = "packages/image2image" },
+    { name = "image2video", editable = "packages/image2video" },
+    { name = "text2audio", editable = "packages/text2audio" },
     { name = "text2image", editable = "packages/text2image" },
+    { name = "text2speech", editable = "packages/text2speech" },
+    { name = "text2video", editable = "packages/text2video" },
+    { name = "video2audio", editable = "packages/video2audio" },
+    { name = "video2subtitle", editable = "packages/video2subtitle" },
 ]
 
 [package.metadata.requires-dev]

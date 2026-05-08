@@ -1,6 +1,6 @@
 # text2image
 
-Text-to-Image generation module for AIServices. Uses MLX for local inference on Apple Silicon.
+Text-to-Image generation module for AIServices. Uses FLUX-schnell with MLX as the local backend on Apple Silicon.
 
 ## Installation
 
@@ -10,24 +10,35 @@ This package is part of the AIServices monorepo. It can be installed directly vi
 uv tool install ./packages/text2image
 ```
 
-## Usage
-
-Generate an image from a text prompt:
+## CLI Usage
 
 ```bash
-text2image --prompt "A futuristic cityscape at sunset" --output out.png --width 1024 --height 1024
+text2image --prompt "a beautiful sunset over mountains" --output out.png
 ```
 
-Options:
-- `--prompt`, `-p`: Text prompt for image generation (required)
-- `--output`, `-o`: Path to save output image (required)
-- `--width`: Width of the image (default: 1024)
-- `--height`: Height of the image (default: 1024)
-- `--seed`: Random seed for reproducibility
-- `--steps`: Number of inference steps (default: 50)
-- `--guidance-scale`: Guidance scale (default: 7.5)
-- `--negative-prompt`: Negative text prompt
-- `--provider`: Provider name (default: text2image.mlx)
+### Options
 
-Available providers:
-- `text2image.mlx`: Local MLX inference using FLUX.2-klein-9B (default)
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--prompt`, `-p` | (required) | Text prompt for image generation |
+| `--output`, `-o` | (required) | Path to save output image |
+| `--provider` | `text2image.mlx` | Provider to use |
+| `--negative-prompt` | None | Negative prompt |
+| `--guidance-scale` | 7.5 | Guidance scale (CFG) |
+| `--steps` | 50 | Number of inference steps |
+| `--seed` | random | Random seed |
+| `--width` | 1024 | Image width (must be divisible by 8, >= 512) |
+| `--height` | 1024 | Image height (must be divisible by 8, >= 512) |
+
+## Python API
+
+```python
+from text2image.client import generate
+
+output_path = generate(
+    prompt="a beautiful sunset over mountains",
+    output_path="output.png",
+    width=1024,
+    height=1024,
+)
+```

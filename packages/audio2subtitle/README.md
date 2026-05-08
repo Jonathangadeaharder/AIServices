@@ -1,6 +1,6 @@
 # audio2subtitle
 
-Audio-to-subtitle (SRT/VTT) transcription pipeline for AIServices. Uses [mlx-whisper](https://github.com/ml-explore/mlx-examples/tree/main/whisper) for fast local inference on Apple Silicon with word-level timestamps.
+Audio-to-Subtitle transcription module for AIServices. Uses mlx-whisper (Apple Silicon) for local speech-to-text with SRT/VTT output.
 
 ## Installation
 
@@ -10,37 +10,32 @@ This package is part of the AIServices monorepo. It can be installed directly vi
 uv tool install ./packages/audio2subtitle
 ```
 
-## Usage
+## CLI Usage
 
 ```bash
-audio2subtitle --input recording.wav --output subtitles.srt
-audio2subtitle -i recording.wav -o subtitles.srt --language en
-audio2subtitle -i recording.wav -o subtitles.srt --model mlx-community/whisper-large-v3
+audio2subtitle --audio speech.wav --output subtitles.srt
 ```
 
 ### Options
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--input`, `-i` | *(required)* | Path to input audio file |
-| `--output`, `-o` | *(required)* | Path to output subtitle file |
-| `--language`, `-l` | `None` | Language code (e.g. `en`), auto-detect if omitted |
-| `--model` | `mlx-community/whisper-large-v3` | Whisper model name |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--audio`, `-a` | (required) | Path to input audio file |
+| `--output`, `-o` | (required) | Path to output subtitle file |
+| `--format`, `-f` | `srt` | Output format (srt or vtt) |
+| `--language`, `-l` | auto | Language code (e.g. 'en', 'de') |
+| `--model` | `mlx-community/whisper-large-v3-turbo` | Whisper model name |
+| `--no-word-timestamps` | off | Disable word-level timestamps |
+| `--provider` | `audio2subtitle.mlx` | Provider to use |
 
-## Output Format
+## Python API
 
-SRT with word-level timestamps:
+```python
+from audio2subtitle.client import generate
 
+output_path = generate(
+    audio_path="speech.wav",
+    output_path="subtitles.srt",
+    language="en",
+)
 ```
-1
-00:00:00,000 --> 00:00:02,500
-Hello world.
-
-2
-00:00:02,500 --> 00:00:05,000
-Goodbye.
-```
-
-## Provider
-
-Uses `audio2subtitle.mlx` — local transcription via mlx-whisper (Apple Silicon optimised).

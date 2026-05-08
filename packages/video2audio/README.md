@@ -1,6 +1,6 @@
 # video2audio
 
-Extract audio from video files using FFmpeg.
+Video-to-Audio extraction module for AIServices. Uses FFmpeg to extract audio tracks from video files.
 
 ## Installation
 
@@ -10,28 +10,32 @@ This package is part of the AIServices monorepo. It can be installed directly vi
 uv tool install ./packages/video2audio
 ```
 
-## Usage
+## CLI Usage
 
 ```bash
-video2audio --input video.mp4 --output audio.wav
-video2audio --input video.mp4 --output audio.mp3 --codec mp3
-video2audio --help
+video2audio --video input.mp4 --output audio.wav
 ```
 
 ### Options
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--input`, `-i` | *(required)* | Path to input video file |
-| `--output`, `-o` | *(required)* | Path to save output audio |
-| `--codec`, `-c` | `wav` | Output audio format (wav, mp3, aac) |
-| `--provider` | `video2audio.ffmpeg` | Provider name |
-| `--verbose`, `-v` | `false` | Enable verbose output |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--video`, `-i` | (required) | Path to input video file |
+| `--output`, `-o` | (required) | Path to save output audio |
+| `--format`, `-f` | `wav` | Output audio format (wav, mp3, aac) |
+| `--sample-rate`, `-r` | 44100 | Output sample rate in Hz |
+| `--mono/--stereo` | mono | Convert to mono or keep stereo |
+| `--provider` | `video2audio.ffmpeg` | Provider to use |
 
-## Providers
+## Python API
 
-- `video2audio.ffmpeg`: Audio extraction using FFmpeg.
+```python
+from video2audio.client import extract
 
-## Requirements
-
-- FFmpeg installed and available on PATH
+output_path = extract(
+    video_path="input.mp4",
+    output_path="audio.wav",
+    output_format="wav",
+    sample_rate=44100,
+)
+```

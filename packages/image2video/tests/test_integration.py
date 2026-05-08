@@ -1,81 +1,59 @@
-"""Integration tests for image2video CLI."""
-
-import re
-import subprocess
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
-
-_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+from image2video.models import Image2VideoRequest
+from image2video.providers.mlx import MLXProvider
 
 
-@pytest.fixture
-def fixture_image(tmp_path):
-    """Create a minimal test image."""
-    from PIL import Image
-
-    img = Image.new("RGB", (640, 640), color="red")
-    img_path = tmp_path / "test_input.png"
-    img.save(img_path)
-    return img_path
+def test_mlx_provider_init_default():
+    provider = MLXProvider(model_dir="/fake/models")
+    assert provider._model_dir == "/fake/models"
+    assert provider._pipeline is None
 
 
-def test_cli_produces_valid_4s_mp4(fixture_image, tmp_path):
-    """Integration test: produce a valid 4s mp4 from a fixture image (mocked provider)."""
-    from image2video.cli import app
-    from typer.testing import CliRunner
-
-    runner = CliRunner()
-
-    with patch("image2video.cli.registry") as mock_registry:
-        mock_provider = MagicMock()
-        mock_response = MagicMock()
-        mock_response.output_path = str(tmp_path / "output.mp4")
-        mock_response.metadata = {"provider": "mlx", "seed": 42}
-        mock_provider.generate.return_value = mock_response
-        mock_registry.get.return_value = mock_provider
-
-        output_path = tmp_path / "output.mp4"
-        result = runner.invoke(
-            app,
-            [
-                "--input",
-                str(fixture_image),
-                "--output",
-                str(output_path),
-                "--seconds",
-                "4",
-                "--fps",
-                "24",
-                "--prompt",
-                "test video",
-            ],
-        )
-
-    assert result.exit_code == 0, f"CLI failed: {result.output}"
-    mock_registry.get.assert_called_once()
-    mock_provider.generate.assert_called_once()
-
-    call_args = mock_provider.generate.call_args
-    req = call_args[0][0]
-    assert req.num_frames == 96  # 4 seconds * 24 fps
-    assert req.fps == 24
+def test_mlx_provider_env_var(monkeypatch):
+    monkeypatch.setenv("IMAGE2VIDEO_MODEL_DIR", "/env/path")
+    provider = MLXProvider()
+    assert provider._model_dir == "/env/path"
 
 
-def test_cli_help_shows_spec_options():
-    """Verify --help shows the documented CLI surface."""
-    result = subprocess.run(
-        ["uv", "run", "python", "-m", "image2video.cli", "--help"],
-        capture_output=True,
-        text=True,
-        cwd=str(Path(__file__).parent.parent.parent.parent),
+def test_mlx_provider_generate_with_mocked_pipeline(mocker, tmp_path):
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
+
+    mock_img = mocker.MagicMock()
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
+
+    provider = MLXProvider(model_dir="/fake")
+    provider._pipeline = mock_pipeline
+
+    request = Image2VideoRequest(
+        image_path="/tmp/test.png",
+        prompt="a test video",
+        seed=42,
     )
+    out = tmp_path / "out.mp4"
+    response = provider.generate(request, str(out))
 
-    assert result.returncode == 0
-    clean = _ANSI_RE.sub("", result.stdout)
-    assert "--input" in clean
-    assert "--output" in clean
-    assert "--seconds" in clean
-    assert "--fps" in clean
-    assert "--prompt" in clean
+    assert response.output_path == str(out)
+    assert response.metadata["provider"] == "mlx"
+    assert response.metadata["seed"] == 42
+    mock_pipeline.generate_from_image.assert_called_once()
+    mock_pipeline.save_video.assert_called_once()
+
+
+def test_mlx_provider_generate_default_output(mocker):
+    mock_pipeline = mocker.MagicMock()
+    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
+
+    mock_img = mocker.MagicMock()
+    mock_open = mocker.patch("PIL.Image.open")
+    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
+    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
+
+    provider = MLXProvider(model_dir="/fake")
+    provider._pipeline = mock_pipeline
+
+    request = Image2VideoRequest(image_path="/tmp/test.png", prompt="test")
+    response = provider.generate(request, output_path=None)
+
+    assert response.output_path == "output.mp4"

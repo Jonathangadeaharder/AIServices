@@ -1,49 +1,42 @@
 # text2audio
 
-Text-to-audio generation pipeline for the AIServices monorepo.
+Text-to-Audio generation module for AIServices. Generates music, SFX, and ambient audio from text prompts.
 
 ## Installation
+
+This package is part of the AIServices monorepo. It can be installed directly via `uv`:
 
 ```bash
 uv tool install ./packages/text2audio
 ```
 
-## Usage
-
-### CLI
+## CLI Usage
 
 ```bash
-text2audio --text "calm piano music" --output out.wav
-text2audio --text "thunder and rain" --output rain.wav --voice speaker1 --speed 1.2
-text2audio --help
+text2audio --prompt "calm piano music" --output out.wav
 ```
 
-### Python
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--prompt`, `-p` | (required) | Text prompt describing the audio |
+| `--output`, `-o` | (required) | Path to save output audio file |
+| `--category`, `-c` | `music` | Audio category (music, sfx, ambient, speech) |
+| `--duration` | 10.0 | Duration in seconds |
+| `--format`, `-f` | `wav` | Output format (wav, mp3) |
+| `--seed`, `-s` | random | Random seed |
+| `--provider` | `text2audio.mlx` | Provider to use |
+
+## Python API
 
 ```python
-from text2audio.models import Text2AudioRequest
-from text2audio.providers import registry
+from text2audio.client import generate
 
-request = Text2AudioRequest(
-    text="calm piano music",
-    voice="default",
-    speed=1.0,
+output_path = generate(
+    prompt="calm piano music",
+    output_path="output.wav",
+    category="music",
+    duration_seconds=10.0,
 )
-
-provider = registry.get("text2audio.fish_mlx")
-response = provider.generate(request, "output.wav")
 ```
-
-## Providers
-
-- `text2audio.fish_mlx` - Fish S2 Pro MLX (Apple Silicon) - placeholder, not yet implemented
-
-## Options
-
-- `--text`, `-t` - Text description of audio to generate (required)
-- `--output`, `-o` - Path to save output audio file (required)
-- `--voice` - Voice/speaker ID (default: "default")
-- `--speed` - Playback speed multiplier (default: 1.0, range: 0.5-2.0)
-- `--seed`, `-s` - Random seed for reproducibility
-- `--verbose` - Enable verbose logging
-- `--device` - Device to use for generation

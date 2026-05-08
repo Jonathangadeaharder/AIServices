@@ -1,45 +1,41 @@
 # video2subtitle
 
-Video to subtitle transcription pipeline. Extracts audio from video and transcribes it using mlx-whisper.
+Video-to-Subtitle transcription module for AIServices. Extracts audio via FFmpeg, then transcribes with mlx-whisper (Apple Silicon) to SRT/VTT.
 
-## Install
+## Installation
+
+This package is part of the AIServices monorepo. It can be installed directly via `uv`:
 
 ```bash
 uv tool install ./packages/video2subtitle
 ```
 
-Or install all packages:
+## CLI Usage
 
 ```bash
-uv sync --all-packages
+video2subtitle --video movie.mp4 --output subtitles.srt
 ```
 
-Requires `ffmpeg` on PATH.
+### Options
 
-## Usage
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--video` | (required) | Path to input video file |
+| `--output`, `-o` | (required) | Path to save subtitle file |
+| `--format`, `-f` | `srt` | Output format (srt or vtt) |
+| `--language`, `-l` | auto | Language code (e.g. 'en', 'de') |
+| `--model` | `mlx-community/whisper-large-v3-turbo` | Whisper model name |
+| `--no-word-timestamps` | off | Disable word-level timestamps |
+| `--provider` | `video2subtitle.mlx` | Provider to use |
 
-```bash
-video2subtitle --input video.mp4 --output subtitles.srt
-video2subtitle --input video.mp4 --language en
-video2subtitle --input video.mp4 --burn-in
-video2subtitle --help
+## Python API
+
+```python
+from video2subtitle.client import transcribe
+
+output_path = transcribe(
+    video_path="movie.mp4",
+    output_path="subtitles.srt",
+    language="en",
+)
 ```
-
-## Options
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--input`, `-i` | required | Input video path |
-| `--output`, `-o` | `<input>.srt` | Output subtitle path |
-| `--language`, `-l` | auto-detect | Language code (e.g. `en`) or `auto` |
-| `--burn-in` | off | Burn subtitles into a new mp4 file |
-| `--verbose` | off | Verbose logging |
-| `--device` | `auto` | Compute device |
-
-## Architecture
-
-Pipeline: video → ffmpeg (audio extraction) → mlx-whisper (transcription) → SRT file.
-
-Optional: `--burn-in` uses ffmpeg to hard-code subtitles into the video.
-
-Provider pattern via `aiservices-core` registry. Default provider: `video2subtitle.mlx`.
