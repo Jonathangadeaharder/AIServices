@@ -63,7 +63,7 @@ def test_mlx_provider_vtt_output(tmp_path, mocker):
     assert "-->" in content
 
 
-def test_mlx_provider_default_output(mocker):
+def test_mlx_provider_default_output(mocker, tmp_path, monkeypatch):
     mock_whisper = mocker.MagicMock()
     mocker.patch.dict(sys.modules, {"mlx_whisper": mock_whisper})
     mocker.patch("video2subtitle.providers.mlx.shutil.which", return_value="/usr/bin/ffmpeg")
@@ -77,8 +77,10 @@ def test_mlx_provider_default_output(mocker):
         ],
     }
 
+    monkeypatch.chdir(tmp_path)
     provider = MLXProvider()
     request = Video2SubtitleRequest(video_path="/tmp/video.mp4", output_format="vtt")
     response = provider.generate(request, output_path=None)
 
     assert response.output_path == "output.vtt"
+    assert (tmp_path / "output.vtt").exists()

@@ -25,13 +25,15 @@ def test_mlx_provider_generate_wav(tmp_path):
     assert out.stat().st_size > 0
 
 
-def test_mlx_provider_generate_default_output():
+def test_mlx_provider_generate_default_output(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     provider = MLXProvider()
     request = Text2AudioRequest(prompt="test", duration_seconds=1.0, seed=99)
     response = provider.generate(request, output_path=None)
 
     assert response.output_path == "output.wav"
     assert response.metadata["seed"] == 99
+    assert (tmp_path / "output.wav").exists()
 
 
 def test_mlx_provider_generate_no_seed(tmp_path):

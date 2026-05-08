@@ -1,5 +1,4 @@
 import random
-import struct
 import wave
 from pathlib import Path
 
@@ -21,6 +20,9 @@ class MLXProvider(BaseProvider):
     def generate(
         self, request: Text2AudioRequest, output_path: str | None = None
     ) -> Text2AudioResponse:
+        if request.output_format != "wav":
+            raise ValueError("MLXProvider currently supports only output_format='wav'")
+
         if output_path is None:
             output_path = f"output.{request.output_format}"
 
@@ -30,18 +32,11 @@ class MLXProvider(BaseProvider):
 
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-        if request.output_format == "wav":
-            with wave.open(output_path, "w") as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(sample_rate)
-                wf.writeframes(struct.pack(f"<{num_samples}h", *([0] * num_samples)))
-        else:
-            with wave.open(output_path, "w") as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(sample_rate)
-                wf.writeframes(struct.pack(f"<{num_samples}h", *([0] * num_samples)))
+        with wave.open(output_path, "w") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(sample_rate)
+            wf.writeframes(b"\x00\x00" * num_samples)
 
         return Text2AudioResponse(
             output_path=output_path,

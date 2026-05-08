@@ -7,7 +7,7 @@ Video-to-Subtitle transcription module for AIServices. Extracts audio via FFmpeg
 This package is part of the AIServices monorepo. It can be installed directly via `uv`:
 
 ```bash
-uv tool install ./packages/video2subtitle
+uv tool install video2subtitle
 ```
 
 ## CLI Usage

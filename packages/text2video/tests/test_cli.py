@@ -74,6 +74,9 @@ def test_generate_with_options(mocker, tmp_path):
     req = call_args[0][0]
     assert req.num_frames == 97
     assert req.fps == 24
+    assert req.width == 704
+    assert req.height == 480
+    assert req.num_inference_steps == 8
 
 
 def test_help():

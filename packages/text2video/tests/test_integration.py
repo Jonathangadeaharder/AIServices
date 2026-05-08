@@ -3,30 +3,26 @@ from text2video.providers.mlx import MLXProvider
 
 
 def test_mlx_provider_init_default():
-    provider = MLXProvider.__new__(MLXProvider)
-    MLXProvider.__init__(provider, model_dir="/fake/models")
+    provider = MLXProvider(model_dir="/fake/models")
     assert provider._model_dir == "/fake/models"
     assert provider._pipeline is None
 
 
 def test_mlx_provider_init_custom_dir():
-    provider = MLXProvider.__new__(MLXProvider)
-    MLXProvider.__init__(provider, model_dir="/custom/path")
+    provider = MLXProvider(model_dir="/custom/path")
     assert provider._model_dir == "/custom/path"
 
 
 def test_mlx_provider_env_var(monkeypatch):
     monkeypatch.setenv("TEXT2VIDEO_MODEL_DIR", "/env/path")
-    provider = MLXProvider.__new__(MLXProvider)
-    MLXProvider.__init__(provider)
+    provider = MLXProvider()
     assert provider._model_dir == "/env/path"
 
 
 def test_mlx_provider_generate(mocker, tmp_path):
     mock_pipeline = mocker.MagicMock()
 
-    provider = MLXProvider.__new__(MLXProvider)
-    provider._model_dir = "/fake"
+    provider = MLXProvider(model_dir="/fake")
     provider._pipeline = mock_pipeline
 
     request = Text2VideoRequest(
@@ -45,8 +41,7 @@ def test_mlx_provider_generate(mocker, tmp_path):
 def test_mlx_provider_generate_default_output(mocker):
     mock_pipeline = mocker.MagicMock()
 
-    provider = MLXProvider.__new__(MLXProvider)
-    provider._model_dir = "/fake"
+    provider = MLXProvider(model_dir="/fake")
     provider._pipeline = mock_pipeline
 
     request = Text2VideoRequest(prompt="test")
@@ -58,8 +53,7 @@ def test_mlx_provider_generate_default_output(mocker):
 def test_mlx_provider_generate_no_seed(mocker, tmp_path):
     mock_pipeline = mocker.MagicMock()
 
-    provider = MLXProvider.__new__(MLXProvider)
-    provider._model_dir = "/fake"
+    provider = MLXProvider(model_dir="/fake")
     provider._pipeline = mock_pipeline
 
     request = Text2VideoRequest(prompt="test", seed=None)
@@ -82,8 +76,7 @@ def test_mlx_provider_load_pipeline(mocker):
     mock_pipeline_cls = mock_module.TextToVideoPipeline
     mock_pipeline_cls.return_value = mocker.MagicMock()
 
-    provider = MLXProvider.__new__(MLXProvider)
-    provider._model_dir = "/fake"
+    provider = MLXProvider(model_dir="/fake")
     provider._pipeline = None
     provider._load_pipeline()
 
@@ -101,8 +94,7 @@ def test_mlx_provider_load_pipeline_cached(mocker):
     )
     mock_pipeline_cls = mock_module.TextToVideoPipeline
 
-    provider = MLXProvider.__new__(MLXProvider)
-    provider._model_dir = "/fake"
+    provider = MLXProvider(model_dir="/fake")
     provider._pipeline = mocker.MagicMock()
 
     provider._load_pipeline()

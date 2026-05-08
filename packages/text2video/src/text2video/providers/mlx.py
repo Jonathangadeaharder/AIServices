@@ -34,7 +34,14 @@ class MLXProvider(BaseProvider):
             return
         from ltx_pipelines_mlx import TextToVideoPipeline
 
-        self._pipeline = TextToVideoPipeline(model_dir=self._model_dir)
+        model_dir = Path(self._model_dir)
+        if not model_dir.exists():
+            raise FileNotFoundError(
+                f"Model directory not found: {model_dir}. "
+                "Set TEXT2VIDEO_MODEL_DIR to a valid weights directory."
+            )
+
+        self._pipeline = TextToVideoPipeline(model_dir=str(model_dir))
 
     def generate(
         self, request: Text2VideoRequest, output_path: str | None = None
@@ -55,6 +62,7 @@ class MLXProvider(BaseProvider):
             width=request.width,
             num_frames=request.num_frames,
             num_steps=request.num_inference_steps,
+            fps=request.fps,
             seed=effective_seed,
         )
 
