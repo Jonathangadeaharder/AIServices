@@ -1,4 +1,5 @@
 import time
+from typing import Literal
 
 import typer
 from aiservices_core.cli import device_option, verbose_option
@@ -19,7 +20,9 @@ def generate(
         "music", "--category", "-c", help="Audio category (music, sfx, ambient, speech)"
     ),
     duration: float = typer.Option(10.0, "--duration", help="Duration in seconds"),
-    format: str = typer.Option("wav", "--format", "-f", help="Output format (wav, mp3)"),
+    format: Literal["wav", "mp3"] = typer.Option(
+        "wav", "--format", "-f", help="Output format (wav, mp3)"
+    ),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed"),
     provider_name: str = typer.Option("text2audio.mlx", "--provider", help="Provider name"),
     verbose: bool = verbose_option,
