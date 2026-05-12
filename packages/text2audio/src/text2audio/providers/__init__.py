@@ -1,5 +1,5 @@
 from aiservices_core.providers import registry
 
-from .fish_mlx import FishMLXProvider
+from .mlx import MLXProvider
 
-registry.register("text2audio.fish_mlx", FishMLXProvider)
+registry.register("text2audio.mlx", MLXProvider)

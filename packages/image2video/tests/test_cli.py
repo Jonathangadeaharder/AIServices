@@ -61,14 +61,14 @@ def test_generate_with_options(mocker, tmp_path):
             "test",
             "--output",
             str(out),
-            "--seconds",
-            "4",
-            "--fps",
-            "24",
             "--width",
             "640",
             "--height",
             "640",
+            "--seconds",
+            "4",
+            "--fps",
+            "24",
             "--steps",
             "4",
         ],
@@ -76,5 +76,5 @@ def test_generate_with_options(mocker, tmp_path):
     assert result.exit_code == 0
     call_args = mock_provider.generate.call_args
     req = call_args[0][0]
-    assert req.num_frames == 96  # 4 seconds * 24 fps
+    assert req.num_frames == 96
     assert req.fps == 24

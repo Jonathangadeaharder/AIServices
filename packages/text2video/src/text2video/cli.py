@@ -4,7 +4,7 @@ import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
 
-from .client import _frames_for_seconds
+from .client import _div8, _frames_for_seconds
 from .models import Text2VideoRequest
 from .providers import registry
 
@@ -38,8 +38,8 @@ def generate(
 
     kwargs: dict = {
         "prompt": prompt,
-        "width": width,
-        "height": height,
+        "width": _div8(width),
+        "height": _div8(height),
         "num_frames": num_frames,
         "num_inference_steps": steps,
         "seed": seed,

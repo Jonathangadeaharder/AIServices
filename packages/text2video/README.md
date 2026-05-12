@@ -26,8 +26,8 @@ text2video --prompt "A red ball bouncing on a wooden floor" --output out.mp4
 | `--negative-prompt`, `-n` | (default) | Negative prompt |
 | `--seconds` | 4 | Video duration in seconds |
 | `--fps` | 24 | Frames per second |
-| `--width` | 704 | Video width (must be divisible by 8) |
-| `--height` | 480 | Video height (must be divisible by 8) |
+| `--width` | 704 | Video width (minimum 64, must be divisible by 8) |
+| `--height` | 480 | Video height (minimum 64, must be divisible by 8) |
 | `--steps` | 8 | Number of inference steps |
 | `--seed` | random | Random seed |
 
