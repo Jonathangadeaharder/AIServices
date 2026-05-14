@@ -30,8 +30,6 @@ def test_mlx_provider_generate_full_flow(dummy_request, tmp_path, mocker):
     from image2video.providers.mlx import MLXProvider
 
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
     provider._pipeline = mock_pipeline
@@ -45,5 +43,4 @@ def test_mlx_provider_generate_full_flow(dummy_request, tmp_path, mocker):
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)
-    mock_pipeline.generate_from_image.assert_called_once()
-    mock_pipeline.save_video.assert_called_once()
+    mock_pipeline.generate_and_save.assert_called_once()

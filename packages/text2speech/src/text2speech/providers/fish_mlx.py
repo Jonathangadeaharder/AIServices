@@ -22,7 +22,7 @@ class FishMLXProvider(BaseProvider):
         if self._model is None:
             from mlx_audio.tts.utils import load_model  # type: ignore[import-not-found]
 
-            self._model = load_model(self.model_name)
+            self._model = load_model(Path(self.model_name))
         return self._model
 
     def _build_text(self, request: Text2SpeechRequest) -> str:
