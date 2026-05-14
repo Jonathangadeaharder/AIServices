@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 
-class AudioCategory(str, Enum):
+class AudioCategory(StrEnum):
     music = "music"
     sfx = "sfx"
     ambient = "ambient"
