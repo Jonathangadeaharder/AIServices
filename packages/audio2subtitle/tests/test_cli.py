@@ -1,3 +1,4 @@
+import re
 from audio2subtitle.cli import app
 from typer.testing import CliRunner
 
@@ -23,6 +24,7 @@ class _ProviderResponse:
         self.duration_seconds = None
         self.entries = []
         self.language = None
+
 
 def test_transcribe_success(tmp_path, mocker):
     mock_registry = mocker.patch("audio2subtitle.cli.registry")
