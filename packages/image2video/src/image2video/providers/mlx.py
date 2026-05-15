@@ -2,7 +2,6 @@ import os
 import random
 from pathlib import Path
 
-from aiservices_core.io import load_image
 from aiservices_core.providers import BaseProvider
 
 from ..models import Image2VideoRequest, Image2VideoResponse
@@ -34,10 +33,10 @@ class MLXProvider(BaseProvider):
         if self._pipeline is not None:
             return
         from ltx_pipelines_mlx.ti2vid_one_stage import (
-            ImageToVideoPipeline,
+            TI2VidOneStagePipeline,
         )
 
-        self._pipeline = ImageToVideoPipeline(model_dir=self._model_dir)
+        self._pipeline = TI2VidOneStagePipeline(model_dir=self._model_dir)
 
     def generate(
         self, request: Image2VideoRequest, output_path: str | None = None
@@ -50,21 +49,18 @@ class MLXProvider(BaseProvider):
             output_path = "output.mp4"
 
         effective_seed = request.seed if request.seed is not None else random.randint(0, 2**32 - 1)
-        image = load_image(request.image_path)
-        video_latent, _ = self._pipeline.generate_from_image(
+
+        # Use generate_and_save which handles decoding and saving internally
+        self._pipeline.generate_and_save(
             prompt=request.prompt,
-            image=image,
+            output_path=output_path,
+            image=request.image_path,
             height=request.height,
             width=request.width,
             num_frames=request.num_frames,
+            frame_rate=request.fps,
             seed=effective_seed,
             num_steps=request.num_inference_steps,
-        )
-
-        self._pipeline.save_video(
-            video_latent,
-            output_path,
-            fps=request.fps,
         )
 
         return Image2VideoResponse(

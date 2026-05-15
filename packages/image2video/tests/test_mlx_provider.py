@@ -27,8 +27,6 @@ def test_mlx_provider_env_var(monkeypatch):
 def test_mlx_provider_generate(mocker, tmp_path):
     mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     mock_img = mocker.MagicMock()
     mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
     mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
@@ -48,15 +46,12 @@ def test_mlx_provider_generate(mocker, tmp_path):
     assert response.output_path == str(out)
     assert response.metadata["provider"] == "mlx"
     assert response.metadata["seed"] == 42
-    mock_pipeline.generate_from_image.assert_called_once()
-    mock_pipeline.save_video.assert_called_once()
+    mock_pipeline.generate_and_save.assert_called_once()
 
 
 def test_mlx_provider_generate_default_output(mocker):
     mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     mock_img = mocker.MagicMock()
     mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
     mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
@@ -74,8 +69,6 @@ def test_mlx_provider_generate_default_output(mocker):
 def test_mlx_provider_generate_no_seed(mocker, tmp_path):
     mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     mock_img = mocker.MagicMock()
     mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
     mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
@@ -89,7 +82,7 @@ def test_mlx_provider_generate_no_seed(mocker, tmp_path):
     response = provider.generate(request, str(out))
 
     assert isinstance(response.metadata["seed"], int)
-    call_kwargs = mock_pipeline.generate_from_image.call_args[1]
+    call_kwargs = mock_pipeline.generate_and_save.call_args[1]
     assert isinstance(call_kwargs["seed"], int)
 
 
@@ -102,7 +95,7 @@ def test_mlx_provider_load_pipeline(mocker):
             "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
         },
     )
-    mock_pipeline_cls = mock_module.ti2vid_one_stage.ImageToVideoPipeline
+    mock_pipeline_cls = mock_module.ti2vid_one_stage.TI2VidOneStagePipeline
     mock_pipeline_cls.return_value = mocker.MagicMock()
 
     provider = MLXProvider.__new__(MLXProvider)
@@ -123,7 +116,7 @@ def test_mlx_provider_load_pipeline_cached(mocker):
             "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
         },
     )
-    mock_pipeline_cls = mock_module.ti2vid_one_stage.ImageToVideoPipeline
+    mock_pipeline_cls = mock_module.ti2vid_one_stage.TI2VidOneStagePipeline
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"

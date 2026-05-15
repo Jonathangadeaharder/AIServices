@@ -16,8 +16,6 @@ def test_mlx_provider_env_var(monkeypatch):
 
 def test_mlx_provider_generate_with_mocked_pipeline(mocker, tmp_path):
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     mock_img = mocker.MagicMock()
     mock_open = mocker.patch("PIL.Image.open")
     mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
@@ -37,14 +35,11 @@ def test_mlx_provider_generate_with_mocked_pipeline(mocker, tmp_path):
     assert response.output_path == str(out)
     assert response.metadata["provider"] == "mlx"
     assert response.metadata["seed"] == 42
-    mock_pipeline.generate_from_image.assert_called_once()
-    mock_pipeline.save_video.assert_called_once()
+    mock_pipeline.generate_and_save.assert_called_once()
 
 
 def test_mlx_provider_generate_default_output(mocker):
     mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_from_image.return_value = (mocker.MagicMock(), None)
-
     mock_img = mocker.MagicMock()
     mock_open = mocker.patch("PIL.Image.open")
     mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
