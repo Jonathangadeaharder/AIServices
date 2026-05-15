@@ -7,6 +7,26 @@ runner = CliRunner()
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
+class _RecordingProvider:
+    """Test double that captures requests instead of mocking call patterns."""
+    def __init__(self):
+        self.last_request = None
+        self.last_output_path = None
+
+    def generate(self, request, output_path):
+        self.last_request = request
+        self.last_output_path = output_path
+        return _ProviderResponse(output_path)
+
+
+class _ProviderResponse:
+    """Minimal response stub for provider.generate()."""
+    def __init__(self, output_path):
+        self.output_path = output_path
+        self.metadata = {}
+        self.duration_seconds = None
+        self.entries = []
+        self.language = None
 
 def test_extract_success(tmp_path, mocker):
     mock_registry = mocker.patch("video2audio.cli.registry")
@@ -27,7 +47,6 @@ def test_extract_success(tmp_path, mocker):
     mock_registry.get.assert_called_once()
     mock_provider.generate.assert_called_once()
 
-
 def test_extract_error(mocker):
     mock_registry = mocker.patch("video2audio.cli.registry")
     mock_registry.get.side_effect = RuntimeError("failed")
@@ -39,15 +58,9 @@ def test_extract_error(mocker):
     assert result.exit_code == 1
     mock_registry.get.assert_called_once()
 
-
 def test_extract_codec_option(tmp_path, mocker):
     mock_registry = mocker.patch("video2audio.cli.registry")
-    mock_provider = mocker.MagicMock()
-    mock_response = mocker.MagicMock()
-    mock_response.output_path = str(tmp_path / "out.mp3")
-    mock_response.duration_seconds = None
-    mock_response.metadata = {}
-    mock_provider.generate.return_value = mock_response
+    mock_provider = _RecordingProvider()
     mock_registry.get.return_value = mock_provider
 
     out = tmp_path / "out.mp3"
@@ -56,10 +69,7 @@ def test_extract_codec_option(tmp_path, mocker):
         ["--input", "/tmp/video.mp4", "--output", str(out), "--codec", "mp3"],
     )
     assert result.exit_code == 0
-    call_args = mock_provider.generate.call_args
-    req = call_args[0][0]
-    assert req.output_format == "mp3"
-
+    assert mock_provider.last_request.output_format == "mp3"
 
 def test_help_shows_options():
     result = runner.invoke(app, ["--help"])

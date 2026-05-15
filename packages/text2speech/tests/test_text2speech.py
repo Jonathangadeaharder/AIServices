@@ -6,6 +6,26 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 _HAS_ORMSGPACK = importlib.util.find_spec("ormsgpack") is not None
+_MLX_MODULES = ["mlx_audio", "mlx_audio.tts", "mlx_audio.tts.utils", "mlx_audio.tts.generate"]
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_sys_modules():
+    """Save and restore sys.modules entries that tests mutate."""
+    saved = {}
+    for key in list(_MLX_MODULES):
+        saved[key] = sys.modules.get(key)
+    saved["ormsgpack"] = sys.modules.get("ormsgpack")
+    yield
+    for key in list(_MLX_MODULES):
+        if saved.get(key) is None:
+            sys.modules.pop(key, None)
+        else:
+            sys.modules[key] = saved[key]
+    if saved.get("ormsgpack") is None:
+        sys.modules.pop("ormsgpack", None)
+    else:
+        sys.modules["ormsgpack"] = saved["ormsgpack"]
 
 
 def test_model_validation():

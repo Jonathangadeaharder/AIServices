@@ -1,5 +1,25 @@
 from unittest.mock import MagicMock, patch
 
+class _RecordingProvider:
+    """Test double that captures requests instead of mocking call patterns."""
+    def __init__(self):
+        self.last_request = None
+        self.last_output_path = None
+
+    def generate(self, request, output_path):
+        self.last_request = request
+        self.last_output_path = output_path
+        return _ProviderResponse(output_path)
+
+
+class _ProviderResponse:
+    """Minimal response stub for provider.generate()."""
+    def __init__(self, output_path):
+        self.output_path = output_path
+        self.metadata = {}
+        self.duration_seconds = None
+        self.entries = []
+        self.language = None
 
 class TestGenerate:
     @patch("image2image.providers.registry")
@@ -36,14 +56,9 @@ class TestGenerate:
     def test_passes_strength(self, mock_registry):
         from image2image.client import generate
 
-        mock_provider = MagicMock()
-        mock_response = MagicMock()
-        mock_response.output_path = "/tmp/out.png"
-        mock_provider.generate.return_value = mock_response
+        mock_provider = _RecordingProvider()
         mock_registry.get.return_value = mock_provider
 
         generate("/tmp/in.png", "test", "/tmp/out.png", strength=0.8)
 
-        call_args = mock_provider.generate.call_args
-        req = call_args[0][0]
-        assert req.strength == 0.8
+        assert mock_provider.last_request.strength == 0.8
