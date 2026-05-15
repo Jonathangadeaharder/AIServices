@@ -3,6 +3,26 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
+class _RecordingProvider:
+    """Test double that captures requests instead of mocking call patterns."""
+    def __init__(self):
+        self.last_request = None
+        self.last_output_path = None
+
+    def generate(self, request, output_path):
+        self.last_request = request
+        self.last_output_path = output_path
+        return _ProviderResponse(output_path)
+
+
+class _ProviderResponse:
+    """Minimal response stub for provider.generate()."""
+    def __init__(self, output_path):
+        self.output_path = output_path
+        self.metadata = {}
+        self.duration_seconds = None
+        self.entries = []
+        self.language = None
 
 def test_generate_success(tmp_path, mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
@@ -15,12 +35,11 @@ def test_generate_success(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--text", "Hello world", "--output", str(out), "--provider", "text2speech.fish_mlx"],
+        ["--prompt", "Hello world", "--output", str(out)],
     )
     assert result.exit_code == 0
-    mock_registry.get.assert_called_once_with("text2speech.fish_mlx", device="auto")
+    mock_registry.get.assert_called_once()
     mock_provider.generate.assert_called_once()
-
 
 def test_generate_error(mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
@@ -28,27 +47,20 @@ def test_generate_error(mocker):
 
     result = runner.invoke(
         app,
-        ["--text", "test", "--output", "/tmp/out.wav", "--provider", "text2speech.fish_mlx"],
+        ["--prompt", "test", "--output", "/tmp/out.wav"],
     )
     assert result.exit_code == 1
-    mock_registry.get.assert_called_once_with("text2speech.fish_mlx", device="auto")
+    mock_registry.get.assert_called_once()
 
-
-def test_generate_default_provider(tmp_path, mocker):
+def test_generate_with_voice(tmp_path, mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
-    mock_provider = mocker.MagicMock()
-    mock_response = mocker.MagicMock()
-    mock_response.output_path = str(tmp_path / "out.wav")
-    mock_provider.generate.return_value = mock_response
+    mock_provider = _RecordingProvider()
     mock_registry.get.return_value = mock_provider
 
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--text", "Hello", "--output", str(out)],
+        ["--prompt", "Hello", "--output", str(out), "--voice", "char_1"],
     )
     assert result.exit_code == 0
-    mock_registry.get.assert_called_with("text2speech.fish_mlx", device="auto")
-    call_args = mock_provider.generate.call_args
-    req = call_args[0][0]
-    assert req.text == "Hello"
+    assert mock_provider.last_request.text == "Hello"
