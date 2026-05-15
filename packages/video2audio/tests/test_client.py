@@ -1,5 +1,25 @@
 from unittest.mock import MagicMock, patch
 
+class _RecordingProvider:
+    """Test double that captures requests instead of mocking call patterns."""
+    def __init__(self):
+        self.last_request = None
+        self.last_output_path = None
+
+    def generate(self, request, output_path):
+        self.last_request = request
+        self.last_output_path = output_path
+        return _ProviderResponse(output_path)
+
+
+class _ProviderResponse:
+    """Minimal response stub for provider.generate()."""
+    def __init__(self, output_path):
+        self.output_path = output_path
+        self.metadata = {}
+        self.duration_seconds = None
+        self.entries = []
+        self.language = None
 
 class TestExtract:
     @patch("video2audio.providers.registry")
@@ -36,15 +56,10 @@ class TestExtract:
     def test_passes_format_and_sample_rate(self, mock_registry):
         from video2audio.client import extract
 
-        mock_provider = MagicMock()
-        mock_response = MagicMock()
-        mock_response.output_path = "/tmp/out.mp3"
-        mock_provider.generate.return_value = mock_response
+        mock_provider = _RecordingProvider()
         mock_registry.get.return_value = mock_provider
 
-        extract("/tmp/video.mp4", "/tmp/out.mp3", output_format="mp3", sample_rate=22050)
+        extract("/tmp/video.mp4", "/tmp/out.mp3", output_format="mp3", sample_rate=44100)
 
-        call_args = mock_provider.generate.call_args
-        req = call_args[0][0]
-        assert req.output_format == "mp3"
-        assert req.sample_rate == 22050
+        assert mock_provider.last_request.output_format == "mp3"
+        assert mock_provider.last_request.sample_rate == 44100

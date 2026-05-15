@@ -1,5 +1,25 @@
 from unittest.mock import MagicMock, patch
 
+class _RecordingProvider:
+    """Test double that captures requests instead of mocking call patterns."""
+    def __init__(self):
+        self.last_request = None
+        self.last_output_path = None
+
+    def generate(self, request, output_path):
+        self.last_request = request
+        self.last_output_path = output_path
+        return _ProviderResponse(output_path)
+
+
+class _ProviderResponse:
+    """Minimal response stub for provider.generate()."""
+    def __init__(self, output_path):
+        self.output_path = output_path
+        self.metadata = {}
+        self.duration_seconds = None
+        self.entries = []
+        self.language = None
 
 class TestTranscribe:
     @patch("video2subtitle.providers.registry")
@@ -36,15 +56,10 @@ class TestTranscribe:
     def test_passes_language_and_format(self, mock_registry):
         from video2subtitle.client import transcribe
 
-        mock_provider = MagicMock()
-        mock_response = MagicMock()
-        mock_response.output_path = "/tmp/out.vtt"
-        mock_provider.generate.return_value = mock_response
+        mock_provider = _RecordingProvider()
         mock_registry.get.return_value = mock_provider
 
         transcribe("/tmp/video.mp4", "/tmp/out.vtt", language="de", output_format="vtt")
 
-        call_args = mock_provider.generate.call_args
-        req = call_args[0][0]
-        assert req.language == "de"
-        assert req.output_format == "vtt"
+        assert mock_provider.last_request.language == "de"
+        assert mock_provider.last_request.output_format == "vtt"
