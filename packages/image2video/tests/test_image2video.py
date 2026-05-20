@@ -32,14 +32,11 @@ def test_mlx_provider_generate_full_flow(dummy_request, tmp_path, mocker):
     mock_pipeline = mocker.MagicMock()
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     provider._pipeline = mock_pipeline
 
     out_file = tmp_path / "out.mp4"
-
-    mock_open = mocker.patch("PIL.Image.open")
-    mock_img = mocker.MagicMock()
-    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)

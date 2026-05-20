@@ -25,39 +25,42 @@ def test_mlx_provider_env_var(monkeypatch):
 
 
 def test_mlx_provider_generate(mocker, tmp_path):
-    mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_img = mocker.MagicMock()
-    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     provider._pipeline = mock_pipeline
 
     request = Image2VideoRequest(
         image_path="/tmp/test.png",
         prompt="test video",
         seed=42,
+        num_frames=97,
+        fps=24,
     )
     out = tmp_path / "out.mp4"
     response = provider.generate(request, str(out))
 
     assert response.output_path == str(out)
     assert response.metadata["provider"] == "mlx"
+    assert response.metadata["pipeline"] == "ltx-two-stage"
     assert response.metadata["seed"] == 42
+    assert response.metadata["num_frames"] == 97
     mock_pipeline.generate_and_save.assert_called_once()
+    call_kwargs = mock_pipeline.generate_and_save.call_args[1]
+    assert call_kwargs["image"] == "/tmp/test.png"
+    assert call_kwargs["num_frames"] == 97
 
 
 def test_mlx_provider_generate_default_output(mocker):
-    mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_img = mocker.MagicMock()
-    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     provider._pipeline = mock_pipeline
 
     request = Image2VideoRequest(image_path="/tmp/test.png", prompt="test")
@@ -67,14 +70,12 @@ def test_mlx_provider_generate_default_output(mocker):
 
 
 def test_mlx_provider_generate_no_seed(mocker, tmp_path):
-    mock_open = mocker.patch("PIL.Image.open")
     mock_pipeline = mocker.MagicMock()
-    mock_img = mocker.MagicMock()
-    mock_open.return_value.__enter__ = mocker.MagicMock(return_value=mock_img)
-    mock_open.return_value.__exit__ = mocker.MagicMock(return_value=False)
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     provider._pipeline = mock_pipeline
 
     request = Image2VideoRequest(image_path="/tmp/test.png", prompt="test", seed=None)
@@ -88,38 +89,30 @@ def test_mlx_provider_generate_no_seed(mocker, tmp_path):
 
 def test_mlx_provider_load_pipeline(mocker):
     mock_module = mocker.MagicMock()
-    mocker.patch.dict(
-        sys.modules,
-        {
-            "ltx_pipelines_mlx": mock_module,
-            "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
-        },
-    )
-    mock_pipeline_cls = mock_module.ti2vid_one_stage.TI2VidOneStagePipeline
+    mock_pipeline_cls = mock_module.TwoStagePipeline
     mock_pipeline_cls.return_value = mocker.MagicMock()
+    mocker.patch.dict(sys.modules, {"ltx_pipelines_mlx": mock_module})
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     provider._pipeline = None
     provider._load_pipeline()
 
-    mock_pipeline_cls.assert_called_once_with(model_dir="/fake")
+    mock_pipeline_cls.assert_called_once_with(model_dir="/fake", low_memory=True)
     assert provider._pipeline is not None
 
 
 def test_mlx_provider_load_pipeline_cached(mocker):
     mock_module = mocker.MagicMock()
-    mocker.patch.dict(
-        sys.modules,
-        {
-            "ltx_pipelines_mlx": mock_module,
-            "ltx_pipelines_mlx.ti2vid_one_stage": mock_module.ti2vid_one_stage,
-        },
-    )
-    mock_pipeline_cls = mock_module.ti2vid_one_stage.TI2VidOneStagePipeline
+    mock_pipeline_cls = mock_module.TwoStagePipeline
+    mocker.patch.dict(sys.modules, {"ltx_pipelines_mlx": mock_module})
 
     provider = MLXProvider.__new__(MLXProvider)
     provider._model_dir = "/fake"
+    provider._stage1_steps = 15
+    provider._stage2_steps = 3
     cached_pipeline = mocker.MagicMock()
     provider._pipeline = cached_pipeline
 

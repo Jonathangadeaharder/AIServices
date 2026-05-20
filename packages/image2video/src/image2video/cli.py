@@ -4,6 +4,7 @@ import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
 
+from .ltx_frames import normalize_ltx_frame_count
 from .models import Image2VideoRequest
 from .providers import registry
 
@@ -32,7 +33,7 @@ def generate(
     device: str = device_option,
 ):
     """Generate a video from an image."""
-    num_frames = seconds * fps
+    num_frames = normalize_ltx_frame_count(seconds, fps)
 
     kwargs = {
         "image_path": input,
