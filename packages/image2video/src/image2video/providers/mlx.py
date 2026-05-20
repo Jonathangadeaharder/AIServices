@@ -1,15 +1,12 @@
 import os
 import random
-from pathlib import Path
 
 from aiservices_core.providers import BaseProvider
 
 from ..ltx_frames import normalize_ltx_frame_count
 from ..models import Image2VideoRequest, Image2VideoResponse
 
-_DEFAULT_MODEL_DIR = (
-    Path(__file__).resolve().parent.parent.parent.parent.parent.parent / "models" / "ltx-2.3" / "q8"
-)
+_DEFAULT_MODEL_DIR = "dgrauet/ltx-2.3-mlx-q8"
 
 
 class MLXProvider(BaseProvider):
