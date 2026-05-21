@@ -11,7 +11,7 @@ class FishMLXProvider(BaseProvider):
 
     def __init__(
         self,
-        model_name: str = "mlx-community/fish-audio-s2-pro-bf16",
+        model_name: str = "mlx-community/fish-audio-s2-pro",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -29,6 +29,10 @@ class FishMLXProvider(BaseProvider):
         return self._model
 
     def _build_text(self, request: Text2SpeechRequest) -> str:
+        text = request.text.strip()
+        if request.reference_audio:
+            return text
+
         parts = []
         if request.emotion:
             parts.append(f"[{request.emotion}]")
@@ -38,7 +42,6 @@ class FishMLXProvider(BaseProvider):
             parts.append(f"[{request.effect}]")
 
         tags = "".join(parts)
-        text = request.text.strip()
         return f"{tags} {text}" if tags else text
 
     def generate(
@@ -58,15 +61,33 @@ class FishMLXProvider(BaseProvider):
         out_path.parent.mkdir(parents=True, exist_ok=True)
         prefix = out_path.stem
 
+        temperature = request.temperature
+        if temperature is None and request.reference_audio:
+            temperature = 0.5
+
         generate_kwargs: dict = {
             "model": model,
             "text": text,
             "file_prefix": str(out_path.parent / prefix),
+            "audio_format": "wav",
+            "stream": False,
+            "play": False,
+            "verbose": False,
         }
+        if request.language:
+            generate_kwargs["lang_code"] = request.language
         if request.reference_audio:
             generate_kwargs["ref_audio"] = request.reference_audio
+        if request.reference_text:
+            generate_kwargs["ref_text"] = request.reference_text
+        if temperature is not None:
+            generate_kwargs["temperature"] = temperature
 
         generate_audio(**generate_kwargs)
+
+        generated_path = out_path.parent / f"{prefix}_000.wav"
+        if generated_path.exists():
+            generated_path.replace(out_path)
 
         return Text2SpeechResponse(
             output_path=str(out_path),

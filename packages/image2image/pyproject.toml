@@ -12,6 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mlx = [
+    "mflux>=0.17.5",
     "mlx>=0.31.0",
     "safetensors>=0.4.0",
     "huggingface_hub>=0.20.0",

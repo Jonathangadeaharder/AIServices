@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -169,6 +170,13 @@ def test_fish_mlx_build_text():
     req_tone = Text2SpeechRequest(text="Hello", tone="calm")
     assert provider._build_text(req_tone) == "[calm] Hello", "tone prefix"
 
+    req_clone = Text2SpeechRequest(
+        text="Hola",
+        tone="calm",
+        reference_audio="/tmp/ref.wav",
+    )
+    assert provider._build_text(req_clone) == "Hola", "voice clone skips control tags"
+
     req_effect = Text2SpeechRequest(text="Hello", effect="echo")
     assert provider._build_text(req_effect) == "[echo] Hello", "effect prefix"
 
@@ -242,10 +250,87 @@ def test_fish_mlx_generate_with_reference_audio(tmp_path):
 
     provider = FishMLXProvider()
     out_file = tmp_path / "out.wav"
-    request = Text2SpeechRequest(text="Hello", reference_audio="/tmp/ref.wav")
+    request = Text2SpeechRequest(
+        text="Hello",
+        reference_audio="/tmp/ref.wav",
+        reference_text="Reference",
+        language="es",
+    )
 
     response = provider.generate(request, str(out_file))
 
     assert response.output_path == str(out_file)
     call_kwargs = mock_generate_audio.call_args[1]
     assert call_kwargs["ref_audio"] == "/tmp/ref.wav"
+    assert call_kwargs["ref_text"] == "Reference"
+    assert call_kwargs["lang_code"] == "es"
+    assert call_kwargs["temperature"] == 0.5
+    assert call_kwargs["verbose"] is False
+
+
+def test_elevenlabs_generate_mocked(tmp_path):
+    import json
+    from unittest.mock import patch
+
+    captured = {}
+
+    def fake_urlopen(req, timeout=180):
+        captured["url"] = req.full_url
+        captured["headers"] = dict(req.header_items())
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def read(self):
+                return b"\x00\x01" * 22050
+
+        return FakeResponse()
+
+    from text2speech.models import Text2SpeechRequest
+    from text2speech.providers.elevenlabs import ElevenLabsProvider
+
+    provider = ElevenLabsProvider(api_key="test-key", voice_id="voice-123")
+    out_file = tmp_path / "out.wav"
+
+    with patch("urllib.request.urlopen", fake_urlopen):
+        response = provider.generate(
+            Text2SpeechRequest(text="Hola mundo.", language="es"),
+            str(out_file),
+        )
+
+    assert response.output_path == str(out_file)
+    assert out_file.exists()
+    assert captured["body"]["language_code"] == "es"
+    assert "voice-123" in captured["url"]
+
+
+def test_fish_mlx_normalizes_numbered_output(tmp_path):
+    mock_load_model = MagicMock()
+
+    def fake_generate_audio(**kwargs):
+        Path(f"{kwargs['file_prefix']}_000.wav").write_bytes(b"audio")
+
+    sys.modules["mlx_audio"] = MagicMock()
+    sys.modules["mlx_audio.tts"] = MagicMock()
+    sys.modules["mlx_audio.tts.utils"] = MagicMock()
+    sys.modules["mlx_audio.tts.utils"].load_model = mock_load_model
+    sys.modules["mlx_audio.tts.generate"] = MagicMock()
+    sys.modules["mlx_audio.tts.generate"].generate_audio = fake_generate_audio
+
+    from text2speech.models import Text2SpeechRequest
+    from text2speech.providers.fish_mlx import FishMLXProvider
+
+    provider = FishMLXProvider()
+    out_file = tmp_path / "out.wav"
+
+    response = provider.generate(Text2SpeechRequest(text="Hello"), str(out_file))
+
+    assert response.output_path == str(out_file)
+    assert out_file.exists()
+    assert out_file.read_bytes() == b"audio"
+    assert not (tmp_path / "out_000.wav").exists()

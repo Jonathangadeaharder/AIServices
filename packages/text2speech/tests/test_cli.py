@@ -65,3 +65,41 @@ def test_generate_default_provider(tmp_path, mocker):
     assert result.exit_code == 0
     mock_registry.get.assert_called_with("text2speech.fish_mlx", device="auto")
     assert mock_provider.last_request.text == "Hello"
+
+def test_generate_passes_voice_anchor_options(tmp_path, mocker):
+    mock_registry = mocker.patch("text2speech.cli.registry")
+    mock_provider = _RecordingProvider()
+    mock_registry.get.return_value = mock_provider
+
+    out = tmp_path / "out.wav"
+    result = runner.invoke(
+        app,
+        [
+            "--text",
+            "Hola",
+            "--output",
+            str(out),
+            "--voice-id",
+            "gretel-local-male-anchor",
+            "--reference-audio",
+            "/tmp/ref.wav",
+            "--reference-text",
+            "Referencia",
+            "--emotion",
+            "calm",
+            "--tone",
+            "mentor",
+            "--effect",
+            "clear",
+            "--language",
+            "es",
+        ],
+    )
+    assert result.exit_code == 0
+    assert mock_provider.last_request.voice_id == "gretel-local-male-anchor"
+    assert mock_provider.last_request.reference_audio == "/tmp/ref.wav"
+    assert mock_provider.last_request.reference_text == "Referencia"
+    assert mock_provider.last_request.emotion == "calm"
+    assert mock_provider.last_request.tone == "mentor"
+    assert mock_provider.last_request.effect == "clear"
+    assert mock_provider.last_request.language == "es"

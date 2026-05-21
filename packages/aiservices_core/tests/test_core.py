@@ -327,3 +327,135 @@ def test_get_optimal_device_auto_darwin_x86_returns_cpu(monkeypatch, mocker):
     from aiservices_core.runtime import get_optimal_device
 
     assert get_optimal_device() == "cpu"
+
+
+def test_config_auto_cleanup_defaults():
+    from aiservices_core.config import AIServicesConfig
+
+    cfg = AIServicesConfig()
+    assert cfg.auto_cleanup is True
+    assert cfg.max_memory_fraction == 0.8
+
+
+def test_cleanup_memory(mocker):
+    import sys
+    from aiservices_core.runtime import cleanup_memory
+
+    # Mock reap_orphaned_processes
+    mock_reap = mocker.patch("aiservices_core.runtime.reap_orphaned_processes")
+
+    # Mock torch.mps
+    mock_torch = mocker.MagicMock()
+    mock_torch.mps.is_available.return_value = True
+    mocker.patch.dict(sys.modules, {"torch": mock_torch})
+
+    # Mock mlx.core and parent mlx
+    mock_mlx_core = mocker.MagicMock()
+    mock_mlx = mocker.MagicMock()
+    mock_mlx.core = mock_mlx_core
+    mocker.patch.dict(sys.modules, {"mlx.core": mock_mlx_core, "mlx": mock_mlx})
+
+    # Mock gc.collect
+    mock_gc = mocker.patch("gc.collect")
+
+    # Mock subprocess.run for system purge
+    mock_run = mocker.patch("subprocess.run")
+    mocker.patch("aiservices_core.runtime.platform.system", return_value="Darwin")
+
+    cleanup_memory(force_sys_purge=True)
+
+    mock_reap.assert_called_once()
+    mock_torch.mps.empty_cache.assert_called_once()
+    mock_mlx_core.metal.clear_cache.assert_called_once()
+    mock_gc.assert_called_once()
+    mock_run.assert_called_once_with(["sudo", "-n", "purge"], capture_output=True, check=False)
+
+
+def test_setup_memory_guards(mocker):
+    import sys
+    from aiservices_core.runtime import setup_memory_guards
+    from aiservices_core.config import AIServicesConfig
+
+    cfg = AIServicesConfig(max_memory_fraction=0.7)
+    mocker.patch("aiservices_core.runtime.config", cfg)
+    mocker.patch("aiservices_core.runtime.get_total_memory", return_value=16 * 1024 * 1024 * 1024)
+
+    # 1. Test Modern MLX API (set_memory_limit/set_cache_limit directly on mx/mlx.core)
+    mock_torch = mocker.MagicMock()
+    mock_torch.mps.is_available.return_value = True
+    mocker.patch.dict(sys.modules, {"torch": mock_torch})
+
+    mock_mlx_core = mocker.MagicMock()
+    mock_mlx = mocker.MagicMock()
+    mock_mlx.core = mock_mlx_core
+    mocker.patch.dict(sys.modules, {"mlx": mock_mlx, "mlx.core": mock_mlx_core})
+
+    setup_memory_guards()
+
+    mock_torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.7)
+    expected_limit = int(16 * 1024 * 1024 * 1024 * 0.7)
+    mock_mlx_core.set_memory_limit.assert_called_once_with(expected_limit)
+    mock_mlx_core.set_cache_limit.assert_called_once_with(int(expected_limit * 0.1))
+    mock_mlx_core.metal.set_memory_limit.assert_not_called()
+
+    # 2. Test Legacy MLX API (set_memory_limit/set_cache_limit on mx.metal)
+    mock_torch.reset_mock()
+    mock_mlx_core_legacy = mocker.MagicMock(spec=["metal"])
+    # Delete the attribute to simulate lack of modern API
+    del mock_mlx_core_legacy.set_memory_limit
+    del mock_mlx_core_legacy.set_cache_limit
+    
+    mock_mlx_legacy = mocker.MagicMock()
+    mock_mlx_legacy.core = mock_mlx_core_legacy
+    mocker.patch.dict(sys.modules, {"mlx": mock_mlx_legacy, "mlx.core": mock_mlx_core_legacy})
+
+    setup_memory_guards()
+
+    mock_torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.7)
+    mock_mlx_core_legacy.metal.set_memory_limit.assert_called_once_with(expected_limit)
+    mock_mlx_core_legacy.metal.set_cache_limit.assert_called_once_with(int(expected_limit * 0.1))
+
+
+def test_memory_managed_provider_decorator(mocker):
+    from aiservices_core.providers import BaseProvider, MemoryManagedProvider, ProviderRegistry
+    from aiservices_core.config import AIServicesConfig
+
+    cfg = AIServicesConfig(auto_cleanup=True)
+    mocker.patch("aiservices_core.providers.config", cfg)
+
+    mock_setup_guards = mocker.patch("aiservices_core.runtime.setup_memory_guards")
+    mock_cleanup = mocker.patch("aiservices_core.runtime.cleanup_memory")
+
+    class TestProvider(BaseProvider):
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.called_generate = False
+            self.some_attr = "hello"
+
+        def generate(self, request, output_path=None):
+            self.called_generate = True
+            return "success"
+
+    # Verify decorator wraps on ProviderRegistry.get
+    reg = ProviderRegistry()
+    reg.register("test", TestProvider)
+
+    provider = reg.get("test", foo="bar")
+    assert isinstance(provider, MemoryManagedProvider)
+    # Verify isinstance also works for the wrapped class
+    assert isinstance(provider, TestProvider)
+
+    # Verify memory guards are set up on init
+    mock_setup_guards.assert_called_once()
+
+    # Verify attribute delegation
+    assert provider.some_attr == "hello"
+    assert provider.kwargs == {"foo": "bar"}
+
+    # Verify generate calls cleanup
+    res = provider.generate("req", "out")
+    assert res == "success"
+    assert provider._provider.called_generate is True
+    mock_cleanup.assert_called_once()
+
+

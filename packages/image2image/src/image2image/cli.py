@@ -25,6 +25,7 @@ def main(
     guidance_scale: float = typer.Option(7.5, "--guidance", help="Guidance scale"),
     steps: int = typer.Option(50, "--steps", help="Number of inference steps"),
     seed: int = typer.Option(None, "--seed", help="Random seed"),
+    quantize: int = typer.Option(None, "--quantize", help="Quantization bits (4/8/16, MLX only)"),
     negative_prompt: str = typer.Option(
         None, "--negative-prompt", "-n", help="Negative text prompt"
     ),  # noqa: E501
@@ -44,10 +45,14 @@ def main(
 
         logger.info(f"Using provider: {provider_name}")
 
+        provider_kwargs: dict = {"device": device}
+        if quantize is not None:
+            provider_kwargs["quantize"] = quantize
+
         with create_progress_bar() as progress:
             task_id = progress.add_task("[cyan]Initializing provider...", total=None)
 
-            provider = registry.get(provider_name, device=device)
+            provider = registry.get(provider_name, **provider_kwargs)
 
             progress.update(task_id, description="[green]Generating image...")
             start_time = time.time()

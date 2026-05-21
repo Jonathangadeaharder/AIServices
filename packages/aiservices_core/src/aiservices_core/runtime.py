@@ -1,4 +1,10 @@
+import atexit
+import multiprocessing
+import os
 import platform
+import signal
+import subprocess
+import sys
 
 from .config import config
 
@@ -19,3 +25,174 @@ def get_optimal_device() -> str:
 def setup_cache():
     """Ensure cache directory exists."""
     config.cache_dir.mkdir(parents=True, exist_ok=True)
+
+
+def get_total_memory() -> int:
+    """Get total system memory in bytes."""
+    try:
+        page_size = os.sysconf("SC_PAGE_SIZE")
+        phys_pages = os.sysconf("SC_PHYS_PAGES")
+        if page_size > 0 and phys_pages > 0:
+            return page_size * phys_pages
+    except Exception:
+        pass
+
+    # Fallback to sysctl on macOS
+    try:
+        res = subprocess.run(
+            ["sysctl", "-n", "hw.memsize"], capture_output=True, text=True, check=False
+        )
+        if res.returncode == 0:
+            return int(res.stdout.strip())
+    except Exception:
+        pass
+
+    return 8 * 1024 * 1024 * 1024  # default to 8GB fallback
+
+
+def setup_memory_guards():
+    """Apply memory limits to PyTorch MPS and MLX backends to safeguard system resources."""
+    fraction = config.max_memory_fraction
+    if fraction <= 0.0 or fraction > 1.0:
+        return
+
+    # 1. PyTorch MPS limit
+    try:
+        import torch
+
+        if hasattr(torch, "mps") and torch.mps.is_available():
+            torch.mps.set_per_process_memory_fraction(fraction)
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # 2. MLX limit
+    try:
+        import mlx.core as mx
+
+        total_mem = get_total_memory()
+        limit_bytes = int(total_mem * fraction)
+        
+        # Try mx.set_memory_limit, fallback to mx.metal.set_memory_limit
+        if hasattr(mx, "set_memory_limit"):
+            mx.set_memory_limit(limit_bytes)
+        elif hasattr(mx, "metal") and hasattr(mx.metal, "set_memory_limit"):
+            mx.metal.set_memory_limit(limit_bytes)
+
+        # Cap the compile/scratch cache to 10% of the memory limit
+        cache_limit_bytes = int(limit_bytes * 0.1)
+        if hasattr(mx, "set_cache_limit"):
+            mx.set_cache_limit(cache_limit_bytes)
+        elif hasattr(mx, "metal") and hasattr(mx.metal, "set_cache_limit"):
+            mx.metal.set_cache_limit(cache_limit_bytes)
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+
+def cleanup_memory(force_sys_purge: bool = False):
+    """Clean up memory across PyTorch, MLX, and Python garbage collection.
+
+    This function checks if torch or mlx are imported/available and releases
+    their respective caches to return memory back to the OS. It also sweeps
+    orphaned background worker processes.
+    """
+    # 1. Sweep orphaned processes first
+    reap_orphaned_processes()
+
+    # 2. PyTorch MPS
+    if "torch" in sys.modules:
+        try:
+            import torch
+
+            if hasattr(torch, "mps") and torch.mps.is_available():
+                torch.mps.empty_cache()
+        except Exception:
+            pass
+
+    # 3. MLX
+    if "mlx.core" in sys.modules or "mlx" in sys.modules:
+        try:
+            import mlx.core as mx
+
+            mx.metal.clear_cache()
+        except Exception:
+            pass
+
+    # 4. Python Garbage Collection
+    import gc
+
+    gc.collect()
+
+    # 5. OS-level VM page purge (optional and non-blocking)
+    if force_sys_purge and platform.system() == "Darwin":
+        try:
+            # Run sudo purge in non-interactive mode. Will only succeed
+            # if user configured passwordless sudo for the purge command.
+            subprocess.run(["sudo", "-n", "purge"], capture_output=True, check=False)
+        except Exception:
+            pass
+
+
+def reap_orphaned_processes():
+    """Identify and terminate orphaned AIServices processes (PPID = 1)."""
+    try:
+        # On macOS, ps -eo pid,ppid,args lists these
+        result = subprocess.run(
+            ["ps", "-eo", "pid,ppid,args"], capture_output=True, text=True, check=False
+        )
+        if result.returncode != 0:
+            return
+
+        current_pid = os.getpid()
+
+        for line in result.stdout.strip().split("\n")[1:]:  # skip header
+            parts = line.strip().split(None, 2)
+            if len(parts) < 3:
+                continue
+            pid_str, ppid_str, command = parts
+            try:
+                pid = int(pid_str)
+                ppid = int(ppid_str)
+            except ValueError:
+                continue
+
+            # PPID = 1 indicates an orphaned process adopted by init/launchd
+            if ppid == 1 and pid != current_pid:
+                # Target python workers belonging to our specific project path
+                if "AIServices/.venv" in command and "python" in command:
+                    try:
+                        os.kill(pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    except PermissionError:
+                        pass
+    except Exception:
+        pass
+
+
+def terminate_current_children():
+    """Terminate all active child processes spawned by the current process."""
+    try:
+        for p in multiprocessing.active_children():
+            try:
+                p.terminate()
+                p.join(timeout=0.5)
+                if p.is_alive():
+                    p.kill()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+# Register atexit handler to ensure automatic cleanup of children and orphans on exit
+def _exit_handler():
+    terminate_current_children()
+    reap_orphaned_processes()
+
+
+atexit.register(_exit_handler)
+

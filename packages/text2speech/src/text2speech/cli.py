@@ -3,9 +3,9 @@ import time
 import typer
 from aiservices_core.cli import device_option, verbose_option
 from aiservices_core.logging import create_progress_bar, get_logger
-from aiservices_core.providers import registry
 
 from .models import Text2SpeechRequest
+from .providers import registry
 
 app = typer.Typer(help="Text to speech generation pipeline")
 logger = get_logger(__name__)
@@ -16,6 +16,22 @@ def generate(
     text: str = typer.Option(..., "--text", "-t", help="Text to convert to speech"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output audio file"),
     provider_name: str = typer.Option("text2speech.fish_mlx", "--provider", help="Provider name"),
+    voice_id: str | None = typer.Option(
+        None, "--voice-id", help="Voice ID for providers that support it"
+    ),
+    reference_audio: str | None = typer.Option(
+        None, "--reference-audio", help="Reference audio path for voice cloning"
+    ),
+    reference_text: str | None = typer.Option(
+        None, "--reference-text", help="Transcript of the reference audio"
+    ),
+    emotion: str | None = typer.Option(None, "--emotion", help="Emotion tag"),
+    tone: str | None = typer.Option(None, "--tone", help="Tone tag"),
+    effect: str | None = typer.Option(None, "--effect", help="Effect tag"),
+    language: str | None = typer.Option(None, "--language", help="Language code"),
+    temperature: float | None = typer.Option(
+        None, "--temperature", help="Sampling temperature for neural TTS providers"
+    ),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
@@ -25,6 +41,14 @@ def generate(
     try:
         request = Text2SpeechRequest(
             text=text,
+            voice_id=voice_id,
+            reference_audio=reference_audio,
+            reference_text=reference_text,
+            emotion=emotion,
+            tone=tone,
+            effect=effect,
+            language=language,
+            temperature=temperature,
         )
 
         with create_progress_bar() as progress:

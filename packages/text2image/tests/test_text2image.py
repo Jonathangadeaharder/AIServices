@@ -1,6 +1,3 @@
-import sys
-
-import numpy as np
 import pytest
 from text2image.models import Text2ImageRequest
 from text2image.providers.mlx import MLXProvider
@@ -13,79 +10,67 @@ def test_mlx_provider_init():
 
 
 def test_mlx_provider_custom_model():
-    provider = MLXProvider(model_name="flux-dev")
-    assert provider.model_name == "flux-dev"
+    provider = MLXProvider(model_name="dev")
+    assert provider.model_name == "dev"
 
 
 def test_mlx_provider_generate(dummy_request, tmp_path, mocker):
-    mocker.patch("text2image.providers.mlx.MLXProvider._load_pipeline", return_value=None)
-    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
-
-    mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
-    mock_img = mocker.MagicMock()
-    mock_fromarray.return_value = mock_img
+    mocker.patch("text2image.providers.mlx.shutil.which", return_value="/bin/mflux-generate")
+    mock_run = mocker.patch("text2image.providers.mlx.subprocess.run")
+    mock_run.return_value.returncode = 0
 
     provider = MLXProvider()
-    provider._pipeline = mock_pipeline
-
     out_file = tmp_path / "out.png"
     response = provider.generate(dummy_request, str(out_file))
 
     assert response.output_path == str(out_file)
     assert response.metadata["provider"] == "mlx"
-    mock_pipeline.generate_images.assert_called_once()
-    mock_img.save.assert_called_once()
+    assert response.metadata["model_name"] == "schnell"
+    args = mock_run.call_args.args[0]
+    assert args[:3] == ["/bin/mflux-generate", "--model", "schnell"]
+    assert "--prompt" in args
+    assert "--width" in args
+    assert "1024" in args
 
 
 def test_mlx_provider_generate_default_output(dummy_request, mocker):
-    mocker.patch("text2image.providers.mlx.MLXProvider._load_pipeline", return_value=None)
-    mock_fromarray = mocker.patch("text2image.providers.mlx.Image.fromarray")
-
-    mock_pipeline = mocker.MagicMock()
-    mock_pipeline.generate_images.return_value = [np.random.rand(1024, 1024, 3).astype(np.float32)]
-    mock_img = mocker.MagicMock()
-    mock_fromarray.return_value = mock_img
+    mocker.patch("text2image.providers.mlx.shutil.which", return_value="/bin/mflux-generate")
+    mock_run = mocker.patch("text2image.providers.mlx.subprocess.run")
+    mock_run.return_value.returncode = 0
 
     provider = MLXProvider()
-    provider._pipeline = mock_pipeline
-
     response = provider.generate(dummy_request)
 
     assert response.output_path == "output.png"
 
 
 def test_mlx_provider_load_pipeline(mocker):
-    mock_flux = mocker.MagicMock()
-    mocker.patch.dict(
-        sys.modules,
-        {"image2image": mocker.MagicMock(), "image2image.flux_mlx": mock_flux},
-    )
-    mock_pipeline_cls = mock_flux.FluxPipeline
-    mock_pipeline_cls.return_value = mocker.MagicMock()
+    mocker.patch("text2image.providers.mlx.shutil.which", return_value="/bin/mflux-generate")
 
     provider = MLXProvider()
-    provider._pipeline = None
     provider._load_pipeline()
 
-    mock_pipeline_cls.assert_called_once_with(provider.model_name)
-    assert provider._pipeline is not None
+    assert provider._pipeline == "/bin/mflux-generate"
+
+
+def test_mlx_provider_load_pipeline_missing_executable(mocker):
+    mocker.patch("text2image.providers.mlx.shutil.which", return_value=None)
+
+    provider = MLXProvider()
+
+    with pytest.raises(ImportError, match="mflux-generate is not installed"):
+        provider._load_pipeline()
 
 
 def test_mlx_provider_load_pipeline_cached(mocker):
-    mock_flux = mocker.MagicMock()
-    mocker.patch.dict(
-        sys.modules,
-        {"image2image": mocker.MagicMock(), "image2image.flux_mlx": mock_flux},
-    )
-    mock_pipeline_cls = mock_flux.FluxPipeline
+    mock_which = mocker.patch("text2image.providers.mlx.shutil.which")
 
     provider = MLXProvider()
-    provider._pipeline = mocker.MagicMock()
-
+    provider._pipeline = "/bin/mflux-generate"
     provider._load_pipeline()
-    mock_pipeline_cls.assert_not_called()
-    assert provider._pipeline is not None, "pipeline should remain cached"
+
+    mock_which.assert_not_called()
+    assert provider._pipeline == "/bin/mflux-generate"
 
 
 def test_request_model_defaults():
