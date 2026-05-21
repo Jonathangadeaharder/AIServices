@@ -6,7 +6,6 @@ import signal
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 from .config import config
 
@@ -160,7 +159,7 @@ def reap_orphaned_processes():
 
         # Derive the venv prefix from the running interpreter so the match
         # is independent of the project directory name.
-        venv_prefix = str(Path(sys.executable).parent.parent)
+        venv_prefix = os.path.dirname(os.path.dirname(sys.executable))
         current_pid = os.getpid()
 
         for line in result.stdout.strip().split("\n")[1:]:  # skip header
