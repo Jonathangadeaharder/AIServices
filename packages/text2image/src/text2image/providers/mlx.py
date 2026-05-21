@@ -63,10 +63,19 @@ class MLXProvider(BaseProvider):
             "--quantize",
             str(self.quantize),
         ]
-        if request.guidance_scale:
+        if request.guidance_scale is not None:
             cmd.extend(["--guidance", str(request.guidance_scale)])
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=180,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError("mflux-generate timed out after 180 s") from exc
         if result.returncode != 0:
             raise RuntimeError(result.stderr or result.stdout or "mflux-generate failed")
 

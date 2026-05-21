@@ -5,8 +5,11 @@ import platform
 import signal
 import subprocess
 import sys
+import time
+from pathlib import Path
 
 from .config import config
+
 
 
 def get_optimal_device() -> str:
@@ -137,15 +140,27 @@ def cleanup_memory(force_sys_purge: bool = False):
 
 
 def reap_orphaned_processes():
-    """Identify and terminate orphaned AIServices processes (PPID = 1)."""
+    """Identify and terminate orphaned AIServices worker processes (PPID = 1).
+
+    Detects orphans by matching against the virtual-environment path of the
+    currently-running interpreter, so the check is portable across different
+    project directory names.  The function is a no-op on Windows where the
+    ``ps`` POSIX command is unavailable.
+    """
+    # ps -eo is a POSIX/macOS/Linux tool; skip on Windows
+    if platform.system() == "Windows":
+        return
+
     try:
-        # On macOS, ps -eo pid,ppid,args lists these
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,args"], capture_output=True, text=True, check=False
         )
         if result.returncode != 0:
             return
 
+        # Derive the venv prefix from the running interpreter so the match
+        # is independent of the project directory name.
+        venv_prefix = str(Path(sys.executable).parent.parent)
         current_pid = os.getpid()
 
         for line in result.stdout.strip().split("\n")[1:]:  # skip header
@@ -159,16 +174,19 @@ def reap_orphaned_processes():
             except ValueError:
                 continue
 
-            # PPID = 1 indicates an orphaned process adopted by init/launchd
+            # PPID = 1 → adopted by init/launchd → orphaned worker
             if ppid == 1 and pid != current_pid:
-                # Target python workers belonging to our specific project path
-                if "AIServices/.venv" in command and "python" in command:
+                if venv_prefix in command and "python" in command:
                     try:
-                        os.kill(pid, signal.SIGKILL)
+                        # Attempt graceful shutdown first; escalate to SIGKILL
+                        # only if the process is still alive after 0.5 s.
+                        os.kill(pid, signal.SIGTERM)
+                        time.sleep(0.5)
+                        os.kill(pid, signal.SIGKILL)  # no-op if already dead
                     except ProcessLookupError:
-                        pass
+                        pass  # already gone — nothing to do
                     except PermissionError:
-                        pass
+                        pass  # not our process to kill
     except Exception:
         pass
 

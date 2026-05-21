@@ -87,10 +87,20 @@ class FishMLXProvider(BaseProvider):
 
         generated_path = out_path.parent / f"{prefix}_000.wav"
         if generated_path.exists():
-            generated_path.replace(out_path)
+            if out_path.suffix.lower() == ".wav":
+                # Extensions match — safe to rename in-place.
+                generated_path.replace(out_path)
+                actual_output = str(out_path)
+            else:
+                # The library always produces WAV; renaming would produce a file
+                # whose extension lies about its format.  Keep the .wav path and
+                # return it so callers know the real codec.
+                actual_output = str(generated_path)
+        else:
+            actual_output = str(out_path)
 
         return Text2SpeechResponse(
-            output_path=str(out_path),
+            output_path=actual_output,
             metadata={
                 "provider": "fish-s2-pro-mlx",
                 "model": self.model_name,

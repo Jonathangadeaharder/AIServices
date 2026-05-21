@@ -51,6 +51,17 @@ class MLXProvider(BaseProvider):
             request.fps,
         )
 
+        # Honour the caller's requested step count.  When num_inference_steps is
+        # provided, distribute them across both pipeline stages proportionally
+        # (80 % stage-1, 20 % stage-2), with a minimum of 1 for stage 2.
+        if request.num_inference_steps is not None:
+            total = request.num_inference_steps
+            stage2 = max(1, round(total * 0.2))
+            stage1 = total - stage2
+        else:
+            stage1 = self._stage1_steps
+            stage2 = self._stage2_steps
+
         self._pipeline.generate_and_save(
             prompt=request.prompt,
             output_path=output_path,
@@ -59,8 +70,8 @@ class MLXProvider(BaseProvider):
             width=request.width,
             num_frames=num_frames,
             seed=effective_seed,
-            stage1_steps=self._stage1_steps,
-            stage2_steps=self._stage2_steps,
+            stage1_steps=stage1,
+            stage2_steps=stage2,
         )
 
         return Image2VideoResponse(
