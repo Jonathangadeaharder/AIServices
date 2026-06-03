@@ -19,10 +19,10 @@ from blenderservices.manifest import AssetStatus, AssetType, ShotManifest
 # TODO: import from scriptforge — placeholders until scriptforge provides these
 class StoryBeat:
     """Placeholder until scriptforge provides forge.domain.story.StoryBeat."""
-    def __init__(self, *, num: int, title: str, duration: int = 20,
+    def __init__(self, *, num: int | str, title: str, duration: int = 20,
                  characters: tuple[str, ...] = (), location: str = "",
                  narrator: str = "", ember: bool = False):
-        self.num = num
+        self.num = int(num) if isinstance(num, str) else num
         self.title = title
         self.duration = duration
         self.characters = characters
@@ -32,8 +32,8 @@ class StoryBeat:
 
 class StoryChapter:
     """Placeholder until scriptforge provides forge.domain.story.StoryChapter."""
-    def __init__(self, *, num: int, title: str, beats: list[StoryBeat]):
-        self.num = num
+    def __init__(self, *, num: int | str, title: str, beats: list[StoryBeat]):
+        self.num = int(num) if isinstance(num, str) else num
         self.title = title
         self.beats = beats
 
@@ -42,9 +42,69 @@ class StorySpec:
     def __init__(self, *, chapters: list[StoryChapter]):
         self.chapters = chapters
 
+
 def load_spec(project_root: Path) -> StorySpec:
-    """Placeholder until scriptforge provides forge.domain.story.load_spec."""
-    raise NotImplementedError("TODO: import load_spec from scriptforge")
+    """Load story spec from .project.md YAML frontmatter or legacy project.forge.yaml."""
+    project_md = project_root / ".project.md"
+    forge_yaml = project_root / "project.forge.yaml"
+
+    if project_md.is_file():
+        return _load_spec_from_project_md(project_md)
+    if forge_yaml.is_file():
+        return _load_spec_from_forge_yaml(forge_yaml)
+
+    raise FileNotFoundError(f"no .project.md or project.forge.yaml in {project_root}")
+
+
+def _load_spec_from_project_md(path: Path) -> StorySpec:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        raise ValueError(f"{path} must start with YAML frontmatter")
+    end = text.find("---", 3)
+    if end == -1:
+        raise ValueError(f"{path}: unclosed YAML frontmatter")
+    frontmatter = yaml.safe_load(text[3:end])
+    chapters = []
+    for beat in frontmatter.get("beats", []):
+        ch_num = int(beat.get("chapter", 1))
+        while len(chapters) < ch_num:
+            chapters.append(StoryChapter(num=len(chapters) + 1, title=f"Chapter {len(chapters) + 1}", beats=[]))
+        chapters[ch_num - 1].beats.append(StoryBeat(
+            num=int(beat.get("id", "").split("_")[-1]) if "_" in str(beat.get("id", "")) else len(chapters[ch_num - 1].beats) + 1,
+            title=beat.get("narrator", ""),
+            duration=int(beat.get("duration", 20)),
+            characters=tuple(beat.get("characters", [])),
+            location=beat.get("location", ""),
+            narrator=beat.get("narrator", ""),
+            ember=False,
+        ))
+    return StorySpec(chapters=chapters)
+
+
+def _load_spec_from_forge_yaml(path: Path) -> StorySpec:
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    chapters = []
+    project_root = path.parent
+    for ch_entry in data.get("chapters", []):
+        source = ch_entry.get("source", "")
+        ch_num = int(ch_entry.get("num", "1"))
+        ch_title = ch_entry.get("title", f"Chapter {ch_num}")
+        beats_file = project_root / source if source else project_root / "chapters" / f"ch{ch_num:02d}_beats.yaml"
+        beats = []
+        if beats_file.is_file():
+            beats_data = yaml.safe_load(beats_file.read_text(encoding="utf-8"))
+            for b in beats_data.get("beats", []):
+                beats.append(StoryBeat(
+                    num=int(b.get("num", 1)),
+                    title=b.get("title", ""),
+                    duration=int(b.get("duration", 20)),
+                    characters=tuple(b.get("characters", [])),
+                    location=b.get("location", ""),
+                    narrator=b.get("narrator", ""),
+                    ember=b.get("ember", False),
+                ))
+        chapters.append(StoryChapter(num=ch_num, title=ch_title, beats=beats))
+    return StorySpec(chapters=chapters)
 
 CatalogIds = frozenset(asset.id for asset in PRODUCTION_CATALOG)
 
