@@ -5,6 +5,8 @@ description = "AI Services Monorepo Workspace"
 requires-python = ">=3.11"
 dependencies = [
     "aiservices-core",
+    "aiservices",
+    "blenderservices",
     "image2image",
     "text2image",
     "image2video",
@@ -28,6 +30,8 @@ exclude = [
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
+aiservices = { workspace = true }
+blenderservices = { workspace = true }
 image2image = { workspace = true }
 text2image = { workspace = true }
 text2audio = { workspace = true }
@@ -60,13 +64,14 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["packages/aiservices_core/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/text2speech/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests", "packages/text2video/tests"]
+testpaths = ["packages/aiservices_core/tests", "packages/aiservices/tests", "packages/image2image/tests", "packages/text2image/tests", "packages/text2audio/tests", "packages/text2speech/tests", "packages/video2audio/tests", "packages/audio2subtitle/tests", "packages/video2subtitle/tests", "packages/image2video/tests", "packages/text2video/tests"]
 addopts = "--import-mode=importlib"
 
 [tool.coverage.run]
 branch = true
 source = [
     "aiservices_core",
+    "aiservices",
     "image2image",
     "text2image",
     "text2audio",

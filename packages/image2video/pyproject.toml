@@ -23,5 +23,5 @@ packages = ["src/image2video"]
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
-ltx-core-mlx = { git = "https://github.com/dgrauet/ltx-2-mlx", subdirectory = "packages/ltx-core-mlx" }
-ltx-pipelines-mlx = { git = "https://github.com/dgrauet/ltx-2-mlx", subdirectory = "packages/ltx-pipelines-mlx" }
+ltx-core-mlx = { git = "https://github.com/Jonathangadeaharder/ltx-2-mlx", subdirectory = "packages/ltx-core-mlx", rev = "33b343037abb380ea99c54c0558ab637e3db8bd9" }
+ltx-pipelines-mlx = { git = "https://github.com/Jonathangadeaharder/ltx-2-mlx", subdirectory = "packages/ltx-pipelines-mlx", rev = "33b343037abb380ea99c54c0558ab637e3db8bd9" }
