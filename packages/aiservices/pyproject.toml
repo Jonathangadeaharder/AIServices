@@ -6,11 +6,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiservices-core",
-    "image2video",
-    "text2image",
-    "image2image",
-    "text2speech",
-    "audio2subtitle",
     "openai>=1.0.0",
     "pydantic>=2.0.0",
     "opencv-python-headless>=4.8.0",
@@ -38,11 +33,6 @@ packages = ["src/aiservices"]
 
 [tool.uv.sources]
 aiservices-core = { workspace = true }
-image2video = { workspace = true }
-text2image = { workspace = true }
-image2image = { workspace = true }
-text2speech = { workspace = true }
-audio2subtitle = { workspace = true }
 ltx-core-mlx = { git = "https://github.com/Jonathangadeaharder/ltx-2-mlx", subdirectory = "packages/ltx-core-mlx", rev = "33b343037abb380ea99c54c0558ab637e3db8bd9" }
 ltx-pipelines-mlx = { git = "https://github.com/Jonathangadeaharder/ltx-2-mlx", subdirectory = "packages/ltx-pipelines-mlx", rev = "33b343037abb380ea99c54c0558ab637e3db8bd9" }
 

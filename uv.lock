@@ -49,10 +49,7 @@ version = "0.2.0"
 source = { editable = "packages/aiservices" }
 dependencies = [
     { name = "aiservices-core" },
-    { name = "audio2subtitle" },
     { name = "faster-whisper" },
-    { name = "image2image" },
-    { name = "image2video" },
     { name = "ltx-core-mlx" },
     { name = "ltx-pipelines-mlx" },
     { name = "mflux" },
@@ -63,8 +60,6 @@ dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
     { name = "structlog" },
-    { name = "text2image" },
-    { name = "text2speech" },
 ]
 
 [package.optional-dependencies]
@@ -89,11 +84,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiservices-core", editable = "packages/aiservices_core" },
-    { name = "audio2subtitle", editable = "packages/audio2subtitle" },
     { name = "ctranslate2", marker = "extra == 'translation'", specifier = ">=3.0.0" },
     { name = "faster-whisper", specifier = ">=0.9.0" },
-    { name = "image2image", editable = "packages/image2image" },
-    { name = "image2video", editable = "packages/image2video" },
     { name = "ltx-core-mlx", git = "https://github.com/Jonathangadeaharder/ltx-2-mlx?subdirectory=packages%2Fltx-core-mlx&rev=33b343037abb380ea99c54c0558ab637e3db8bd9" },
     { name = "ltx-pipelines-mlx", git = "https://github.com/Jonathangadeaharder/ltx-2-mlx?subdirectory=packages%2Fltx-pipelines-mlx&rev=33b343037abb380ea99c54c0558ab637e3db8bd9" },
     { name = "mflux", specifier = ">=0.17.5" },
@@ -104,8 +96,6 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "structlog", specifier = ">=23.0.0" },
-    { name = "text2image", editable = "packages/text2image" },
-    { name = "text2speech", editable = "packages/text2speech" },
 ]
 provides-extras = ["translation"]
 
