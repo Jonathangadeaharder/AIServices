@@ -133,7 +133,7 @@ def audit_manifests(
     return findings
 
 
-def sync_manifest(
+def sync_manifest(  # noqa: C901
     manifest_path: Path,
     inspection: BlendInspection | None,
     *,

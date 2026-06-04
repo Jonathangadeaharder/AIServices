@@ -1,20 +1,21 @@
-import os
 import base64
+import os
 from io import BytesIO
-from typing import List
+
 import cv2
-from PIL import Image
-from openai import OpenAI
 import structlog
+from openai import OpenAI
+from PIL import Image
 
 logger = structlog.get_logger()
+
 
 class MultimodalJudge:
     """
     A clean abstraction for a local multimodal judge (Nemotron Omni).
     Handles media processing and local AI orchestration.
     """
-    
+
     def __init__(self, base_url: str = "http://localhost:8000/v1", api_key: str = "local"):
         self.client = OpenAI(base_url=base_url, api_key=api_key)
         self.model = os.getenv("JUDGE_MODEL", "nemotron-omni")
@@ -33,18 +34,13 @@ class MultimodalJudge:
 
         content = [
             {"type": "text", "text": prompt},
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}
-            }
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}},
         ]
 
         response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": content}],
-            max_tokens=500
+            model=self.model, messages=[{"role": "user", "content": content}], max_tokens=500
         )
-        
+
         return response.choices[0].message.content
 
     def judge_video(self, video_path: str, prompt: str, frame_count: int = 5) -> str:
@@ -61,27 +57,24 @@ class MultimodalJudge:
 
         logger.info("judging_video", path=video_path, frames=frame_count)
         frames = self._extract_frames(video_path, frame_count)
-        
+
         if not frames:
             logger.warning("no_frames_extracted", path=video_path)
 
         content = [{"type": "text", "text": prompt}]
         for frame in frames:
             b64_image = self._encode_image(frame)
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}
-            })
+            content.append(
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}}
+            )
 
         response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": content}],
-            max_tokens=500
+            model=self.model, messages=[{"role": "user", "content": content}], max_tokens=500
         )
-        
+
         return response.choices[0].message.content
 
-    def _extract_frames(self, video_path: str, count: int) -> List[Image.Image]:
+    def _extract_frames(self, video_path: str, count: int) -> list[Image.Image]:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             logger.error("failed_to_open_video", path=video_path)
@@ -94,7 +87,7 @@ class MultimodalJudge:
             return []
 
         step = max(1, total_frames // count)
-        
+
         frames = []
         for i in range(count):
             frame_idx = i * step
@@ -106,7 +99,7 @@ class MultimodalJudge:
                 # Convert BGR (OpenCV) to RGB (PIL)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frames.append(Image.fromarray(frame_rgb))
-        
+
         cap.release()
         return frames
 

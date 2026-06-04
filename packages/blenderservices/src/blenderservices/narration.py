@@ -21,15 +21,19 @@ from blenderservices.scaffold import load_shot_list_for_chapter
 # TODO: import from scriptforge — placeholders until scriptforge provides these
 TTS_SAMPLE_RATE = 22050  # matches forge.config.models.TTS_SAMPLE_RATE
 
+
 class AudioClip:
     """Placeholder until scriptforge provides forge.domain.artifact.AudioClip."""
+
     def __init__(self, path, duration_s, sample_rate):
         self.path = path
         self.duration_s = duration_s
         self.sample_rate = sample_rate
 
+
 class Beat:
     """Placeholder until scriptforge provides forge.domain.beat.Beat."""
+
     def __init__(self, *, index, chapter, narrator, description, characters, location):
         self.index = index
         self.chapter = chapter
@@ -38,10 +42,12 @@ class Beat:
         self.characters = characters
         self.location = location
 
+
 def assemble_narration(clips, out_path):
     """Placeholder until scriptforge provides forge.audio_gen.assemble.assemble_narration."""
     import numpy as np
     import soundfile as sf
+
     segments = []
     for clip in clips:
         data, sr = sf.read(str(clip.path), dtype="float32")

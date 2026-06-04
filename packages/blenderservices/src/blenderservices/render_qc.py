@@ -16,38 +16,48 @@ from blenderservices.episode_settings import load_chapter_render_settings
 from blenderservices.scaffold import load_shot_list_for_chapter, shots_dir
 from blenderservices.shot_list import EpisodeShotPlan, ShotListDocument
 
+
 # TODO: import from scriptforge — placeholders until scriptforge provides these
 class VideoClip:
     """Placeholder until scriptforge provides forge.domain.artifact.VideoClip."""
+
     def __init__(self, path: Any, duration_s: float = 0.0, fps: float = 24.0):
         self.path = path
         self.duration_s = duration_s
         self.fps = fps
+
 
 # TODO: import from scriptforge
 # from forge.video_gen.assemble import AssemblyValidationError, concat_clips, mux_audio_video
 # from forge.video_gen.probe import probe_media
 # from forge.video_gen.validate import validate_clip_timing, validate_clips
 
+
 def concat_clips(clips: list[VideoClip], output: Path, *, fps: int = 24) -> None:
     """Placeholder until scriptforge provides forge.video_gen.assemble.concat_clips."""
     raise NotImplementedError("TODO: import concat_clips from scriptforge")
+
 
 def mux_audio_video(video: Path, audio: Path, output: Path, **kwargs: Any) -> None:
     """Placeholder until scriptforge provides forge.video_gen.assemble.mux_audio_video."""
     raise NotImplementedError("TODO: import mux_audio_video from scriptforge")
 
+
 class AssemblyValidationError(Exception):
     """Placeholder until scriptforge provides forge.video_gen.assemble.AssemblyValidationError."""
+
     pass
+
 
 def probe_media(path: Any) -> Any:
     """Placeholder until scriptforge provides forge.video_gen.probe.probe_media."""
     raise NotImplementedError("TODO: import probe_media from scriptforge")
 
+
 def validate_clip_timing(clip: Any, **kwargs: Any) -> list[str]:
     """Placeholder until scriptforge provides forge.video_gen.validate.validate_clip_timing."""
     return []
+
 
 def validate_clips(clips: list[VideoClip], **kwargs: Any) -> list[str]:
     """Placeholder until scriptforge provides forge.video_gen.validate.validate_clips."""

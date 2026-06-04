@@ -11,10 +11,9 @@ Covers:
 - GenConfig / ImageFrame / AudioClip data classes
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import call
 
+import pytest
 from aiservices.generate import (
     AudioClip,
     AudioGenerator,
@@ -24,24 +23,19 @@ from aiservices.generate import (
     LoRAAdapter,
     VideoGenerator,
     VideoMode,
+    _generate_lora_config,
+    _image2image,
+    _run_distilled_pipeline,
+    _run_hdr_ic_lora_pipeline,
+    _run_ic_lora_pipeline,
+    _run_keyframe_pipeline,
+    _run_two_stage_pipeline,
+    _run_video_pipeline,
     generate_audio,
-    generate_image,
     generate_image2image,
     generate_text2image,
     generate_video,
-    _text2image,
-    _image2image,
-    _generate_lora_config,
-    _run_video_pipeline,
-    _run_keyframe_pipeline,
-    _run_two_stage_pipeline,
-    _run_hq_pipeline,
-    _run_distilled_pipeline,
-    _run_one_stage_pipeline,
-    _run_ic_lora_pipeline,
-    _run_hdr_ic_lora_pipeline,
 )
-
 
 # ---------------------------------------------------------------------------
 # Data classes
@@ -203,9 +197,7 @@ class TestImageGenerator:
 
     def test_text2image_failure(self, tmp_path, mocker):
         mock_run = mocker.patch("aiservices.generate.subprocess.run")
-        mock_run.return_value = mocker.MagicMock(
-            returncode=1, stderr="Error: out of memory"
-        )
+        mock_run.return_value = mocker.MagicMock(returncode=1, stderr="Error: out of memory")
 
         gen = ImageGenerator()
         with pytest.raises(RuntimeError, match="mflux-generate-flux2 failed"):
@@ -333,7 +325,8 @@ class TestTrainLora:
 
         gen = ImageGenerator()
         gen.train_lora(
-            training_dir, output_dir,
+            training_dir,
+            output_dir,
             config_path=config_file,
             resume_path=checkpoint,
         )
@@ -368,15 +361,14 @@ class TestTrainLora:
         gen = ImageGenerator()
         with pytest.raises(FileNotFoundError, match="Config file not found"):
             gen.train_lora(
-                training_dir, tmp_path / "out",
+                training_dir,
+                tmp_path / "out",
                 config_path=tmp_path / "nonexistent.toml",
             )
 
     def test_train_lora_failure(self, tmp_path, mocker):
         mock_run = mocker.patch("aiservices.generate.subprocess.run")
-        mock_run.return_value = mocker.MagicMock(
-            returncode=1, stderr="Training error: OOM"
-        )
+        mock_run.return_value = mocker.MagicMock(returncode=1, stderr="Training error: OOM")
 
         training_dir = tmp_path / "training"
         training_dir.mkdir()
@@ -425,7 +417,14 @@ class TestAudioGenerator:
         mock_gen = mocker.MagicMock()
         mock_mlx = mocker.MagicMock()
         mock_mlx.tts.generate.generate_audio = mock_gen
-        mocker.patch.dict("sys.modules", {"mlx_audio": mock_mlx, "mlx_audio.tts": mock_mlx.tts, "mlx_audio.tts.generate": mocker.MagicMock()})
+        mocker.patch.dict(
+            "sys.modules",
+            {
+                "mlx_audio": mock_mlx,
+                "mlx_audio.tts": mock_mlx.tts,
+                "mlx_audio.tts.generate": mocker.MagicMock(),
+            },
+        )
 
         # Patch the import directly
         mocker.patch(
@@ -443,7 +442,8 @@ class TestAudioGenerator:
         gen = AudioGenerator()
         gen.generate = mocker.MagicMock(return_value=tmp_path / "out.wav")
         gen.generate(
-            "Hello", tmp_path / "out.wav",
+            "Hello",
+            tmp_path / "out.wav",
             ref_audio=tmp_path / "ref.wav",
             ref_text="reference text",
         )
@@ -900,9 +900,7 @@ class TestVideoGeneratorLoRA:
         gen = VideoGenerator()
         gen_with = gen.with_lora(LoRAAdapter("with_lora_adapter", 0.9))
         # Explicit arg takes precedence
-        result = gen_with._resolve_video_lora(
-            [LoRAAdapter("explicit_adapter", 0.7)]
-        )
+        result = gen_with._resolve_video_lora([LoRAAdapter("explicit_adapter", 0.7)])
         assert result == [("explicit_adapter", 0.7)]
 
     def test_resolve_video_lora_uses_with_lora_adapters(self):
@@ -1078,9 +1076,7 @@ class TestVideoGeneratorTrainLoRA:
 
     def test_train_lora_failure(self, tmp_path, mocker):
         mock_run = mocker.patch("aiservices.generate.subprocess.run")
-        mock_run.return_value = mocker.MagicMock(
-            returncode=1, stderr="Training error: OOM"
-        )
+        mock_run.return_value = mocker.MagicMock(returncode=1, stderr="Training error: OOM")
 
         config = tmp_path / "config.yaml"
         config.touch()
@@ -1099,7 +1095,7 @@ class TestVideoGeneratorTrainLoRA:
         videos.mkdir()
 
         gen = VideoGenerator()
-        result = gen.train_lora(config, videos_dir=videos)
+        result = gen.train_lora(config, videos_dir=videos)  # noqa: F841
 
         # Two subprocess calls: preprocess + train
         assert mock_run.call_count == 2
@@ -1157,9 +1153,7 @@ class TestVideoGeneratorPreprocess:
         captions = tmp_path / "captions"
 
         gen = VideoGenerator()
-        gen.preprocess_training_data(
-            videos, output, captions_dir=captions, max_frames=121
-        )
+        gen.preprocess_training_data(videos, output, captions_dir=captions, max_frames=121)
 
         cmd = mock_run.call_args[0][0]
         assert "--captions" in cmd
@@ -1176,9 +1170,7 @@ class TestVideoGeneratorPreprocess:
         output = tmp_path / "preprocessed"
 
         gen = VideoGenerator()
-        gen.preprocess_training_data(
-            videos, output, target_height=512, target_width=768
-        )
+        gen.preprocess_training_data(videos, output, target_height=512, target_width=768)
 
         cmd = mock_run.call_args[0][0]
         assert "--height" in cmd
@@ -1188,9 +1180,7 @@ class TestVideoGeneratorPreprocess:
 
     def test_preprocess_failure(self, tmp_path, mocker):
         mock_run = mocker.patch("aiservices.generate.subprocess.run")
-        mock_run.return_value = mocker.MagicMock(
-            returncode=1, stderr="Preprocessing failed"
-        )
+        mock_run.return_value = mocker.MagicMock(returncode=1, stderr="Preprocessing failed")
 
         videos = tmp_path / "videos"
         videos.mkdir()

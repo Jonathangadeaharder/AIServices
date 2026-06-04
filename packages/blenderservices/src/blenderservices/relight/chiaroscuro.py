@@ -211,8 +211,8 @@ def _add_window_lights() -> int:
     for win in windows:
         loc = win.matrix_world.translation
         outward = loc.copy()
-        _EPS = 1e-6
-        if outward.length < _EPS:
+        _eps = 1e-6
+        if outward.length < _eps:
             outward = Vector((0.0, 1.0, 0.0))
         else:
             outward.normalize()
@@ -224,7 +224,7 @@ def _add_window_lights() -> int:
         lo.data.color = (0.6, 0.7, 1.0)
         lo.data.size = 0.8
         direction = loc - light_loc
-        if direction.length < _EPS:
+        if direction.length < _eps:
             direction = Vector((0.0, 0.0, -1.0))
         lo.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
         added += 1

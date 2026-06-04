@@ -16,12 +16,22 @@ from blenderservices.catalog import PRODUCTION_CATALOG
 from blenderservices.location_map import infer_characters, map_set_id, slugify
 from blenderservices.manifest import AssetStatus, AssetType, ShotManifest
 
+
 # TODO: import from scriptforge — placeholders until scriptforge provides these
 class StoryBeat:
     """Placeholder until scriptforge provides forge.domain.story.StoryBeat."""
-    def __init__(self, *, num: int | str, title: str, duration: int = 20,
-                 characters: tuple[str, ...] = (), location: str = "",
-                 narrator: str = "", ember: bool = False):
+
+    def __init__(
+        self,
+        *,
+        num: int | str,
+        title: str,
+        duration: int = 20,
+        characters: tuple[str, ...] = (),
+        location: str = "",
+        narrator: str = "",
+        ember: bool = False,
+    ):
         self.num = int(num) if isinstance(num, str) else num
         self.title = title
         self.duration = duration
@@ -30,15 +40,19 @@ class StoryBeat:
         self.narrator = narrator
         self.ember = ember
 
+
 class StoryChapter:
     """Placeholder until scriptforge provides forge.domain.story.StoryChapter."""
+
     def __init__(self, *, num: int | str, title: str, beats: list[StoryBeat]):
         self.num = int(num) if isinstance(num, str) else num
         self.title = title
         self.beats = beats
 
+
 class StorySpec:
     """Placeholder until scriptforge provides forge.domain.story.StorySpec."""
+
     def __init__(self, *, chapters: list[StoryChapter]):
         self.chapters = chapters
 
@@ -68,16 +82,22 @@ def _load_spec_from_project_md(path: Path) -> StorySpec:
     for beat in frontmatter.get("beats", []):
         ch_num = int(beat.get("chapter", 1))
         while len(chapters) < ch_num:
-            chapters.append(StoryChapter(num=len(chapters) + 1, title=f"Chapter {len(chapters) + 1}", beats=[]))
-        chapters[ch_num - 1].beats.append(StoryBeat(
-            num=int(beat.get("id", "").split("_")[-1]) if "_" in str(beat.get("id", "")) else len(chapters[ch_num - 1].beats) + 1,
-            title=beat.get("narrator", ""),
-            duration=int(beat.get("duration", 20)),
-            characters=tuple(beat.get("characters", [])),
-            location=beat.get("location", ""),
-            narrator=beat.get("narrator", ""),
-            ember=False,
-        ))
+            chapters.append(
+                StoryChapter(num=len(chapters) + 1, title=f"Chapter {len(chapters) + 1}", beats=[])
+            )
+        chapters[ch_num - 1].beats.append(
+            StoryBeat(
+                num=int(beat.get("id", "").split("_")[-1])
+                if "_" in str(beat.get("id", ""))
+                else len(chapters[ch_num - 1].beats) + 1,
+                title=beat.get("narrator", ""),
+                duration=int(beat.get("duration", 20)),
+                characters=tuple(beat.get("characters", [])),
+                location=beat.get("location", ""),
+                narrator=beat.get("narrator", ""),
+                ember=False,
+            )
+        )
     return StorySpec(chapters=chapters)
 
 
@@ -89,22 +109,29 @@ def _load_spec_from_forge_yaml(path: Path) -> StorySpec:
         source = ch_entry.get("source", "")
         ch_num = int(ch_entry.get("num", "1"))
         ch_title = ch_entry.get("title", f"Chapter {ch_num}")
-        beats_file = project_root / source if source else project_root / "chapters" / f"ch{ch_num:02d}_beats.yaml"
+        beats_file = (
+            project_root / source
+            if source
+            else project_root / "chapters" / f"ch{ch_num:02d}_beats.yaml"
+        )
         beats = []
         if beats_file.is_file():
             beats_data = yaml.safe_load(beats_file.read_text(encoding="utf-8"))
             for b in beats_data.get("beats", []):
-                beats.append(StoryBeat(
-                    num=int(b.get("num", 1)),
-                    title=b.get("title", ""),
-                    duration=int(b.get("duration", 20)),
-                    characters=tuple(b.get("characters", [])),
-                    location=b.get("location", ""),
-                    narrator=b.get("narrator", ""),
-                    ember=b.get("ember", False),
-                ))
+                beats.append(
+                    StoryBeat(
+                        num=int(b.get("num", 1)),
+                        title=b.get("title", ""),
+                        duration=int(b.get("duration", 20)),
+                        characters=tuple(b.get("characters", [])),
+                        location=b.get("location", ""),
+                        narrator=b.get("narrator", ""),
+                        ember=b.get("ember", False),
+                    )
+                )
         chapters.append(StoryChapter(num=ch_num, title=ch_title, beats=beats))
     return StorySpec(chapters=chapters)
+
 
 CatalogIds = frozenset(asset.id for asset in PRODUCTION_CATALOG)
 

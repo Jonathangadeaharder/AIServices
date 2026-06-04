@@ -10,17 +10,14 @@ Covers:
 """
 
 import pytest
-
 from aiservices.translate import (
-    OpenAITranslator,
     NLLBTranslator,
-    BaseTranslator,
+    OpenAITranslator,
     Translation,
+    _lang_to_nllb,
     create_translator,
     translate_text,
-    _lang_to_nllb,
 )
-
 
 # ---------------------------------------------------------------------------
 # Data class tests
@@ -93,9 +90,7 @@ class TestOpenAITranslator:
 
     def test_translate(self, mocker):
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(message=mocker.MagicMock(content="Hola mundo"))
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content="Hola mundo"))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -121,11 +116,7 @@ class TestOpenAITranslator:
 
     def test_translate_with_source_lang(self, mocker):
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(
-                message=mocker.MagicMock(content="Hello world")
-            )
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content="Hello world"))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -139,9 +130,7 @@ class TestOpenAITranslator:
             base_url="http://test:8000/v1",
             api_key="key",
         )
-        result = t.translate(
-            "Hola mundo", target_lang="English", source_lang="Spanish"
-        )
+        result = t.translate("Hola mundo", target_lang="English", source_lang="Spanish")
 
         assert result == "Hello world"
         call_kwargs = mock_client.chat.completions.create.call_args
@@ -151,11 +140,7 @@ class TestOpenAITranslator:
 
     def test_translate_batch(self, mocker):
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(
-                message=mocker.MagicMock(content="Hello\nWorld")
-            )
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content="Hello\nWorld"))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -179,9 +164,7 @@ class TestOpenAITranslator:
         """When API returns fewer lines, pad with empty strings."""
         mock_response = mocker.MagicMock()
         mock_response.choices = [
-            mocker.MagicMock(
-                message=mocker.MagicMock(content="Only one result")
-            )
+            mocker.MagicMock(message=mocker.MagicMock(content="Only one result"))
         ]
 
         mock_client = mocker.MagicMock()
@@ -196,9 +179,7 @@ class TestOpenAITranslator:
             base_url="http://test:8000/v1",
             api_key="key",
         )
-        results = t.translate_batch(
-            ["Line 1", "Line 2", "Line 3"], target_lang="English"
-        )
+        results = t.translate_batch(["Line 1", "Line 2", "Line 3"], target_lang="English")
 
         assert len(results) == 3
         assert results[0] == "Only one result"
@@ -208,11 +189,7 @@ class TestOpenAITranslator:
     def test_translate_batch_count_mismatch_more(self, mocker):
         """When API returns more lines, truncate."""
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(
-                message=mocker.MagicMock(content="A\nB\nC")
-            )
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content="A\nB\nC"))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -234,9 +211,7 @@ class TestOpenAITranslator:
     def test_translate_batch_none_content(self, mocker):
         """Handle None content gracefully."""
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(message=mocker.MagicMock(content=None))
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content=None))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -266,9 +241,8 @@ class TestNLLBTranslator:
         """NLLB should raise ImportError when ctranslate2 not available."""
         # Ensure ctranslate2 is not importable
         import sys as _sys
-        mocker.patch.dict(
-            _sys.modules, {"ctranslate2": None}, clear=False
-        )
+
+        mocker.patch.dict(_sys.modules, {"ctranslate2": None}, clear=False)
 
         t = NLLBTranslator()
         with pytest.raises(ImportError, match="ctranslate2 not installed"):
@@ -322,9 +296,8 @@ class TestCreateTranslator:
     def test_auto_falls_back_to_openai(self, mocker):
         # ctranslate2 fails, openai available
         import sys as _sys
-        mocker.patch.dict(
-            _sys.modules, {"ctranslate2": None}, clear=False
-        )
+
+        mocker.patch.dict(_sys.modules, {"ctranslate2": None}, clear=False)
         mock_openai = mocker.MagicMock()
         mocker.patch.dict("sys.modules", {"openai": mock_openai})
         t = create_translator("auto")
@@ -343,9 +316,7 @@ class TestCreateTranslator:
 class TestTranslateText:
     def test_translate_text(self, mocker):
         mock_response = mocker.MagicMock()
-        mock_response.choices = [
-            mocker.MagicMock(message=mocker.MagicMock(content="Hallo"))
-        ]
+        mock_response.choices = [mocker.MagicMock(message=mocker.MagicMock(content="Hallo"))]
 
         mock_client = mocker.MagicMock()
         mock_client.chat.completions.create.return_value = mock_response
@@ -354,8 +325,6 @@ class TestTranslateText:
         mock_openai.OpenAI.return_value = mock_client
         mocker.patch.dict("sys.modules", {"openai": mock_openai})
 
-        result = translate_text(
-            "Hello", target_lang="German", provider="openai"
-        )
+        result = translate_text("Hello", target_lang="German", provider="openai")
 
         assert result == "Hallo"

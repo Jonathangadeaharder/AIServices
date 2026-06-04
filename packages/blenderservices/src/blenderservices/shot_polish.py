@@ -25,7 +25,7 @@ class PolishResult:
     message: str
 
 
-def _mood_for_character(plan: EpisodeShotPlan, char_id: str) -> dict[str, float]:
+def _mood_for_character(plan: EpisodeShotPlan, char_id: str) -> dict[str, float]:  # noqa: C901
     notes = plan.notes.lower()
     action = plan.character_actions.get(char_id, "idle")
     mood: dict[str, float] = {}

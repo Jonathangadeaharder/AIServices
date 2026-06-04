@@ -1,6 +1,7 @@
 """Carved-wood and grimdark material builders.
 
-Import specific modules directly (e.g. ``from blenderservices.materials.grimdark import build_carved_wood``).
+Import specific modules directly
+(e.g. ``from blenderservices.materials.grimdark import build_carved_wood``).
 These submodules require ``bpy``, so they can only be imported inside Blender.
 """
 

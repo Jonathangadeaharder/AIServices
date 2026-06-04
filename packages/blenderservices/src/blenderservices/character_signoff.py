@@ -147,7 +147,7 @@ def sync_reference_plates(asset_dir: Path) -> list[Path]:
     return written
 
 
-def evaluate_signoff(
+def evaluate_signoff(  # noqa: C901
     character_id: str,
     inspection: CharacterInspection,
     *,
@@ -208,7 +208,7 @@ def evaluate_signoff(
     return findings
 
 
-def apply_signoff(
+def apply_signoff(  # noqa: C901
     manifest_path: Path,
     inspection: CharacterInspection,
     *,
