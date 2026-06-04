@@ -1207,7 +1207,7 @@ def _run_keyframe_pipeline(
     pipe.generate_and_save(
         prompt=prompt,
         output_path=str(output_path),
-        keyframe_images=[start_image, end_image],
+        keyframe_images=[img for img in (start_image, end_image) if img is not None] or None,
         keyframe_indices=[0, num_frames - 1],
         height=height,
         width=width,
