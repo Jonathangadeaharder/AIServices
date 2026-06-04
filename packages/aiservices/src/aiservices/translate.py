@@ -136,7 +136,7 @@ class OpenAITranslator(BaseTranslator):
             max_tokens=len(text) * 3,
             temperature=0.1,
         )
-        translated = resp.choices[0].message.content.strip()
+        translated = (resp.choices[0].message.content or "").strip()
         logger.info("openai_translate_done", chars=len(translated))
         return translated
 

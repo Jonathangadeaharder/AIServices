@@ -71,6 +71,7 @@ def test_transcribe_with_language(tmp_path, mocker):
         ["--input", "/tmp/audio.wav", "--output", str(out), "--language", "de"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.language == "de"
 
 
@@ -85,6 +86,7 @@ def test_transcribe_with_model(tmp_path, mocker):
         ["--input", "/tmp/audio.wav", "--output", str(out), "--model", "custom-model"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.model_name == "custom-model"
 
 

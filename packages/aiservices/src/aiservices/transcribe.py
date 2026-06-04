@@ -145,6 +145,8 @@ class MLXWhisperTranscriber(BaseTranscriber):
         ]
 
         detected_lang = result.get("language", language)
+        if not isinstance(detected_lang, str):
+            detected_lang = language
 
         logger.info(
             "mlx_transcribe_done",

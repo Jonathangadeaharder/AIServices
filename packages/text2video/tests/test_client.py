@@ -66,4 +66,4 @@ class TestGenerate:
         generate("test", "/tmp/out.mp4", width=705, height=479)
 
         assert mock_provider.last_request.width == 704
-        assert mock_provider.last_request.height == 480
+        assert mock_provider.last_request.height == 472

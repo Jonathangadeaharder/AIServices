@@ -38,10 +38,12 @@ class MultimodalJudge:
         ]
 
         response = self.client.chat.completions.create(
-            model=self.model, messages=[{"role": "user", "content": content}], max_tokens=500
+            model=self.model,
+            messages=[{"role": "user", "content": content}],
+            max_tokens=500,  # type: ignore[arg-type]
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
 
     def judge_video(self, video_path: str, prompt: str, frame_count: int = 5) -> str:
         """
@@ -69,10 +71,12 @@ class MultimodalJudge:
             )
 
         response = self.client.chat.completions.create(
-            model=self.model, messages=[{"role": "user", "content": content}], max_tokens=500
+            model=self.model,
+            messages=[{"role": "user", "content": content}],
+            max_tokens=500,  # type: ignore[arg-type]
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
 
     def _extract_frames(self, video_path: str, count: int) -> list[Image.Image]:
         cap = cv2.VideoCapture(video_path)

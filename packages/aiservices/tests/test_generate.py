@@ -646,9 +646,10 @@ class TestVideoGenerator:
 
 class TestRunVideoPipeline:
     def test_unknown_mode_raises(self, tmp_path):
+        pytest.importorskip("ltx_pipelines_mlx")
         with pytest.raises(ValueError, match="Unknown video mode"):
             _run_video_pipeline(
-                mode="nonexistent",
+                mode="nonexistent",  # type: ignore[arg-type]
                 prompt="test",
                 output_path=str(tmp_path / "out.mp4"),
                 model_dir="dgrauet/ltx-2.3-mlx-q8",
@@ -894,7 +895,7 @@ class TestVideoGeneratorLoRA:
     def test_with_lora_invalid_type(self):
         gen = VideoGenerator()
         with pytest.raises(TypeError, match="Expected LoRAAdapter or tuple"):
-            gen.with_lora(42)
+            gen.with_lora(42)  # type: ignore[arg-type]
 
     def test_resolve_video_lora_explicit_overrides_with_lora(self):
         gen = VideoGenerator()

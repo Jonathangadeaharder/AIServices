@@ -65,4 +65,5 @@ class TestGenerate:
 
         generate("/tmp/audio.wav", "/tmp/out.srt", language="de")
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.language == "de"
