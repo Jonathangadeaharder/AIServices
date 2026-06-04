@@ -44,9 +44,9 @@ def add_shape_keys(obj, names: Iterable[str]) -> None:
             obj.shape_key_add(name=n, from_mix=False)
 
 
-def enable_freestyle_ink(thickness: float = 2.4) -> None:
+def enable_freestyle_ink(thickness: float = 2.4, scene: bpy.types.Scene | None = None) -> None:
     """Enable freestyle on the active scene with the GrimDark settings."""
-    scene = bpy.context.scene
+    scene = scene or bpy.context.scene
     scene.render.use_freestyle = True
 
     vl = scene.view_layers[0]
@@ -88,9 +88,9 @@ def enable_freestyle_ink(thickness: float = 2.4) -> None:
         m.wavelength = 12.0
 
 
-def apply_grimdark_render_settings() -> None:
+def apply_grimdark_render_settings(scene: bpy.types.Scene | None = None) -> None:
     """The render preset every shot starts from. See docs/00_pipeline.md."""
-    scene = bpy.context.scene
+    scene = scene or bpy.context.scene
     # EEVEE Next is the only engine
     scene.render.engine = (
         "BLENDER_EEVEE_NEXT"
@@ -113,7 +113,7 @@ def apply_grimdark_render_settings() -> None:
             break
         except TypeError:
             continue
-    enable_freestyle_ink()
+    enable_freestyle_ink(scene=scene)
 
     # world ambient is solid ink (no HDRI, ever)
     world = scene.world or bpy.data.worlds.new("grimdark_dark")

@@ -9,7 +9,7 @@ import bpy
 from blenderservices.bpy_common import blender_argv
 
 
-def parse_out_arg(default: str | None = None) -> str:
+def parse_out_arg(default: str | None = None) -> str | None:
     """Pull --out from argv after the `--` separator that Blender passes."""
     argv = blender_argv()
     parser = argparse.ArgumentParser()

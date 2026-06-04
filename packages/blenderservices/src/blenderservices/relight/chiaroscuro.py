@@ -210,9 +210,12 @@ def _add_window_lights() -> int:
     added = 0
     for win in windows:
         loc = win.matrix_world.translation
-        # Push the light just outside the window, away from the world origin.
         outward = loc.copy()
-        outward.normalize()
+        _EPS = 1e-6
+        if outward.length < _EPS:
+            outward = Vector((0.0, 1.0, 0.0))
+        else:
+            outward.normalize()
         light_loc = loc + outward * 0.4
         bpy.ops.object.light_add(type="AREA", location=tuple(light_loc))
         lo = bpy.context.object
@@ -220,8 +223,9 @@ def _add_window_lights() -> int:
         lo.data.energy = 30.0
         lo.data.color = (0.6, 0.7, 1.0)
         lo.data.size = 0.8
-        # Aim the area light back at the window.
         direction = loc - light_loc
+        if direction.length < _EPS:
+            direction = Vector((0.0, 0.0, -1.0))
         lo.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
         added += 1
     return added

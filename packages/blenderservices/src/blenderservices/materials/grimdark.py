@@ -1141,7 +1141,7 @@ def apply_grimdark_view(
 ) -> None:
     """Production render preset; optional fast probe resolution."""
     scene = scene or bpy.context.scene
-    apply_grimdark_render_settings()
+    apply_grimdark_render_settings(scene=scene)
     # Look names are view-transform-specific: "High Contrast" is Filmic-only and silently
     # no-ops/errors under AgX. Try AgX-punchy contrast first, then generic, then none.
     for _look in ("AgX - Punchy", "AgX - High Contrast", "High Contrast", "None"):

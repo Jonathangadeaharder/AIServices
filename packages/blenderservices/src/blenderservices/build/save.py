@@ -7,9 +7,19 @@ import os
 import bpy
 
 
-def repo_root() -> str:
-    """Repository root (parent of tools/)."""
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+def project_root() -> str:
+    """Project root: walk upward from this file until a sentinel is found."""
+    cur = os.path.dirname(os.path.abspath(__file__))
+    _SENTINELS = (".project.md", "project.forge.yaml", ".git", "pyproject.toml")
+    for _ in range(10):
+        for s in _SENTINELS:
+            if os.path.exists(os.path.join(cur, s)):
+                return cur
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            break
+        cur = parent
+    return cur
 
 
 def resolve_blend_path(blend_path: str) -> str:
@@ -18,7 +28,7 @@ def resolve_blend_path(blend_path: str) -> str:
         return blend_path
     if os.path.isfile(blend_path):
         return os.path.abspath(blend_path)
-    from_repo = os.path.join(repo_root(), blend_path)
+    from_repo = os.path.join(project_root(), blend_path)
     if os.path.isfile(from_repo):
         return os.path.abspath(from_repo)
     return os.path.abspath(blend_path)
@@ -27,7 +37,7 @@ def resolve_blend_path(blend_path: str) -> str:
 def normalize_library_paths(output_path: str) -> None:
     """Rewrite linked library paths relative to the file being saved."""
     blend_dir = os.path.dirname(os.path.abspath(output_path))
-    asset_root = os.path.join(repo_root(), "assets_3d")
+    asset_root = os.path.join(project_root(), "assets_3d")
     for lib in bpy.data.libraries:
         abs_path = bpy.path.abspath(lib.filepath, start=blend_dir)
         if not os.path.isfile(abs_path):
