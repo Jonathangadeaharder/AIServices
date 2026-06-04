@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       UV_PYTHON: "3.12"
     steps:
@@ -40,7 +40,7 @@ jobs:
         run: uvx pyright
 
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -79,7 +79,7 @@ jobs:
         run: uv run pytest packages/${{ matrix.module }}/tests/ -q
 
   smoke-install:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 4
