@@ -65,5 +65,6 @@ class TestTranscribe:
 
         transcribe("/tmp/video.mp4", "/tmp/out.vtt", language="de", output_format="vtt")
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.language == "de"
         assert mock_provider.last_request.output_format == "vtt"

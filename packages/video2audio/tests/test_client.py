@@ -65,5 +65,6 @@ class TestExtract:
 
         extract("/tmp/video.mp4", "/tmp/out.mp3", output_format="mp3", sample_rate=44100)
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.output_format == "mp3"
         assert mock_provider.last_request.sample_rate == 44100

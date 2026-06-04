@@ -75,6 +75,7 @@ def test_extract_codec_option(tmp_path, mocker):
         ["--input", "/tmp/video.mp4", "--output", str(out), "--codec", "mp3"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.output_format == "mp3"
 
 

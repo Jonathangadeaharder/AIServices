@@ -66,5 +66,6 @@ class TestGenerate:
 
         generate("Hello", "/tmp/out.wav", emotion="happy", voice_id="v1")
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.emotion == "happy"
         assert mock_provider.last_request.voice_id == "v1"

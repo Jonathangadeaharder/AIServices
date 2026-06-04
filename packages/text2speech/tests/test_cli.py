@@ -69,4 +69,5 @@ def test_generate_with_voice(tmp_path, mocker):
         ["--text", "Hello", "--output", str(out), "--voice", "char_1"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.text == "Hello"

@@ -87,6 +87,7 @@ def test_transcribe_language(tmp_path, mocker):
         ["--input", str(video), "--output", str(tmp_path / "out.srt"), "--language", "en"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.language == "en"
 
 

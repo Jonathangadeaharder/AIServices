@@ -84,6 +84,7 @@ def test_generate_with_options(mocker, tmp_path):
         ],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.num_frames == 97
     assert mock_provider.last_request.fps == 24
     assert mock_provider.last_request.width == 704
