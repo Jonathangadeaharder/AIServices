@@ -25,7 +25,7 @@ class FishMLXProvider(BaseProvider):
             model_path: Path | str = (
                 Path(self.model_name) if Path(self.model_name).exists() else self.model_name
             )
-            self._model = load_model(model_path)
+            self._model = load_model(model_path)  # type: ignore[arg-type]
         return self._model
 
     def _build_text(self, request: Text2SpeechRequest) -> str:

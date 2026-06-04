@@ -276,7 +276,7 @@ def _validate_manifest_contract(path: Path, manifest: Manifest) -> list[Manifest
     return issues
 
 
-def _validate_shot_references(
+def _validate_shot_references(  # noqa: C901
     path: Path,
     shot: ShotManifest,
     manifests_by_id: dict[str, tuple[Path, Manifest]],

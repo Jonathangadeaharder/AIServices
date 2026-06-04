@@ -86,7 +86,7 @@ def _patch_shot_blend(
     return subprocess.run(patch_cmd, capture_output=True, text=True, check=False)
 
 
-def scaffold_shot_from_plan(
+def scaffold_shot_from_plan(  # noqa: C901
     plan: EpisodeShotPlan,
     target_dir: Path,
     repo_root: Path,

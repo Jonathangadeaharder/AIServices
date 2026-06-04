@@ -16,6 +16,7 @@ def generate(
     text: str = typer.Option(..., "--text", "-t", help="Text to convert to speech"),
     output: str = typer.Option(..., "--output", "-o", help="Path to save output audio file"),
     provider_name: str = typer.Option("text2speech.fish_mlx", "--provider", help="Provider name"),
+    voice: str | None = typer.Option(None, "--voice", help="Voice ID or reference audio path"),
     verbose: bool = verbose_option,
     device: str = device_option,
 ):
@@ -25,6 +26,7 @@ def generate(
     try:
         request = Text2SpeechRequest(
             text=text,
+            voice_id=voice,
         )
 
         with create_progress_bar() as progress:

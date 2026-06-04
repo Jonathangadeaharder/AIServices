@@ -3,8 +3,10 @@ from video2subtitle.cli import app
 
 runner = CliRunner()
 
+
 class _RecordingProvider:
     """Test double that captures requests instead of mocking call patterns."""
+
     def __init__(self):
         self.last_request = None
         self.last_output_path = None
@@ -17,12 +19,14 @@ class _RecordingProvider:
 
 class _ProviderResponse:
     """Minimal response stub for provider.generate()."""
+
     def __init__(self, output_path):
         self.output_path = output_path
         self.metadata = {}
         self.duration_seconds = None
         self.entries = []
         self.language = None
+
 
 def test_transcribe_success(tmp_path, mocker):
     mock_registry = mocker.patch("video2subtitle.cli.registry")
@@ -44,6 +48,7 @@ def test_transcribe_success(tmp_path, mocker):
     assert result.exit_code == 0
     assert str(out) in result.output
 
+
 def test_transcribe_error(mocker):
     mock_registry = mocker.patch("video2subtitle.cli.registry")
     mock_registry.get.side_effect = RuntimeError("provider failed")
@@ -53,6 +58,7 @@ def test_transcribe_error(mocker):
         ["--input", "/tmp/nonexistent.mp4", "--output", "/tmp/out.srt"],
     )
     assert result.exit_code == 1
+
 
 def test_transcribe_default_output(tmp_path, mocker):
     mock_registry = mocker.patch("video2subtitle.cli.registry")
@@ -68,6 +74,7 @@ def test_transcribe_default_output(tmp_path, mocker):
     assert result.exit_code == 0
     assert mock_provider.last_output_path == str(tmp_path / "video.srt")
 
+
 def test_transcribe_language(tmp_path, mocker):
     mock_registry = mocker.patch("video2subtitle.cli.registry")
     mock_provider = _RecordingProvider()
@@ -80,7 +87,9 @@ def test_transcribe_language(tmp_path, mocker):
         ["--input", str(video), "--output", str(tmp_path / "out.srt"), "--language", "en"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.language == "en"
+
 
 def test_burn_in_flag(tmp_path, mocker):
     mock_registry = mocker.patch("video2subtitle.cli.registry")
@@ -102,6 +111,7 @@ def test_burn_in_flag(tmp_path, mocker):
     )
     assert result.exit_code == 0
     assert "Burned-in video saved to" in result.output
+
 
 def test_input_not_found(mocker):
     mocker.patch("video2subtitle.cli.registry")

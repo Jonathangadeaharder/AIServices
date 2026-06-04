@@ -11,20 +11,16 @@ Covers:
 """
 
 import pytest
-from pathlib import Path
-
 from aiservices.transcribe import (
-    MLXWhisperTranscriber,
     FasterWhisperTranscriber,
-    BaseTranscriber,
+    MLXWhisperTranscriber,
     Segment,
     TranscriptionResult,
+    _fmt_time,
     create_transcriber,
     transcribe,
     transcribe_to_srt,
-    _fmt_time,
 )
-
 
 # ---------------------------------------------------------------------------
 # Data class tests
@@ -113,14 +109,10 @@ class TestMLXWhisperTranscriber:
         mock_mlx = mocker.MagicMock()
         mock_mlx.transcribe.return_value = {
             "text": "hello world",
-            "segments": [
-                {"start": 0.0, "end": 2.0, "text": "hello world"}
-            ],
+            "segments": [{"start": 0.0, "end": 2.0, "text": "hello world"}],
             "language": "en",
         }
-        sys_modules_patcher = mocker.patch.dict(
-            "sys.modules", {"mlx_whisper": mock_mlx}
-        )
+        mocker.patch.dict("sys.modules", {"mlx_whisper": mock_mlx})
 
         t = MLXWhisperTranscriber()
         result = t.transcribe("/path/to/audio.wav", language="en")
@@ -171,9 +163,8 @@ class TestMLXWhisperTranscriber:
     def test_transcribe_import_error(self, mocker):
         # Force mlx_whisper to not be importable
         import sys as _sys
-        mocker.patch.dict(
-            _sys.modules, {"mlx_whisper": None}, clear=False
-        )
+
+        mocker.patch.dict(_sys.modules, {"mlx_whisper": None}, clear=False)
 
         t = MLXWhisperTranscriber()
         with pytest.raises(ImportError, match="mlx-whisper not installed"):
@@ -209,9 +200,7 @@ class TestFasterWhisperTranscriber:
         assert t._model is None
 
     def test_custom_init(self):
-        t = FasterWhisperTranscriber(
-            model_size="large", device="cuda", compute_type="float16"
-        )
+        t = FasterWhisperTranscriber(model_size="large", device="cuda", compute_type="float16")
         assert t._model_size == "large"
         assert t._device == "cuda"
         assert t._compute_type == "float16"
@@ -237,16 +226,12 @@ class TestFasterWhisperTranscriber:
         model2 = t._get_model()  # Should return cached
 
         assert model is model2
-        mock_whisper_model.assert_called_once_with(
-            "base", device="cpu", compute_type="float32"
-        )
+        mock_whisper_model.assert_called_once_with("base", device="cpu", compute_type="float32")
 
     def test_transcribe(self, mocker):
         mock_fw = mocker.MagicMock()
         mock_model_instance = mocker.MagicMock()
-        mock_fw.WhisperModel = mocker.MagicMock(
-            return_value=mock_model_instance
-        )
+        mock_fw.WhisperModel = mocker.MagicMock(return_value=mock_model_instance)
         mocker.patch.dict("sys.modules", {"faster_whisper": mock_fw})
 
         # Mock segments iterator
@@ -343,9 +328,7 @@ class TestTranscribeToSrt:
         mocker.patch.dict("sys.modules", {"mlx_whisper": mock_mlx})
 
         out_file = tmp_path / "subtitles.srt"
-        result_path = transcribe_to_srt(
-            "/audio.wav", out_file, language="en", provider="mlx"
-        )
+        result_path = transcribe_to_srt("/audio.wav", out_file, language="en", provider="mlx")
 
         assert result_path == out_file
         assert out_file.exists()

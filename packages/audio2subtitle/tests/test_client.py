@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
 
+
 class _RecordingProvider:
     """Test double that captures requests instead of mocking call patterns."""
+
     def __init__(self):
         self.last_request = None
         self.last_output_path = None
@@ -14,12 +16,14 @@ class _RecordingProvider:
 
 class _ProviderResponse:
     """Minimal response stub for provider.generate()."""
+
     def __init__(self, output_path):
         self.output_path = output_path
         self.metadata = {}
         self.duration_seconds = None
         self.entries = []
         self.language = None
+
 
 class TestGenerate:
     @patch("audio2subtitle.providers.registry")
@@ -61,4 +65,5 @@ class TestGenerate:
 
         generate("/tmp/audio.wav", "/tmp/out.srt", language="de")
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.language == "de"

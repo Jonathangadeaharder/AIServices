@@ -15,7 +15,6 @@ Audio operations use mlx_audio Python API.
 from __future__ import annotations
 
 import subprocess
-import shutil
 import tempfile
 from dataclasses import dataclass
 from enum import Enum
@@ -33,7 +32,9 @@ except ImportError:
         def warning(self, *a, **k):
             pass
 
-    get_logger = lambda n: _Log()
+    def get_logger(n):
+        return _Log()
+
 
 logger = get_logger(__name__)
 
@@ -117,7 +118,7 @@ class ImageFrame:
 # ---------------------------------------------------------------------------
 
 
-class VideoMode(str, Enum):
+class VideoMode(str, Enum):  # noqa: UP042
     """Supported video generation modes.
 
     Each mode maps to a different ltx-pipelines-mlx pipeline class.
@@ -304,9 +305,7 @@ class ImageGenerator:
 
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode != 0:
-            raise RuntimeError(
-                f"mflux-train failed:\n{result.stderr[-800:]}"
-            )
+            raise RuntimeError(f"mflux-train failed:\n{result.stderr[-800:]}")
 
         logger.info("lora_train_complete", output=str(output_dir))
         return output_dir
@@ -406,9 +405,7 @@ def _text2image(
 
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
-        raise RuntimeError(
-            f"mflux-generate-flux2 failed (seed={seed}):\n{result.stderr[-800:]}"
-        )
+        raise RuntimeError(f"mflux-generate-flux2 failed (seed={seed}):\n{result.stderr[-800:]}")
     if not out_path.exists():
         raise RuntimeError(f"mflux-generate-flux2 produced no output at {out_path}")
 
@@ -462,14 +459,10 @@ def _image2image(
             f"mflux-generate-flux2-edit failed (seed={seed}):\n{result.stderr[-800:]}"
         )
     if not out_path.exists():
-        raise RuntimeError(
-            f"mflux-generate-flux2-edit produced no output at {out_path}"
-        )
+        raise RuntimeError(f"mflux-generate-flux2-edit produced no output at {out_path}")
 
     logger.info("image2image_complete", path=str(out_path), seed=seed, steps=steps)
-    return ImageFrame(
-        path=out_path, prompt=prompt, seed=seed, width=1024, height=1024
-    )
+    return ImageFrame(path=out_path, prompt=prompt, seed=seed, width=1024, height=1024)
 
 
 # ---------------------------------------------------------------------------
@@ -612,9 +605,7 @@ class AudioGenerator:
         try:
             from mlx_audio.tts.generate import generate_audio as _gen_audio  # type: ignore[import]
         except ImportError as e:
-            raise ImportError(
-                "mlx-audio not installed (pip install mlx-audio)"
-            ) from e
+            raise ImportError("mlx-audio not installed (pip install mlx-audio)") from e
 
         # Directory output with prefix: mlx_audio writes {prefix}_000.wav etc.
         if file_prefix:
@@ -632,9 +623,7 @@ class AudioGenerator:
             )
             expected = out / f"{file_prefix}_000.{audio_format}"
             if not expected.exists():
-                raise RuntimeError(
-                    f"Audio generation produced no output at {expected}"
-                )
+                raise RuntimeError(f"Audio generation produced no output at {expected}")
             return expected
 
         # Single file mode
@@ -759,7 +748,7 @@ class VideoGenerator:
         new_gen._lora_adapters = list(self._lora_adapters) + resolved
         return new_gen
 
-    def generate(
+    def generate(  # noqa: C901
         self,
         prompt: str,
         output: str | Path,
@@ -846,7 +835,11 @@ class VideoGenerator:
         resolved_lora = self._resolve_video_lora(lora_paths)
 
         # Auto-detect ic-lora mode when lora_paths + video_conditioning given
-        if resolved_lora and video_conditioning and mode not in (VideoMode.IC_LORA, VideoMode.HDR_IC_LORA):
+        if (
+            resolved_lora
+            and video_conditioning
+            and mode not in (VideoMode.IC_LORA, VideoMode.HDR_IC_LORA)
+        ):
             mode = VideoMode.IC_LORA
 
         if mode in (VideoMode.IC_LORA, VideoMode.HDR_IC_LORA) and not resolved_lora:
@@ -929,17 +922,19 @@ class VideoGenerator:
             )
 
         cmd = [
-            "uv", "run", "ltx-2-mlx", "train",
-            "--config", str(config_path),
+            "uv",
+            "run",
+            "ltx-2-mlx",
+            "train",
+            "--config",
+            str(config_path),
         ]
 
         logger.info("video_lora_train_start", config=str(config_path))
 
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode != 0:
-            raise RuntimeError(
-                f"ltx-2-mlx train failed:\n{result.stderr[-800:]}"
-            )
+            raise RuntimeError(f"ltx-2-mlx train failed:\n{result.stderr[-800:]}")
 
         output = Path(output_dir) if output_dir else Path("output")
         logger.info("video_lora_train_complete", output=str(output))
@@ -979,11 +974,18 @@ class VideoGenerator:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         cmd = [
-            "uv", "run", "ltx-2-mlx", "preprocess",
-            "--videos", str(videos_dir),
-            "--output", str(output_dir),
-            "--model", self.model_dir,
-            "--max-frames", str(max_frames),
+            "uv",
+            "run",
+            "ltx-2-mlx",
+            "preprocess",
+            "--videos",
+            str(videos_dir),
+            "--output",
+            str(output_dir),
+            "--model",
+            self.model_dir,
+            "--max-frames",
+            str(max_frames),
         ]
 
         if captions_dir:
@@ -1001,9 +1003,7 @@ class VideoGenerator:
 
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode != 0:
-            raise RuntimeError(
-                f"ltx-2-mlx preprocess failed:\n{result.stderr[-800:]}"
-            )
+            raise RuntimeError(f"ltx-2-mlx preprocess failed:\n{result.stderr[-800:]}")
 
         logger.info("video_preprocess_complete", output=str(output_dir))
         return output_dir
@@ -1039,8 +1039,7 @@ def _run_video_pipeline(
         import ltx_pipelines_mlx  # type: ignore[import]  # noqa: F401
     except ImportError as e:
         raise ImportError(
-            "ltx-pipelines-mlx not installed. "
-            "Install from: https://github.com/dgrauet/ltx-2-mlx"
+            "ltx-pipelines-mlx not installed. Install from: https://github.com/dgrauet/ltx-2-mlx"
         ) from e
 
     output = Path(output_path)
@@ -1208,7 +1207,7 @@ def _run_keyframe_pipeline(
     pipe.generate_and_save(
         prompt=prompt,
         output_path=str(output_path),
-        keyframe_images=[start_image, end_image],
+        keyframe_images=[img for img in (start_image, end_image) if img is not None] or None,
         keyframe_indices=[0, num_frames - 1],
         height=height,
         width=width,
@@ -1221,9 +1220,7 @@ def _run_keyframe_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"Keyframe pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"Keyframe pipeline produced no output at {output_path}")
 
     logger.info(
         "video_keyframe_complete",
@@ -1280,9 +1277,7 @@ def _run_two_stage_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"Two-stage pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"Two-stage pipeline produced no output at {output_path}")
 
     logger.info("video_two_stage_complete", path=str(output_path))
     return output_path
@@ -1374,9 +1369,7 @@ def _run_distilled_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"Distilled pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"Distilled pipeline produced no output at {output_path}")
 
     logger.info("video_distilled_complete", path=str(output_path))
     return output_path
@@ -1419,9 +1412,7 @@ def _run_one_stage_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"One-stage pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"One-stage pipeline produced no output at {output_path}")
 
     logger.info("video_one_stage_complete", path=str(output_path))
     return output_path
@@ -1483,9 +1474,7 @@ def _run_ic_lora_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"IC-LoRA pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"IC-LoRA pipeline produced no output at {output_path}")
 
     logger.info("video_ic_lora_complete", path=str(output_path))
     return output_path
@@ -1547,9 +1536,7 @@ def _run_hdr_ic_lora_pipeline(
     )
 
     if not output_path.exists():
-        raise RuntimeError(
-            f"HDR IC-LoRA pipeline produced no output at {output_path}"
-        )
+        raise RuntimeError(f"HDR IC-LoRA pipeline produced no output at {output_path}")
 
     logger.info("video_hdr_ic_lora_complete", path=str(output_path))
     return output_path

@@ -61,6 +61,7 @@ reportAttributeAccessIssue = "none"
 reportCallIssue = "none"
 exclude = [
     ".venv/**",
+    "packages/blenderservices/**",
 ]
 
 [tool.pytest.ini_options]

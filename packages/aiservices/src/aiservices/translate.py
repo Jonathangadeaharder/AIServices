@@ -23,6 +23,7 @@ except ImportError:
     class Log:
         def info(self, *a, **k):
             pass
+
         def warning(self, *a, **k):
             pass
 
@@ -41,6 +42,7 @@ logger = get_logger(__name__)
 @dataclass
 class Translation:
     """Result of a single translation operation."""
+
     text: str
     source_lang: str | None
     target_lang: str
@@ -53,7 +55,7 @@ class Translation:
 
 class BaseTranslator(ABC):
     """Abstract translator — all providers implement this.
-    
+
     Callers depend on this interface, not concrete providers.
     """
 
@@ -76,10 +78,7 @@ class BaseTranslator(ABC):
         source_lang: str | None = None,
     ) -> list[str]:
         """Translate multiple texts."""
-        return [
-            self.translate(t, target_lang, source_lang=source_lang)
-            for t in texts
-        ]
+        return [self.translate(t, target_lang, source_lang=source_lang) for t in texts]
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +88,7 @@ class BaseTranslator(ABC):
 
 class OpenAITranslator(BaseTranslator):
     """Cloud translation via OpenAI-compatible API.
-    
+
     Uses JUDGE_API_URL / JUDGE_MODEL / JUDGE_API_KEY env vars.
     Default: localhost:8000/v1 with nemotron-omni.
     """
@@ -137,7 +136,7 @@ class OpenAITranslator(BaseTranslator):
             max_tokens=len(text) * 3,
             temperature=0.1,
         )
-        translated = resp.choices[0].message.content.strip()
+        translated = (resp.choices[0].message.content or "").strip()
         logger.info("openai_translate_done", chars=len(translated))
         return translated
 
@@ -202,7 +201,7 @@ class OpenAITranslator(BaseTranslator):
 
 class NLLBTranslator(BaseTranslator):
     """Local translation via CTranslate2 NLLB model.
-    
+
     Requires ctranslate2 (GPU-only dependency, not always available).
     Falls back to error when not installed.
     """
@@ -348,11 +347,13 @@ def create_translator(provider: str | None = None) -> BaseTranslator:
     if name == "auto":
         try:
             import ctranslate2  # type: ignore[import]  # noqa: F401
+
             return NLLBTranslator()
         except ImportError:
             pass
         try:
             from openai import OpenAI  # type: ignore[import]  # noqa: F401
+
             return OpenAITranslator()
         except ImportError:
             pass

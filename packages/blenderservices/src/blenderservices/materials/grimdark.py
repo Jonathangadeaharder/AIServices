@@ -336,7 +336,7 @@ def _grain_color(
     return grain_col, grain.outputs["Fac"]
 
 
-def build_carved_wood(
+def build_carved_wood(  # noqa: C901
     name: str,
     base_rgb: tuple[float, float, float],
     *,
@@ -884,7 +884,7 @@ def _wood_for(char: str | None, slot: str) -> bpy.types.Material:
     return mat
 
 
-def assign_wood_to_meshes(objects: list[bpy.types.Object] | None = None) -> int:
+def assign_wood_to_meshes(objects: list[bpy.types.Object] | None = None) -> int:  # noqa: C901
     """Carved-wood materials on character meshes (per-char tone)."""
     _BUILT_WOOD.clear()
     targets = objects or [o for o in bpy.data.objects if o.type == "MESH"]
@@ -930,7 +930,7 @@ def _set_material_kind(name: str) -> str:
     return "wood"
 
 
-def assign_wood_to_set_meshes() -> int:
+def assign_wood_to_set_meshes() -> int:  # noqa: C901
     """Carved-wood-plank / stone / frosted-glass materials on set meshes. Hearths and
     ovens get chunky stone; windows get frosted cool-glow glass; everything else is
     vertical plank grain + heavy hatch."""

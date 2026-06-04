@@ -1,11 +1,14 @@
 import re
+
 from audio2subtitle.cli import app
 from typer.testing import CliRunner
 
 runner = CliRunner()
 
+
 class _RecordingProvider:
     """Test double that captures requests instead of mocking call patterns."""
+
     def __init__(self):
         self.last_request = None
         self.last_output_path = None
@@ -18,6 +21,7 @@ class _RecordingProvider:
 
 class _ProviderResponse:
     """Minimal response stub for provider.generate()."""
+
     def __init__(self, output_path):
         self.output_path = output_path
         self.metadata = {}
@@ -67,6 +71,7 @@ def test_transcribe_with_language(tmp_path, mocker):
         ["--input", "/tmp/audio.wav", "--output", str(out), "--language", "de"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.language == "de"
 
 
@@ -81,6 +86,7 @@ def test_transcribe_with_model(tmp_path, mocker):
         ["--input", "/tmp/audio.wav", "--output", str(out), "--model", "custom-model"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.model_name == "custom-model"
 
 

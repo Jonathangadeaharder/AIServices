@@ -24,6 +24,7 @@ except ImportError:
     class Log:
         def info(self, *a, **k):
             pass
+
         def warning(self, *a, **k):
             pass
 
@@ -42,6 +43,7 @@ logger = get_logger(__name__)
 @dataclass
 class Segment:
     """A transcribed segment with timing."""
+
     start: float = 0.0
     end: float = 0.0
     text: str = ""
@@ -50,6 +52,7 @@ class Segment:
 @dataclass
 class TranscriptionResult:
     """Result of a transcription operation."""
+
     text: str = ""
     segments: list[Segment] = field(default_factory=list)
     language: str | None = None
@@ -63,14 +66,12 @@ class TranscriptionResult:
 
 class BaseTranscriber(ABC):
     """Abstract transcriber — all providers implement this.
-    
+
     Callers depend on this interface, not concrete providers.
     """
 
     @abstractmethod
-    def transcribe(
-        self, audio_path: str, *, language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe(self, audio_path: str, *, language: str | None = None) -> TranscriptionResult:
         """Transcribe a single audio file."""
         ...
 
@@ -105,7 +106,7 @@ class BaseTranscriber(ABC):
 
 class MLXWhisperTranscriber(BaseTranscriber):
     """Local MLX-accelerated Whisper (Apple Silicon only).
-    
+
     Uses mlx-whisper. Falls back gracefully when not installed.
     Model: mlx-community/whisper-large-v3-turbo
     """
@@ -115,15 +116,11 @@ class MLXWhisperTranscriber(BaseTranscriber):
     def __init__(self, model: str = MODEL):
         self._model = model
 
-    def transcribe(
-        self, audio_path: str, *, language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe(self, audio_path: str, *, language: str | None = None) -> TranscriptionResult:
         try:
             import mlx_whisper  # type: ignore[import]
         except ImportError as e:
-            raise ImportError(
-                "mlx-whisper not installed (Apple Silicon required)"
-            ) from e
+            raise ImportError("mlx-whisper not installed (Apple Silicon required)") from e
 
         logger.info(
             "mlx_transcribe_start",
@@ -148,6 +145,8 @@ class MLXWhisperTranscriber(BaseTranscriber):
         ]
 
         detected_lang = result.get("language", language)
+        if not isinstance(detected_lang, str):
+            detected_lang = language
 
         logger.info(
             "mlx_transcribe_done",
@@ -165,7 +164,7 @@ class MLXWhisperTranscriber(BaseTranscriber):
 
 class FasterWhisperTranscriber(BaseTranscriber):
     """CPU-friendly Whisper via faster-whisper (CTranslate2 backend).
-    
+
     Falls back gracefully when faster-whisper not installed.
     """
 
@@ -200,9 +199,7 @@ class FasterWhisperTranscriber(BaseTranscriber):
             )
         return self._model
 
-    def transcribe(
-        self, audio_path: str, *, language: str | None = None
-    ) -> TranscriptionResult:
+    def transcribe(self, audio_path: str, *, language: str | None = None) -> TranscriptionResult:
         model = self._get_model()
         logger.info("faster_transcribe_start", path=audio_path, language=language)
 
@@ -252,11 +249,13 @@ def create_transcriber(provider: str | None = None) -> BaseTranscriber:
     if name == "auto":
         try:
             import mlx_whisper  # type: ignore[import]  # noqa: F401
+
             return MLXWhisperTranscriber()
         except ImportError:
             pass
         try:
             from faster_whisper import WhisperModel  # type: ignore[import]  # noqa: F401
+
             return FasterWhisperTranscriber()
         except ImportError:
             pass

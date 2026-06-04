@@ -27,7 +27,7 @@ def _cleanup_sys_modules():
     if saved.get("ormsgpack") is None:
         sys.modules.pop("ormsgpack", None)
     else:
-        sys.modules["ormsgpack"] = saved["ormsgpack"]
+        sys.modules["ormsgpack"] = saved["ormsgpack"]  # type: ignore[assignment]
 
 
 def test_model_validation():

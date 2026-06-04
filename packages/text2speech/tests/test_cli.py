@@ -3,8 +3,10 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
+
 class _RecordingProvider:
     """Test double that captures requests instead of mocking call patterns."""
+
     def __init__(self):
         self.last_request = None
         self.last_output_path = None
@@ -17,12 +19,14 @@ class _RecordingProvider:
 
 class _ProviderResponse:
     """Minimal response stub for provider.generate()."""
+
     def __init__(self, output_path):
         self.output_path = output_path
         self.metadata = {}
         self.duration_seconds = None
         self.entries = []
         self.language = None
+
 
 def test_generate_success(tmp_path, mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
@@ -35,11 +39,12 @@ def test_generate_success(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--prompt", "Hello world", "--output", str(out)],
+        ["--text", "Hello world", "--output", str(out)],
     )
     assert result.exit_code == 0
     mock_registry.get.assert_called_once()
     mock_provider.generate.assert_called_once()
+
 
 def test_generate_error(mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
@@ -47,10 +52,11 @@ def test_generate_error(mocker):
 
     result = runner.invoke(
         app,
-        ["--prompt", "test", "--output", "/tmp/out.wav"],
+        ["--text", "test", "--output", "/tmp/out.wav"],
     )
     assert result.exit_code == 1
     mock_registry.get.assert_called_once()
+
 
 def test_generate_with_voice(tmp_path, mocker):
     mock_registry = mocker.patch("text2speech.cli.registry")
@@ -60,7 +66,8 @@ def test_generate_with_voice(tmp_path, mocker):
     out = tmp_path / "out.wav"
     result = runner.invoke(
         app,
-        ["--prompt", "Hello", "--output", str(out), "--voice", "char_1"],
+        ["--text", "Hello", "--output", str(out), "--voice", "char_1"],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.text == "Hello"
