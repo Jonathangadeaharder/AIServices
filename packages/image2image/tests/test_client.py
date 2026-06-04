@@ -70,4 +70,5 @@ class TestGenerate:
 
         generate("/tmp/input.png", "test", output_path="/tmp/out.png", strength=0.8)
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.strength == 0.8

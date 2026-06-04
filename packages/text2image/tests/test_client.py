@@ -65,6 +65,7 @@ class TestGenerate:
 
         generate("test", "/tmp/out.png", width=512, height=512, seed=42)
 
+        assert mock_provider.last_request is not None
         assert mock_provider.last_request.width == 512
         assert mock_provider.last_request.height == 512
         assert mock_provider.last_request.seed == 42

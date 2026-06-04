@@ -81,6 +81,7 @@ def test_generate_custom_dimensions(tmp_path, mocker):
         ],
     )
     assert result.exit_code == 0, "CLI should exit successfully"
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.width == 512, "width should be 512"
     assert mock_provider.last_request.height == 512, "height should be 512"
     assert mock_provider.last_request.seed == 42, "seed should be 42"

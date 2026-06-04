@@ -85,4 +85,5 @@ def test_generate_custom_strength(mocker, tmp_path):
         ],
     )
     assert result.exit_code == 0
+    assert mock_provider.last_request is not None
     assert mock_provider.last_request.strength == 0.8

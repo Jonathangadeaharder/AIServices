@@ -63,7 +63,7 @@ class MultimodalJudge:
         if not frames:
             logger.warning("no_frames_extracted", path=video_path)
 
-        content = [{"type": "text", "text": prompt}]
+        content: list[dict] = [{"type": "text", "text": prompt}]
         for frame in frames:
             b64_image = self._encode_image(frame)
             content.append(
@@ -72,8 +72,8 @@ class MultimodalJudge:
 
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": content}],
-            max_tokens=500,  # type: ignore[arg-type]
+            messages=[{"role": "user", "content": content}],  # type: ignore[arg-type]
+            max_tokens=500,
         )
 
         return response.choices[0].message.content or ""
